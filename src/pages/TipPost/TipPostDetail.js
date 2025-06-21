@@ -26,10 +26,10 @@ function TipPostDetail() {
         setPost(res.data);
       } catch (err) {
         setPost({
-          writer: '기본',
-          title: '본문1 제목',
-          content: '내용4',
-          createdAt: '2025-05-13T19:34:53.52603',
+          writer: 'senior',
+          title: '회의록 정리 팁 – 핵심만 빠르게!',
+          content: '회의 중에 모든 걸 기록하기보다, 결정사항과 담당자 중심으로 메모하세요. 나중에 공유할 때 훨씬 명확해집니다.',
+          createdAt: '2025-06-19T00:02:53.52603',
         });
       }
     };
