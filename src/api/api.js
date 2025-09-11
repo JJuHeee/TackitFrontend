@@ -10,6 +10,19 @@ const api = axios.create({
   },
 });
 
+// ✅ 여기에 추가하면 됩니다
+api.interceptors.request.use((config) => {
+  const isAbsolute = typeof config.url === 'string' && /^https?:\/\//i.test(config.url);
+  if (!isAbsolute && typeof config.url === 'string') {
+    // 1) 앞에 / 있으면 제거
+    let u = config.url.startsWith('/') ? config.url.slice(1) : config.url;
+    // 2) 맨 앞의 api/ 한 번만 제거
+    u = u.replace(/^api\//, '');
+    config.url = `/${u}`;
+  }
+  return config;
+});
+
 
 // 토큰 재발급 함수
 const reissueAccessToken = async () => {
