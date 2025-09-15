@@ -1,115 +1,142 @@
 import axios from "axios";
 
-const BASE_URL = process.env.REACT_APP_API_URL;
+// 1) BASE_URL 안전 기본값
+const BASE_URL = process.env.REACT_APP_API_URL || "/api";
 
-// axios 인스턴스 생성
+// 2) 공용 axios 인스턴스
 const api = axios.create({
   baseURL: BASE_URL,
   headers: {
-    'ngrok-skip-browser-warning': 'any-value',
+    "ngrok-skip-browser-warning": "any-value",
   },
 });
 
-// ✅ 여기에 추가하면 됩니다
 api.interceptors.request.use((config) => {
-  const isAbsolute = typeof config.url === 'string' && /^https?:\/\//i.test(config.url);
-  if (!isAbsolute && typeof config.url === 'string') {
-    // 1) 앞에 / 있으면 제거
-    let u = config.url.startsWith('/') ? config.url.slice(1) : config.url;
-    // 2) 맨 앞의 api/ 한 번만 제거
-    u = u.replace(/^api\//, '');
+  if (!config.url || typeof config.url !== "string") return config;
+  const isAbsolute = /^https?:\/\//i.test(config.url);
+  if (!isAbsolute) {
+    let u = config.url.startsWith("/") ? config.url.slice(1) : config.url;
+    u = u.replace(/^api\//, ""); // 맨 앞의 api/ 한 번만 제거
     config.url = `/${u}`;
   }
   return config;
 });
 
 
-// 토큰 재발급 함수
+let isRefreshing = false;
+let refreshQueue = []; // { resolve, reject }
+
+const processQueue = (error, token = null) => {
+  refreshQueue.forEach((p) => {
+    if (error) p.reject(error);
+    else p.resolve(token);
+  });
+  refreshQueue = [];
+};
+
 const reissueAccessToken = async () => {
   try {
     const refreshToken = localStorage.getItem("refreshToken");
+    if (!refreshToken || refreshToken === "null") {
+      throw Object.assign(new Error("No refresh token"), { status: 401 });
+    }
+
     const response = await axios.post(
       `${BASE_URL}/auth/reissue`,
       null,
       {
-        headers: {
-          Authorization: `Bearer ${refreshToken}`
-        }
+        headers: { Authorization: `Bearer ${refreshToken}` },
       }
     );
-    const { accessToken, refreshToken: newRefreshToken } = response.data;
+
+    const { accessToken, refreshToken: newRefreshToken } = response.data || {};
+    if (!accessToken || !newRefreshToken) {
+      throw Object.assign(new Error("Invalid reissue payload"), { status: 500 });
+    }
 
     localStorage.setItem("accessToken", accessToken);
     localStorage.setItem("refreshToken", newRefreshToken);
 
     return accessToken;
   } catch (error) {
-    const status = error.response?.status;
-    const isAuthError = status === 401 || status === 403;
-  
-    if (isAuthError) {
-      const refreshToken = localStorage.getItem("refreshToken");
-  
-      if (!refreshToken || refreshToken === "null") {
-        // 리프레시 토큰 자체가 없을 때만 로그아웃
-        localStorage.clear();
-        window.location.href = "/login";
-      } else {
-        
-      }
-    }
-  
-    return null;
-  }  
+    // 리프레시 실패는 즉시 세션 정리
+    localStorage.clear();
+    // hard redirect로 상태 초기화
+    window.location.href = "/login";
+    throw error;
+  }
 };
 
-// 요청 인터셉터 (accessToken 자동 첨부)
+const AUTH_FREE = [
+  "/auth/sign-in",
+  "/auth/sign-up",
+  "/auth/check-email-auth",
+  "/auth/check-nickname",
+  "/auth/rejoin",
+  "/auth/reissue", 
+];
+
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("accessToken");
-    const authFreeUrls = [
-      "/auth/sign-in",
-      "/auth/sign-up",
-      "/auth/check-email-auth",
-      "/auth/check-nickname",
-      "/auth/rejoin",
-    ];
-    const isAuthFree = authFreeUrls.some((url) => config.url.includes(url));
+    const urlStr = typeof config.url === "string" ? config.url : "";
+    const isAuthFree = AUTH_FREE.some((u) => urlStr.includes(u));
 
     if (token && !isAuthFree) {
+      config.headers = config.headers || {};
       config.headers.Authorization = `Bearer ${token}`;
     }
-
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-// 응답 인터셉터 (401 → 토큰 재발급 & 요청 재시도)
 api.interceptors.response.use(
-  (response) => response,
+  (res) => res,
   async (error) => {
-    const originalRequest = error.config;
+    const status = error?.response?.status;
+    const originalRequest = error?.config;
 
-    if (
-      error.response &&
-      error.response.status === 401 &&
-      !originalRequest._retry
-    ) {
+    if ((status === 401 || status === 403) && originalRequest && !originalRequest._retry) {
+      // 재발급 자체가 401이면 그냥 실패
+      if (typeof originalRequest.url === "string" && originalRequest.url.includes("/auth/reissue")) {
+        return Promise.reject(error);
+      }
+
       originalRequest._retry = true;
 
-      const newAccessToken = await reissueAccessToken();
+      // 이미 리프레시 중이면 큐에 대기
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          refreshQueue.push({
+            resolve: (newToken) => {
+              originalRequest.headers = originalRequest.headers || {};
+              originalRequest.headers.Authorization = `Bearer ${newToken}`;
+              resolve(api(originalRequest));
+            },
+            reject,
+          });
+        });
+      }
 
-      if (newAccessToken) {
+      // 리프레시 시작
+      isRefreshing = true;
+      try {
+        const newAccessToken = await reissueAccessToken(); // 실패 시 내부에서 세션정리/리다이렉트
+        processQueue(null, newAccessToken);
+        originalRequest.headers = originalRequest.headers || {};
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-        api.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`;
         return api(originalRequest);
+      } catch (e) {
+        processQueue(e, null);
+        throw e;
+      } finally {
+        isRefreshing = false;
       }
     }
 
     return Promise.reject(error);
   }
 );
-
 
 export default api;

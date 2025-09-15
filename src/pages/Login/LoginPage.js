@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "./LoginPage.css";
 import api from "../../api/api";
@@ -11,32 +11,19 @@ function LoginPage() {
   const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
 
-    const handleLogout = useCallback(() => {
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
-      localStorage.removeItem("accessTokenExpiresIn");
-      localStorage.removeItem("grantType");
-      localStorage.removeItem("role");
-      navigate("/login");
-    }, [navigate]); 
+useEffect(() => {
+  const raw = localStorage.getItem("accessTokenExpiresIn");
+  const expMs = raw ? parseInt(raw, 10) : NaN;
+  if (!Number.isFinite(expMs)) return;
 
-  useEffect(() => {
-    const tokenExpiresIn = parseInt(localStorage.getItem("accessTokenExpiresIn"));
-    if (tokenExpiresIn) {
-      const now = Date.now();
-      const timeRemaining = tokenExpiresIn - now;
-      const threshold = 3 * 60 * 1000;
+  const threshold = 3 * 60 * 1000;
+  const warnDelay = Math.max(0, expMs - Date.now() - threshold);
+  const id = setTimeout(() => {
+    alert("세션이 곧 만료됩니다. 자동 연장되거나 다시 로그인해 주세요.");
+  }, warnDelay);
 
-      if (timeRemaining > 0 && timeRemaining <= threshold) {
-        alert("세션이 곧 만료됩니다. 자동 연장되거나 다시 로그인해 주세요.");
-      }
-
-      if (timeRemaining <= 0) {
-        alert("세션이 만료되었습니다. 다시 로그인해 주세요.");
-        handleLogout(); 
-      }
-    }
-  }, [handleLogout]); 
+  return () => clearTimeout(id);
+}, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
