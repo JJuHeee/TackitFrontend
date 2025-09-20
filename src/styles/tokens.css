@@ -1,0 +1,102 @@
+:root {
+  /* Text Styles */
+  --font-sans: Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto,
+    'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', sans-serif;
+
+  --fs-h1: 36px;
+  --lh-h1: 43px;
+  --ls-h1: -0.4px;
+  --fw-h1: 700;
+
+  --fs-title1: 24px;
+  --lh-title1: 32px;
+  --ls-title1: -0.4px;
+  --fw-title1: 700;
+
+  --fs-title2-b: 20px;
+  --lh-title2-b: 28px;
+  --ls-title2-b: -0.3px;
+  --fw-title2-b: 700;
+
+  --fs-title2-m: 20px;
+  --lh-title2-m: 28px;
+  --ls-title2-m: -0.3px;
+  --fw-title2-m: 500;
+
+  --fs-body1-sb: 16px;
+  --lh-body1-sb: 24px;
+  --ls-body1-sb: 0px;
+  --fw-body1-sb: 600;
+
+  --fs-body1-r: 16px;
+  --lh-body1-r: 24px;
+  --ls-body1-r: 0px;
+  --fw-body1-r: 400;
+
+  --fs-body1-rd: 16px;
+  --lh-body1-rd: 26px;
+  --ls-body1-rd: 0px;
+  --fw-body1-rd: 400;
+
+  --fs-body2-sb: 14px;
+  --lh-body2-sb: 20px;
+  --ls-body2-sb: 0.2px;
+  --fw-body2-sb: 600;
+
+  --fs-body2-r: 14px;
+  --lh-body2-r: 20px;
+  --ls-body2-r: 0.2px;
+  --fw-body2-r: 400;
+
+  --fs-caption: 12px;
+  --lh-caption: 16px;
+  --ls-caption: 0.2px;
+  --fw-caption: 400;
+
+  /* Color Styles - Primitive */
+  /* primary */
+  --color-primary-50: #edf1ff;
+  --color-primary-100: #c8d5ff;
+  --color-primary-200: #adc0ff;
+  --color-primary-300: #88a4ff;
+  --color-primary-400: #7192ff;
+  --color-primary-500: #4d77ff;
+  --color-primary-600: #466ce8;
+  --color-primary-700: #3754b5;
+  --color-primary-800: #2a418c;
+  --color-primary-900: #20326b;
+
+  /* Gray */
+  --color-gray-50: #f4f5f6;
+  --color-gray-100: #e6e8ea;
+  --color-gray-200: #cdd1d5;
+  --color-gray-300: #b1b8be;
+  --color-gray-400: #8a949e;
+  --color-gray-500: #6d7882;
+  --color-gray-600: #58616a;
+  --color-gray-700: #464c53;
+  --color-gray-800: #34363d;
+  --color-gray-900: #1f2124;
+
+  /*system*/
+  --system-red: #ff4242;
+
+  /* Semantic */
+  /* Interaction (buttons) */
+  --interaction-normal: var(--color-primary-500);
+  --interaction-hover: var(--color-primary-600);
+  --interaction-active: var(--color-primary-700);
+  --interaction-disable: var(--color-gray-50);
+
+  /* Label (text colors) */
+  --label-normal: var(--color-gray-900);
+  --label-neutral: var(--color-gray-600);
+  --label-assistive: var(--color-gray-300);
+  --label-disable: var(--color-gray-200);
+
+  /* Line (borders) */
+  --line-normal: var(--color-gray-200);
+  --line-focus: var(--color-gray-500);
+  --line-active: var(--color-primary-500);
+  --line-negative: var(--system-red);
+}

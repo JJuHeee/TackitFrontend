@@ -32,7 +32,7 @@ function FreePostDetail() {
   
     const fetchPost = async () => {
       try {
-        const res = await api.get(`/api/free-posts/${id}`);
+        const res = await api.get(`free-posts/${id}`);
         setPost(res.data);
       } catch (err) {
         toast.error('게시글을 불러오는 데 실패했습니다.');
@@ -46,7 +46,7 @@ function FreePostDetail() {
   useEffect(() => {
     const fetchComments = async () => {
       try {
-        const res = await api.get(`/free-comments/${id}`);
+        const res = await api.get(`free-comments/${id}`);
         setComments(res.data);
       } catch (err) {
         setComments([
@@ -61,7 +61,7 @@ function FreePostDetail() {
   // 댓글 삭제
   const handleDeleteComment = async (commentId) => {
     try {
-      await api.delete(`/free-comments/${commentId}`);
+      await api.delete(`free-comments/${commentId}`);
       setComments(prev => prev.filter(c => c.id !== commentId));
       toast.success('댓글이 삭제되었습니다.');
     } catch (err) {
@@ -74,7 +74,7 @@ function FreePostDetail() {
     if (!confirmed) return;
   
     try {
-      await api.post(`/free-comments/${commentId}/report`);
+      await api.post(`free-comments/${commentId}/report`);
       toast.success('댓글을 신고하였습니다.');
     } catch (err) {
       console.error('댓글 신고 실패:', err);
@@ -103,11 +103,11 @@ function FreePostDetail() {
   
     try {
       if (editCommentId) {
-        const res = await api.patch(`/free-comments/${editCommentId}`, { content: trimmed });
+        const res = await api.patch(`free-comments/${editCommentId}`, { content: trimmed });
         setComments(prev => prev.map(c => (c.id === editCommentId ? res.data : c)));
         toast.success('댓글이 수정되었습니다.');
       } else {
-        const res = await api.post('/free-comments', {
+        const res = await api.post('free-comments', {
           freePostId: postIdNumber,
           content: trimmed,
         });
@@ -130,7 +130,7 @@ function FreePostDetail() {
     if (!confirmed) return;
 
     try {
-      await api.delete(`/api/free-posts/${id}`);
+      await api.delete(`/free-posts/${id}`);
       toast.success('게시글이 삭제되었습니다.');
       if (from === 'my-posts') {
         navigate('/free');
@@ -148,7 +148,7 @@ function FreePostDetail() {
       return;
     }
     try {
-      const res = await api.post(`/api/free-posts/${id}/report`);
+      const res = await api.post(`/free-posts/${id}/report`);
       const message = res.data;
 
       if (message === '게시글을 신고하였습니다.') {
@@ -167,7 +167,7 @@ function FreePostDetail() {
 
   const handleScrapToggle = async () => {
     try {
-      const res = await api.post(`/api/free-posts/${id}/scrap`);
+      const res = await api.post(`/free-posts/${id}/scrap`);
   
       const message = res.data; 
   

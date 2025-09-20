@@ -12,14 +12,24 @@ function LoginPage() {
   const navigate = useNavigate();
 
 useEffect(() => {
+  const hasAccessToken = !!localStorage.getItem("accessToken");
+  if (!hasAccessToken) return;
   const raw = localStorage.getItem("accessTokenExpiresIn");
-  const expMs = raw ? parseInt(raw, 10) : NaN;
+  let expMs = raw ? parseInt(raw, 10) : NaN;
   if (!Number.isFinite(expMs)) return;
 
+  if (expMs < 1e12) expMs = expMs * 1000;
+
+  const now = Date.now();
   const threshold = 3 * 60 * 1000;
-  const warnDelay = Math.max(0, expMs - Date.now() - threshold);
+  if (expMs <= now) return;
+
+  const warnDelay = Math.max(0, expMs - now - threshold);
+  if (warnDelay === 0 && sessionStorage.getItem('warnedSoon') === '1') return;
+
   const id = setTimeout(() => {
     alert("세션이 곧 만료됩니다. 자동 연장되거나 다시 로그인해 주세요.");
+    sessionStorage.setItem('warnedSoon', '1');
   }, warnDelay);
 
   return () => clearTimeout(id);
