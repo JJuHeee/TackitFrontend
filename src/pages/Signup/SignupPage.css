@@ -1,136 +1,193 @@
-  .signup-container {
-    width: 100vw;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-  }
+/* 레이아웃 */
+.signup-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: white; /* 배경 살짝 밝게 */
+  position: relative;
+}
 
-  .signup-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem 1rem;
-    background-color: #ffffff;
-    border-bottom: 1px solid #ddd;
-  }
-  
-  .signup-logo {
-    position: absolute;
-    top: 10px;
-    left: 15px;
-  }
-  
-  .signup-logo img {
-    width: 130px;
-    height: 50px;
-  }
-  
+/* 카드 */
+.signup-form-wrapper {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 440px;
+  height: 816px;
+  box-sizing: border-box;
+  max-width: none;
+  padding: 32px 20px 60px;
+  margin-bottom: 0px;
+}
+
+.signup-box {
+  width: 100%;
+  padding: 28px;
+  border: 1px solid #e6ecf3;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 10px 24px rgba(27, 39, 53, 0.06);
+  overflow: auto;
+}
+
+/* 타이틀/상단 안내 */
+.signup-title {
+  text-align: center;
+  font-size: 26px;
+  font-weight: 800;
+  margin-bottom: 20px;
+}
+
+.signup-info {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  color: #6b7a8c;
+  font-size: 14px;
+  margin-bottom: 20px;
+  white-space: normal; /* 한 줄 고정 제거 */
+  transform: none; /* 임시 이동 제거 */
+}
+.warning-icon {
+  width: 18px;
+  height: 18px;
+}
+
+/* 필드 공통 */
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2d3d;
+}
+
+.form-group input {
+  width: 100%;
+  height: 48px;
+  padding: 0 44px 0 14px; /* 우측 아이콘 여백 */
+  font-size: 14px;
+  color: #1f2d3d;
+  background: white;
+  border: 1px solid #cdd1d5;
+  border-radius: 12px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  box-sizing: border-box;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.form-group input::placeholder {
+  color: #8e9398;
+}
+
+.form-group input:focus {
+  border-color: #bfd0ff; /* 포커스 */
+  box-shadow: 0 0 0 3px rgba(77, 119, 255, 0.15);
+  background: #fff;
+}
+
+/* 입력창 안쪽 아이콘(비번 눈) */
+.input-wrap {
+  position: relative;
+}
+.input-wrap .toggle-eye {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  line-height: 0;
+}
+
+/* 하단 메시지(중복 체크 등) */
+.check-message,
+.helper {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #6b7a8c;
+}
+
+/* 역할 영역 */
+.role-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* 두 버튼 같은 너비 */
+  gap: 12px;
+  margin-top: 8px;
+}
+.role-btn {
+  height: 48px;
+  border: 1px solid #cdd1d5;
+  border-radius: 12px;
+  background: #fff;
+  font-weight: 700;
+  color: #1f2d3d;
+  transition: all 0.15s;
+}
+.role-btn:hover {
+  background: #f6f8fb;
+}
+.role-btn.active {
+  border-color: #4d77ff;
+  color: #4d77ff;
+}
+
+/* 제출 버튼 */
+.signup-submit {
+  width: 100%;
+  height: 52px;
+  border: none;
+  border-radius: 12px;
+  background: #4d77ff;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  margin-top: 20px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.signup-submit:disabled {
+  background: #edf1f7;
+  color: #a9b5c3;
+  cursor: not-allowed;
+}
+
+.login-helper {
+  margin-top: 16px;
+  text-align: center;
+  font-size: 14px;
+  color: #58616a;
+}
+
+.login-link {
+  color: #4d77ff;
+  text-decoration: none;
+  font-weight: 600;
+  margin-left: 4px;
+  cursor: pointer;
+}
+
+.login-link:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 560px) {
   .signup-form-wrapper {
-    max-width: 400px;
-    margin: 120px auto 50px ;
-    padding: 0 20px;
-  }
-  
-  .signup-box {
-    width: 130%;
-    max-width: 600px;
-    padding: 2rem;
-    background-color: #ffffff;
-    border: 1px solid #D1DBE8;
-    border-radius: 8px;
-    transform: translateX(-50px)
-  }
-
-  .signup-title {
-    text-align: center;
-    font-size: 24px;
-    font-weight: bold;
-    margin-bottom: 1.5rem;
-  }
-  
-  .signup-info {
-    text-align: center;
-    font-weight: 500;
-    color: #000000;
-    margin-bottom: 2rem;
-    white-space: nowrap; 
-    transform: translateX(-70px); 
-  }
-  
-  .warning-icon {
-    vertical-align: middle; 
-    margin-right: 8px; 
-    width: 20px; 
+    position: static;
+    width: 100%;
+    max-width: 440px;
     height: auto;
+    margin-top: 96px;
+    transform: none;
   }
-  
-  .form-group {
-    margin-bottom: 1rem;
-  }
-  
-  .form-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-  }
-  
-  .form-group input {
-    width: 100%;
-    padding: 10px;
-    box-sizing: border-box;
-    font-size: 14px;
-    background-color: #F0F2F5;  
-    color: #3D4D5C;
-
-    border: 1px solid #F0F2F5;       
-    border-radius: 8px;
-    box-shadow: none;           
-    outline: none;                
-    appearance: none;             
-    -webkit-appearance: none;  
-  }
-
-  .year-select {
-    width: 100%;
-    padding: 10px;
-    box-sizing: border-box;
-    font-size: 14px;
-    background-color: #F0F2F5; 
-    color: #3D4D5C;
-  
-    border: 1px solid #F0F2F5; 
-    border-radius: 8px;       
-    box-shadow: none;
-    outline: none;
-    
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-  
-    background-image: url("data:image/svg+xml;utf8,<svg fill='gray' height='20' viewBox='0 0 24 24' width='20' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
-    background-repeat: no-repeat;
-    background-position: right 10px center;
-    background-size: 20px;
-  }
-  
-  
-  .form-group input::placeholder {
-    color: #3D4D5C; 
-  }
-  
-  .signup-submit {
-    width: 100%;
-    padding: 12px 0;
-    background-color: #4D77FF;
-    border: none;
-    border-radius: 4px;
-    color: #ffffff;
-    font-size: 16px;
-    cursor: pointer;
-    margin-top: 1.5rem;
-  }
-  
-  .check-message {
-    font-size: 13px;
-    margin-top: 4px;
-    color: #666;
-  } 
+}
