@@ -38,7 +38,6 @@ module.exports = {
           900: 'var(--color-gray-900)',
         },
 
-        // semantic aliases (디자이너 네이밍 그대로)
         interaction: {
           normal: 'var(--interaction-normal)',
           hover: 'var(--interaction-hover)',
@@ -50,7 +49,10 @@ module.exports = {
           neutral: 'var(--label-neutral)',
           assistive: 'var(--label-assistive)',
           disable: 'var(--label-disable)',
+          primary: 'var(--label-primary)',
+          inverse: 'var(--label-inverse)',
         },
+
         line: {
           normal: 'var(--line-normal)',
           focus: 'var(--line-focus)',
@@ -59,6 +61,11 @@ module.exports = {
         },
         system: {
           red: 'var(--system-red)',
+        },
+        background: {
+          blue: 'var(--background-blue)',
+          neutral: 'var(--background-neutral)',
+          active: 'var(--background-active)',
         },
       },
 

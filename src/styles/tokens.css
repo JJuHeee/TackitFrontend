@@ -93,10 +93,17 @@
   --label-neutral: var(--color-gray-600);
   --label-assistive: var(--color-gray-300);
   --label-disable: var(--color-gray-200);
+  --label-primary: var(--color-primary-500);
+  --label-inverse: #ffffff;
 
   /* Line (borders) */
   --line-normal: var(--color-gray-200);
   --line-focus: var(--color-gray-500);
   --line-active: var(--color-primary-500);
   --line-negative: var(--system-red);
+
+  /* Background */
+  --background-blue: var(--color-primary-50);
+  --background-neutral: var(--color-gray-50);
+  --background-active: var(--color-gray-500);
 }

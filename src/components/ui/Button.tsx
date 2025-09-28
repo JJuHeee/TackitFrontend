@@ -3,36 +3,31 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import clsx from 'clsx'
 
 const buttonVariants = cva(
-  // 공통 스타일
   'inline-flex items-center justify-center font-semibold rounded-2xl transition-all select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-line-focus focus-visible:ring-offset-2 disabled:cursor-not-allowed',
   {
     variants: {
-      // 버튼 종류
       variant: {
-        // Main 버튼
         primary: `
-          bg-interaction-normal text-white
-          hover:bg-interaction-hover
-          active:bg-interaction-active
-          disabled:bg-interaction-disable
-          disabled:text-label-disable
+          bg-interaction-normal text-label-inverse
+          hover:bg-interaction-hover hover:text-label-inverse
+          active:bg-interaction-active active:text-label-inverse
+          disabled:bg-interaction-disable disabled:text-label-disable
         `,
-        // Outlined 버튼
+        // ✅ 텍스트 색 고정 제거 (선택 상태는 페이지에서 className으로 제어)
         outlined: `
           border border-line-normal text-label-normal bg-white
           hover:bg-gray-50
-          active:border-line-active active:text-interaction-normal
+          active:border-line-active
           disabled:text-label-disable disabled:border-line-normal
         `,
       },
-      // 버튼 사이즈
       size: {
-        m: 'h-12 w-[343px] text-body-1sb', // Main 버튼
-        outlinedM: 'h-12 w-[165.5px] text-body-1sb', // Outlined M 버튼
-        outlinedS: 'h-9 w-[61px] text-body-2', // Outlined S 버튼
+        m: 'h-12 w-[343px] text-body-1sb',
+        // 눌렀을 때(pressed)만 파란 글자 필요하면 유지
+        outlinedM: 'h-12 w-[165.5px] text-body-1sb active:text-label-primary',
+        outlinedS: 'h-9 w-[61px] text-body-2',
       },
     },
-    // 기본값
     defaultVariants: {
       variant: 'primary',
       size: 'm',

@@ -4,10 +4,38 @@
 @tailwind components;
 @tailwind utilities;
 
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
 html {
   font-family: var(--font-sans);
   color: var(--label-normal);
 }
+
 body {
-  background: #fff;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    'Liberation Mono', 'Courier New', monospace;
+}
+
+/* 기존 전역 클래스 유지 */
+.main-content {
+  padding-top: 120px;
+}
+.App {
+  text-align: center;
 }

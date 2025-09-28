@@ -4,18 +4,31 @@ import './SignupPage.css'
 import { FaEye, FaEyeSlash } from 'react-icons/fa'
 import api from '../../api/api'
 import { toast } from 'react-toastify'
+import { Button } from '../../components/ui/Button'
+import AuthLayout from '../../components/layouts/AuthLayout'
 
 function SignupPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [nickname, setNickname] = useState('')
   const [organization, setOrganization] = useState('')
-  const [yearOfEmployment, setYearOfEmployment] = useState('')
   const [passwordVisible, setPasswordVisible] = useState(false)
+  const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false)
 
   const [emailCheckMessage, setEmailCheckMessage] = useState('')
   const [nicknameCheckMessage, setNicknameCheckMessage] = useState('')
   const [role, setRole] = useState('')
+  const [passwordMatchMessage, setPasswordMatchMessage] = useState('')
+
+  const isFormValid = Boolean(
+    email &&
+      password &&
+      nickname &&
+      organization &&
+      role &&
+      password === confirmPassword
+  )
 
   const navigate = useNavigate()
 
@@ -24,6 +37,11 @@ function SignupPage() {
 
     if (!role) {
       toast.error('역할을 선택해 주세요.')
+      return
+    }
+
+    if (password !== confirmPassword) {
+      toast.error('비밀번호가 일치하지 않습니다.')
       return
     }
 
@@ -40,6 +58,7 @@ function SignupPage() {
       toast.success('회원가입이 완료되었습니다.')
       setEmail('')
       setPassword('')
+      setConfirmPassword('')
       setNickname('')
       setOrganization('')
       setRole('')
@@ -93,133 +112,209 @@ function SignupPage() {
     }
   }
 
-  return (
-    <div className="signup-container">
-      <div className="signup-form-wrapper">
-        <div className="signup-box">
-          <h2 className="signup-title">회원가입</h2>
-          <form onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label htmlFor="email">
-                이메일 <span style={{ color: 'red' }}>*</span>
-              </label>
-              <input
-                type="email"
-                id="email"
-                value={email}
-                placeholder="이메일을 입력해 주세요."
-                onChange={(e) => setEmail(e.target.value)}
-                onBlur={checkEmailDuplicate}
-                required
-              />
-              <div className="check-message">{emailCheckMessage}</div>
-            </div>
+  const handleConfirmPasswordChange = (e) => {
+    const value = e.target.value
+    setConfirmPassword(value)
+    if (value && value !== password) {
+      setPasswordMatchMessage('비밀번호가 일치하지 않습니다.')
+    } else {
+      setPasswordMatchMessage('')
+    }
+  }
 
-            <div className="form-group">
-              <label htmlFor="password">
-                비밀번호 <span style={{ color: 'red' }}>*</span>
-              </label>
-              <div style={{ position: 'relative' }}>
+  return (
+    <AuthLayout
+      icons={['/assets/auth/auth-icon.svg']} // 가로로 긴 1장의 이미지
+      iconOffset={80} // 필요하면 높이 조절
+    >
+      <div className="signup-container">
+        <div className="signup-form-wrapper">
+          <div className="signup-box">
+            <h2 className="signup-title">회원가입</h2>
+            <form onSubmit={handleSubmit}>
+              <div className="form-group">
+                <label htmlFor="email">
+                  이메일 <span style={{ color: 'red' }}>*</span>
+                </label>
                 <input
-                  type={passwordVisible ? 'text' : 'password'}
-                  id="password"
-                  value={password}
-                  placeholder="비밀번호를 입력해 주세요."
-                  onChange={(e) => setPassword(e.target.value)}
+                  type="email"
+                  id="email"
+                  value={email}
+                  placeholder="이메일을 입력해 주세요."
+                  onChange={(e) => setEmail(e.target.value)}
+                  onBlur={checkEmailDuplicate}
                   required
                 />
-                {password && (
-                  <button
+                <div className="check-message">{emailCheckMessage}</div>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="password">
+                  비밀번호 <span style={{ color: 'red' }}>*</span>
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type={passwordVisible ? 'text' : 'password'}
+                    id="password"
+                    value={password}
+                    placeholder="비밀번호를 입력해 주세요."
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                  {password && (
+                    <button
+                      type="button"
+                      onClick={() => setPasswordVisible(!passwordVisible)}
+                      style={{
+                        position: 'absolute',
+                        right: '10px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {passwordVisible ? (
+                        <FaEyeSlash size={20} color="#3D4D5C" />
+                      ) : (
+                        <FaEye size={20} color="#3D4D5C" />
+                      )}
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* ✅ 비밀번호 확인 */}
+              <div className="form-group">
+                <label htmlFor="confirmPassword">
+                  비밀번호 확인 <span style={{ color: 'red' }}>*</span>
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type={confirmPasswordVisible ? 'text' : 'password'}
+                    id="confirmPassword"
+                    value={confirmPassword}
+                    placeholder="비밀번호를 다시 입력해 주세요."
+                    onChange={handleConfirmPasswordChange}
+                    required
+                  />
+                  {confirmPassword && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setConfirmPasswordVisible(!confirmPasswordVisible)
+                      }
+                      style={{
+                        position: 'absolute',
+                        right: '10px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {confirmPasswordVisible ? (
+                        <FaEyeSlash size={20} color="#3D4D5C" />
+                      ) : (
+                        <FaEye size={20} color="#3D4D5C" />
+                      )}
+                    </button>
+                  )}
+                </div>
+                <div className="check-message">{passwordMatchMessage}</div>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="nickname">
+                  닉네임 <span style={{ color: 'red' }}>*</span>
+                </label>
+                <input
+                  type="text"
+                  id="nickname"
+                  value={nickname}
+                  placeholder="닉네임을 입력해 주세요."
+                  onChange={(e) => setNickname(e.target.value)}
+                  onBlur={checkNicknameDuplicate}
+                  required
+                />
+                <div className="check-message">{nicknameCheckMessage}</div>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="organization">
+                  소속 <span style={{ color: 'red' }}>*</span>
+                </label>
+                <input
+                  type="text"
+                  id="organization"
+                  value={organization}
+                  placeholder="소속을 입력해 주세요."
+                  onChange={(e) => setOrganization(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>
+                  역할 <span style={{ color: 'red' }}>*</span>
+                </label>
+                <p className="helper">
+                  선택한 역할에 따라 작성 가능한 게시판이 다르며, 필요시
+                  설정에서 역할을 변경할 수 있습니다.
+                </p>
+                <div className="role-group">
+                  <Button
                     type="button"
-                    onClick={() => setPasswordVisible(!passwordVisible)}
-                    style={{
-                      position: 'absolute',
-                      right: '10px',
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                    }}
+                    variant="outlined"
+                    size="outlinedM"
+                    onClick={() => setRole('NEWBIE')}
+                    className={
+                      role === 'NEWBIE'
+                        ? '!border-line-active !text-label-primary'
+                        : ''
+                    }
                   >
-                    {passwordVisible ? (
-                      <FaEyeSlash size={20} color="#3D4D5C" />
-                    ) : (
-                      <FaEye size={20} color="#3D4D5C" />
-                    )}
-                  </button>
-                )}
+                    신입
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant="outlined"
+                    size="outlinedM"
+                    onClick={() => setRole('SENIOR')}
+                    className={
+                      role === 'SENIOR'
+                        ? '!border-line-active !text-label-primary'
+                        : ''
+                    }
+                  >
+                    선배
+                  </Button>
+                </div>
               </div>
-            </div>
 
-            <div className="form-group">
-              <label htmlFor="nickname">
-                닉네임 <span style={{ color: 'red' }}>*</span>
-              </label>
-              <input
-                type="text"
-                id="nickname"
-                value={nickname}
-                placeholder="닉네임을 입력해 주세요."
-                onChange={(e) => setNickname(e.target.value)}
-                onBlur={checkNicknameDuplicate}
-                required
-              />
-              <div className="check-message">{nicknameCheckMessage}</div>
-            </div>
+              <Button
+                type="submit"
+                variant="primary"
+                size="m"
+                className="w-full mt-4"
+                disabled={!isFormValid} // 값 채워지면 활성(파랑), 아니면 비활성(회색)
+              >
+                완료
+              </Button>
 
-            <div className="form-group">
-              <label htmlFor="organization">
-                소속 <span style={{ color: 'red' }}>*</span>
-              </label>
-              <input
-                type="text"
-                id="organization"
-                value={organization}
-                placeholder="소속을 입력해 주세요."
-                onChange={(e) => setOrganization(e.target.value)}
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label>
-                역할 <span style={{ color: 'red' }}>*</span>
-              </label>
-              <p className="helper">
-                선택한 역할에 따라 작성 가능한 게시판이 다르며, 필요시 설정에서
-                역할을 변경할 수 있습니다.
-              </p>
-              <div className="role-group">
-                <button
-                  type="button"
-                  className={`role-btn ${role === 'NEWBIE' ? 'active' : ''}`}
-                  onClick={() => setRole('NEWBIE')}
-                >
-                  신입
-                </button>
-                <button
-                  type="button"
-                  className={`role-btn ${role === 'SENIOR' ? 'active' : ''}`}
-                  onClick={() => setRole('SENIOR')}
-                >
-                  선배
-                </button>
+              <div className="login-helper">
+                이미 가입된 계정이 있나요?{' '}
+                <Link to="/login" className="login-link">
+                  로그인하기
+                </Link>
               </div>
-            </div>
-
-            <button type="submit" className="signup-submit">
-              완료
-            </button>
-            <div className="login-helper">
-              이미 가입된 계정이 있나요?{' '}
-              <Link to="/login" className="login-link">
-                로그인하기
-              </Link>
-            </div>
-          </form>
+            </form>
+          </div>
         </div>
       </div>
-    </div>
+    </AuthLayout>
   )
 }
 
