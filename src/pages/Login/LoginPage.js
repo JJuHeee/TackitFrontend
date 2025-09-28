@@ -95,7 +95,7 @@ export default function LoginPage() {
       iconOffset={80} // 스트립 위 간격
     >
       <div className="px-4">
-        <AuthCard className="w-full max-w-[420px] mx-auto">
+        <AuthCard className="absolute left-[530px] top-[150px] w-[440px] min-h-[400px]">
           {/* 로고 영역 */}
           <div className="flex items-center justify-center mb-6">
             <img src="/logo.png" alt="Tackit" className="h-14" />
@@ -108,9 +108,7 @@ export default function LoginPage() {
               <label
                 htmlFor="email"
                 className="block mb-1 text-sm font-medium text-label-secondary"
-              >
-                이메일
-              </label>
+              ></label>
               <input
                 id="email"
                 type="email"
@@ -130,9 +128,7 @@ export default function LoginPage() {
               <label
                 htmlFor="password"
                 className="block mb-1 text-sm font-medium text-label-secondary"
-              >
-                비밀번호
-              </label>
+              ></label>
               <div className="relative">
                 <input
                   id="password"
@@ -159,6 +155,15 @@ export default function LoginPage() {
             {/* 에러 메시지 */}
             {error && <p className="text-sm leading-5 text-red-500">{error}</p>}
 
+            <div className="mt-2 text-right">
+              <Link
+                to="/forgot-password"
+                className="text-xs text-label-neutral hover:text-label-primary"
+              >
+                비밀번호 찾기
+              </Link>
+            </div>
+
             {/* 로그인 버튼 */}
             <Button
               type="submit"
@@ -169,16 +174,6 @@ export default function LoginPage() {
             >
               로그인
             </Button>
-
-            {/* 비밀번호 찾기 링크를 여기로 이동 */}
-            <div className="mt-2 text-right">
-              <Link
-                to="/forgot-password"
-                className="text-xs text-label-tertiary hover:text-label-primary"
-              >
-                비밀번호 찾기
-              </Link>
-            </div>
           </form>
 
           {/* 하단 회원가입 */}

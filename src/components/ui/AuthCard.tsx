@@ -11,8 +11,8 @@ export function AuthCard({ className, children }: AuthCardProps) {
     <div
       className={clsx(
         'bg-white rounded-2xl p-6',
-        // 0px 8px 16px rgba(0,0,0,0.08)
         'shadow-[0_8px_16px_rgba(0,0,0,0.08)]',
+        'rounded-[12px]',
         className
       )}
     >
