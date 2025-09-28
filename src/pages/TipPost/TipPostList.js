@@ -4,6 +4,7 @@ import './TipPostList.css'
 import HomeBar from '../../components/HomeBar'
 import api from '../../api/api'
 import useFetchUserInfo from '../../hooks/useFetchUserInfo'
+import Footer from '../../components/layouts/Footer'
 
 const fallbackResponse = {
   page: 0,
@@ -45,11 +46,34 @@ function TipPostList() {
   const pageGroupSize = 5
 
   useEffect(() => {
+    const fetchTags = async () => {
+      try {
+        const res = await api.get('/api/tip-tags/list')
+        const tagData = Array.isArray(res.data?.content)
+          ? res.data.content
+          : Array.isArray(res.data)
+          ? res.data
+          : []
+
+        setTagList(tagData)
+      } catch (err) {
+        setTagList([
+          { id: 2, tagName: '태그2' },
+          { id: 3, tagName: '태그3' },
+        ])
+      }
+    }
+    fetchTags()
+  }, [])
+
+  useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const res = await api.get(
-          `/api/tip-posts?page=${currentPage}&size=${postsPerPage}&sort=createdAt,desc`
-        )
+        const url = selectedTagId
+          ? `/api/tip-tags/${selectedTagId}/posts?page=${currentPage}&size=5&sort=createdAt,desc`
+          : `/api/tip-posts?page=${currentPage}&size=5&sort=createdAt,desc`
+
+        const res = await api.get(url)
         setPosts(res.data?.content || [])
         setTotalPages(res.data?.totalPages || 0)
       } catch (err) {
@@ -58,11 +82,17 @@ function TipPostList() {
       }
     }
     fetchPosts()
-  }, [currentPage])
+  }, [currentPage, selectedTagId])
 
+  const handleTagClick = (clickedId) => {
+    setSelectedTagId((prev) => (prev === clickedId ? null : clickedId))
+    setCurrentPage(0)
+  }
+  const filteredPosts = posts
   const currentGroup = Math.floor(currentPage / pageGroupSize)
   const startPage = currentGroup * pageGroupSize
   const endPage = Math.min(startPage + pageGroupSize, totalPages)
+
   const goToPage = (page) => setCurrentPage(page)
 
   return (
@@ -87,14 +117,24 @@ function TipPostList() {
         </div>
 
         <div className="tippost-tags">
-          {userInfo?.yearsOfService >= 2 && (
+          {tagList.map((tag) => (
             <button
-              className="write-button"
-              onClick={() => navigate('/tip/write')}
+              key={tag.id}
+              className={`tag-button ${
+                selectedTagId === tag.id ? 'active-tag' : ''
+              }`}
+              onClick={() => handleTagClick(tag.id)}
             >
-              글쓰기
+              #{tag.tagName}
             </button>
-          )}
+          ))}
+
+          <button
+            className="write-button"
+            onClick={() => navigate('/tip/write')}
+          >
+            글쓰기
+          </button>
         </div>
 
         <div className="tippost-list">
@@ -177,6 +217,7 @@ function TipPostList() {
           </div>
         )}
       </div>
+      <Footer />
     </>
   )
 }

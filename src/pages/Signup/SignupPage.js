@@ -6,6 +6,7 @@ import api from '../../api/api'
 import { toast } from 'react-toastify'
 import { Button } from '../../components/ui/Button'
 import AuthLayout from '../../components/layouts/AuthLayout'
+import { AuthCard } from '../../components/ui/AuthCard'
 
 function SignupPage() {
   const [email, setEmail] = useState('')
@@ -129,7 +130,7 @@ function SignupPage() {
     >
       <div className="signup-container">
         <div className="signup-form-wrapper">
-          <div className="signup-box">
+          <AuthCard className="w-full max-w-[440px]">
             <h2 className="signup-title">회원가입</h2>
             <form onSubmit={handleSubmit}>
               <div className="form-group">
@@ -299,7 +300,7 @@ function SignupPage() {
                 variant="primary"
                 size="m"
                 className="w-full mt-4"
-                disabled={!isFormValid} // 값 채워지면 활성(파랑), 아니면 비활성(회색)
+                disabled={!isFormValid} 
               >
                 완료
               </Button>
@@ -311,7 +312,7 @@ function SignupPage() {
                 </Link>
               </div>
             </form>
-          </div>
+          </AuthCard>
         </div>
       </div>
     </AuthLayout>

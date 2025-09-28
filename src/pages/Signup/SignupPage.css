@@ -10,11 +10,8 @@
 /* 카드 */
 .signup-form-wrapper {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  top: 80px;
   width: 440px;
-  height: 816px;
   box-sizing: border-box;
   max-width: none;
   padding: 32px 20px 60px;
@@ -22,6 +19,7 @@
 }
 
 .signup-box {
+  max-width: 440px;
   width: 100%;
   padding: 28px;
   border: none;

@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import './QnaPostList.css';
-import HomeBar from '../../components/HomeBar';
-import api from '../../api/api';
-import useFetchUserInfo from '../../hooks/useFetchUserInfo';
+import React, { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import './QnaPostList.css'
+import HomeBar from '../../components/HomeBar'
+import api from '../../api/api'
+import useFetchUserInfo from '../../hooks/useFetchUserInfo'
+import Footer from '../../components/layouts/Footer'
 
 const fallbackResponse = {
   page: 0,
@@ -28,74 +29,77 @@ const fallbackResponse = {
   size: 5,
   totalElements: 2,
   totalPages: 1,
-};
+}
 
 function QnaPostList() {
-  const navigate = useNavigate();
-  const [tagList, setTagList] = useState([]);
-  const [selectedTagId, setSelectedTagId] = useState(null);
-  const [posts, setPosts] = useState([]);
-  const [currentPage, setCurrentPage] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
-  const { userInfo } = useFetchUserInfo();
+  const navigate = useNavigate()
+  const [tagList, setTagList] = useState([])
+  const [selectedTagId, setSelectedTagId] = useState(null)
+  const [posts, setPosts] = useState([])
+  const [currentPage, setCurrentPage] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
+  const { userInfo } = useFetchUserInfo()
 
-  const pageGroupSize = 5;
+  const pageGroupSize = 5
 
   // 태그 불러오기
   useEffect(() => {
     const fetchTags = async () => {
       try {
-        const res = await api.get('/api/qna-tags/list');
+        const res = await api.get('/api/qna-tags/list')
         const tagData = Array.isArray(res.data?.content)
           ? res.data.content
           : Array.isArray(res.data)
           ? res.data
-          : [];
+          : []
 
-        setTagList(tagData);
+        setTagList(tagData)
       } catch (err) {
         setTagList([
           { id: 2, tagName: '태그2' },
           { id: 3, tagName: '태그3' },
-        ]);
+        ])
       }
-    };
-    fetchTags();
-  }, []);
+    }
+    fetchTags()
+  }, [])
 
   // 게시글 불러오기 (전체 또는 태그별)
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        let res;
+        let res
         if (selectedTagId) {
-          res = await api.get(`/api/qna-tags/${selectedTagId}/posts?page=${currentPage}&size=5&sort=createdAt,desc`);
+          res = await api.get(
+            `/api/qna-tags/${selectedTagId}/posts?page=${currentPage}&size=5&sort=createdAt,desc`
+          )
         } else {
-          res = await api.get(`/api/qna-post/list?page=${currentPage}&size=5&sort=createdAt,desc`);
+          res = await api.get(
+            `/api/qna-post/list?page=${currentPage}&size=5&sort=createdAt,desc`
+          )
         }
-        setPosts(res.data?.content || []);
-        setTotalPages(res.data?.totalPages || 0);
+        setPosts(res.data?.content || [])
+        setTotalPages(res.data?.totalPages || 0)
       } catch (err) {
-        setPosts(fallbackResponse?.content || []);
-        setTotalPages(fallbackResponse?.totalPages || 1);
+        setPosts(fallbackResponse?.content || [])
+        setTotalPages(fallbackResponse?.totalPages || 1)
       }
-    };
-    fetchPosts();
-  }, [currentPage, selectedTagId]);
+    }
+    fetchPosts()
+  }, [currentPage, selectedTagId])
 
   const handleTagClick = (clickedId) => {
-    setSelectedTagId((prev) => (prev === clickedId ? null : clickedId));
-    setCurrentPage(0);
-  };
+    setSelectedTagId((prev) => (prev === clickedId ? null : clickedId))
+    setCurrentPage(0)
+  }
 
+  const filteredPosts = posts
 
-  const filteredPosts = posts;
+  const currentGroup = Math.floor(currentPage / pageGroupSize)
+  const startPage = currentGroup * pageGroupSize
+  const endPage = Math.min(startPage + pageGroupSize, totalPages)
 
-  const currentGroup = Math.floor(currentPage / pageGroupSize);
-  const startPage = currentGroup * pageGroupSize;
-  const endPage = Math.min(startPage + pageGroupSize, totalPages);
-
-  const goToPage = (page) => setCurrentPage(page);
+  const goToPage = (page) => setCurrentPage(page)
 
   return (
     <>
@@ -108,8 +112,13 @@ function QnaPostList() {
       <div className="qnapost-container">
         <div className="qnapost-subtext-wrapper">
           <div className="qnapost-subtext">
-            <img src="/warning.svg" alt="경고 아이콘" className="warning-icon" />
-            “질문 게시판”은 신입은 질문글만 작성할 수 있으며, 선배는 답글만 작성할 수 있습니다.
+            <img
+              src="/warning.svg"
+              alt="경고 아이콘"
+              className="warning-icon"
+            />
+            “질문 게시판”은 신입은 질문글만 작성할 수 있으며, 선배는 답글만
+            작성할 수 있습니다.
           </div>
         </div>
 
@@ -117,7 +126,9 @@ function QnaPostList() {
           {tagList.map((tag) => (
             <button
               key={tag.id}
-              className={`tag-button ${selectedTagId === tag.id ? 'active-tag' : ''}`}
+              className={`tag-button ${
+                selectedTagId === tag.id ? 'active-tag' : ''
+              }`}
               onClick={() => handleTagClick(tag.id)}
             >
               #{tag.tagName}
@@ -125,7 +136,10 @@ function QnaPostList() {
           ))}
 
           {userInfo?.yearsOfService < 2 && (
-            <button className="write-button" onClick={() => navigate('/qna/write')}>
+            <button
+              className="write-button"
+              onClick={() => navigate('/qna/write')}
+            >
               글쓰기
             </button>
           )}
@@ -142,8 +156,12 @@ function QnaPostList() {
                 onClick={() => navigate(`/qna/${post.postId}`)}
               >
                 <div className="post-meta">
-                  <span className="nickname">{post.writer || '(알 수 없음)'}</span>
-                  <span className="date">{new Date(post.createdAt).toLocaleString('ko-KR')}</span>
+                  <span className="nickname">
+                    {post.writer || '(알 수 없음)'}
+                  </span>
+                  <span className="date">
+                    {new Date(post.createdAt).toLocaleString('ko-KR')}
+                  </span>
                   <span className="tags">
                     {Array.isArray(post.tags)
                       ? post.tags.map((tag, i) => `#${tag}`).join(' ')
@@ -153,19 +171,21 @@ function QnaPostList() {
                 <div className="post-title">{post.title}</div>
                 <div className="post-content-preview">
                   {(() => {
-                    const lines = post.content.split('\n');       
-                    const limitedLines = lines.slice(0, 2);         
-                    const joined = limitedLines.join('\n').slice(0, 100); 
+                    const lines = post.content.split('\n')
+                    const limitedLines = lines.slice(0, 2)
+                    const joined = limitedLines.join('\n').slice(0, 100)
 
                     return joined.split('\n').map((line, i, arr) => (
                       <React.Fragment key={i}>
                         {line}
                         {i < arr.length - 1 && <br />}
                       </React.Fragment>
-                    ));
+                    ))
                   })()}
-                  {(post.content.split('\n').length > 2 || post.content.length > 100) && '...'}
-                </div>  
+                  {(post.content.split('\n').length > 2 ||
+                    post.content.length > 100) &&
+                    '...'}
+                </div>
               </div>
             ))
           )}
@@ -173,13 +193,22 @@ function QnaPostList() {
 
         {totalPages > 1 && (
           <div className="pagination">
-            <button onClick={() => goToPage(startPage - 1)} disabled={startPage === 0} className="page-btn">
+            <button
+              onClick={() => goToPage(startPage - 1)}
+              disabled={startPage === 0}
+              className="page-btn"
+            >
               &laquo;
             </button>
-            {Array.from({ length: endPage - startPage }, (_, i) => startPage + i).map((pageNum) => (
+            {Array.from(
+              { length: endPage - startPage },
+              (_, i) => startPage + i
+            ).map((pageNum) => (
               <button
                 key={pageNum}
-                className={`page-btn ${currentPage === pageNum ? 'active' : ''}`}
+                className={`page-btn ${
+                  currentPage === pageNum ? 'active' : ''
+                }`}
                 onClick={() => goToPage(pageNum)}
               >
                 {pageNum + 1}
@@ -190,13 +219,14 @@ function QnaPostList() {
               disabled={endPage >= totalPages}
               className="page-btn"
             >
-              &raquo; 
+              &raquo;
             </button>
           </div>
         )}
       </div>
+      <Footer />
     </>
-  );
+  )
 }
 
-export default QnaPostList;
+export default QnaPostList
