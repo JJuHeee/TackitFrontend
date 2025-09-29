@@ -135,14 +135,12 @@ function QnaPostList() {
             </button>
           ))}
 
-          {userInfo?.yearsOfService < 2 && (
-            <button
-              className="write-button"
-              onClick={() => navigate('/qna/write')}
-            >
-              글쓰기
-            </button>
-          )}
+          <button
+            className="write-button"
+            onClick={() => navigate('/qna/write')}
+          >
+            글쓰기
+          </button>
         </div>
 
         <div className="qnapost-list">

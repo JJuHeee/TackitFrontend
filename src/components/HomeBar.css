@@ -1,14 +1,3 @@
-.homebar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 20px;
-  background-color: white;
-  border-bottom: 1px solid #eee;
-  font-family: 'Noto Sans KR', sans-serif;
-  position: relative;
-}
-
 .homebar-logo {
   width: 130px;
   height: 50px;
@@ -28,7 +17,7 @@
 .homebar-center a:hover,
 .homebar-right a:hover,
 .logout-button:hover {
-  color: #4D77FF;
+  color: #4d77ff;
 }
 
 .logout-button {
@@ -70,34 +59,34 @@
 /* 반응형 처리 */
 @media (max-width: 840px) {
   .menu-toggle {
-      display: block;
+    display: block;
   }
 
   .desktop-menu {
-      display: none;
+    display: none;
   }
 
   .mobile-menu {
-      display: none;
-      flex-direction: column;
-      position: absolute;
-      top: 60px;
-      left: 0;
-      width: 100%;
-      background-color: white;
-      border-top: 1px solid #eee;
-      padding: 20px 0;
-      z-index: 999;
-      align-items: flex-start;
+    display: none;
+    flex-direction: column;
+    position: absolute;
+    top: 60px;
+    left: 0;
+    width: 100%;
+    background-color: white;
+    border-top: 1px solid #eee;
+    padding: 20px 0;
+    z-index: 999;
+    align-items: flex-start;
   }
 
   .mobile-menu.active {
-      display: flex;
+    display: flex;
   }
 
   .mobile-menu a,
   .mobile-menu .logout-button {
-      margin: 10px 0 10px 30px; 
-      font-size: 18px;
+    margin: 10px 0 10px 30px;
+    font-size: 18px;
   }
 }

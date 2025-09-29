@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import './TipPostDetail.css'
 import HomeBar from '../../components/HomeBar'
@@ -140,6 +140,11 @@ function TipPostDetail() {
               <div className="detail-meta">
                 <span className="nickname">{post.writer}</span>
                 <span>{new Date(post.createdAt).toLocaleString('ko-KR')}</span>
+                <span className="tags">
+                  {Array.isArray(post.tags)
+                    ? post.tags.map((tag, i) => `#${tag}`).join(' ')
+                    : ''}
+                </span>
               </div>
               <div className="detail-content">
                 {post.content.split('\n').map((line, i) => (
