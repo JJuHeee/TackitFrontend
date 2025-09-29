@@ -1,179 +1,75 @@
-body {
-    font-family: 'Noto Sans KR', sans-serif;
-    margin: 0;
-    background-color: #ffffff;
-  }
-  
+.tippost-container {
+  max-width: 1100px; /* ← 넓힘 */
+  margin: 0 auto;
+  padding: 0 20px 40px;
+  box-sizing: border-box;
+}
+
+/* 2) 배너: 컨테이너 가로 100%, 둥근모서리+그림자, 아래 여백 크게 */
+.tippost-banner {
+  margin: 16px 0 24px; /* 위/아래 여백 */
+}
+.tippost-banner img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+}
+
+/* 3) 태그 + 글쓰기 버튼 바: 한 줄 정렬, 배너와 간격 크게 */
+.tippost-topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 0 28px; /* 배너와 태그 사이 간격 ↑ */
+}
+
+/* 태그 영역이 남는 폭을 차지하고, 칩이 넘치면 줄바꿈 */
+.tippost-tags {
+  flex: 1 1 auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px; /* 칩 사이 간격 */
+}
+
+/* (선택) TagChips 안의 버튼이 기본 회색 칩처럼 보이도록 */
+.tag-button {
+  background: #f0f2f5;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-size: 14px;
+  color: #3d4d5c;
+  cursor: pointer;
+}
+
+/* 글쓰기 버튼을 우측 끝으로 */
+.write-button {
+  margin-left: auto; /* 우측 정렬 */
+  background: #4d77ff;
+  color: #fff;
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* 4) 목록 여백(배너/태그와 분리감) */
+.tippost-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* 5) 반응형: 폭 좁을 때 좌우 패딩 보강 */
+@media (max-width: 768px) {
   .tippost-container {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 0 20px 40px; 
+    padding: 0 16px 32px;
   }
-  
-  .tippost-banner {
-    position: relative;  
-    background-color: #DBEFFF;
-    text-align: center;
-    padding: 70px 20px 70px;
-    margin-bottom: 30px;
-  }
-  
-  .search-box {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    display: inline-flex;
-    align-items: center;
-    background-color: #F0F2F5;
-    border-radius: 20px;
-    padding: 5px 10px;
-    font-size: 14px;
-  }
-
-  .search-button img {
-    display: block;
-    margin: 0 auto;
-  }
-  
-  
-  .freepost-banner h1 {
-    font-size: 32px;
-    margin-bottom: 10px;
-  }
-  
-  .tippost-banner p {
-    color: #333;
-    font-size: 14px;
-    margin-bottom: 0.5rem;
-  }
-
-  .tippost-subtext-wrapper {
-    text-align: center; 
-    margin-bottom: 40px;  
-  }  
-  
-  .tippost-subtext {
-    
-    background-color: #f1f6fb;
-    padding: 12px 24px;           
-    border-radius: 8px;
-    font-size: 14px;
-    margin: 16px auto 0;
-    color: #333;
-    text-align: center;
-  }
-  
-  
-  .tippost-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    align-items: center;
-    margin-top: 0;
-    margin-bottom: 24px;
-  }
-  
-  .tag-button {
-    background-color: #f0f2f5;
-    border: none;
-    padding: 8px 14px;
-    border-radius: 20px;
-    font-size: 14px;
-    color: #3D4D5C;
-    cursor: pointer;
-  }
-  
-  
-  .search-box input {
-    border: none;
-    outline: none;
-    background: transparent;
-    padding: 5px 6px;
-    font-size: 14px;
-    width: auto;
-    min-width: 80px;
-  }
-  
-  .search-button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 18px;
-  }
-  
-  .tippost-list {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-  }
-  
-  .tippost-card {
-    border-bottom: 1px solid #ddd;
-    padding-bottom: 20px;
-    cursor: pointer;
-  }
-  
-  .tippost-meta {
-    display: flex;
-    gap: 10px;
-    color: #666;
-    font-size: 13px;
-    margin-bottom: 6px;
-  }
-  
-  .tippost-title {
-    font-size: 16px;
-    font-weight: bold;
-    margin-bottom: 4px;
-    color: #000;
-  }
-  
-  .tippost-content-preview {
-    font-size: 14px;
-    color: #555;
-    line-height: 1.5;
-  }
-  
-  .pagination {
-    display: flex;
-    justify-content: center;
+  .tippost-topbar {
     gap: 8px;
-    margin-top: 30px;
   }
-  
-  .page-btn {
-    border: none;
-    background-color: #f0f2f5;
-    padding: 6px 12px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 14px;
-  }
-  
-  .page-btn.active {
-    background-color: #4D77FF;
-    color: #fff;
-  }
-  
-  .page-btn:hover {
-    background-color: #DBEFFF;
-  }
-  
-  /* 글쓰기 버튼 */
-  .write-button {
-    background-color: #4D77FF;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    padding: 8px 16px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    margin-left: auto;
-  }
-
-  .post-content-preview {
-    font-size: 14px;
-    color: #555;
-    line-height: 1.5;
-  }
+}

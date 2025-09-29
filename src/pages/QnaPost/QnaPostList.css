@@ -1,184 +1,96 @@
-body {
-    font-family: 'Noto Sans KR', sans-serif;
-    margin: 0;
-    background-color: #ffffff;
-  }
-  
-  .qnapost-container {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 0 20px 40px; 
-  }
-  
-  .qnapost-banner {
-    position: relative;  
-    background-color: #DBEFFF;
-    text-align: center;
-    padding: 70px 20px 70px;
-    margin-bottom: 30px;
-  }
-  
-  .search-box {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    display: inline-flex;
-    align-items: center;
-    background-color: #F0F2F5;
-    border-radius: 20px;
-    padding: 5px 10px;
-    font-size: 14px;
-  }
+.qnapost-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 20px 40px;
+  box-sizing: border-box;
+}
 
-  .search-button img {
-    display: block;
-    margin: 0 auto;
-  }
-  
-  
-  .qnapost-banner h1 {
-    font-size: 32px;
-    margin-bottom: 10px;
-  }
-  
-  .qnapost-banner p {
-    color: #333;
-    font-size: 14px;
-    margin-bottom: 0.5rem;
-  }
+/* 배너: 100% 가로 + 둥근 모서리 + 아래 여백 크게 */
+.qnapost-banner {
+  margin: 16px 0 28px;
+}
+.qnapost-banner img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+}
 
-  .qnapost-subtext-wrapper {
-    text-align: center; 
-    margin-bottom: 40px;  
-  }  
-  
-  .qnapost-subtext {
-    
-    background-color: #f1f6fb;
-    padding: 12px 24px;          
-    border-radius: 8px;
-    font-size: 14px;
-    margin: 16px auto 0;
-    color: #333;
-    text-align: center;
-  }
-  
-  
-  .qnapost-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    align-items: center;
-    margin-top: 0;
-    margin-bottom: 24px;
-  }
-  
-  .tag-button {
-    background-color: #f0f2f5;
-    border: none;
-    padding: 8px 14px;
-    border-radius: 20px;
-    font-size: 14px;
-    color: #3D4D5C;
-    cursor: pointer;
-  }
+/* 태그 + 글쓰기 버튼 바 (배너와 간격 충분히) */
+.qnapost-topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 0 30px; /* 배너 아래 여백 ↑ */
+}
 
-  .tag-button.active-tag {
-    background-color: #4D77FF;
-    color: #fff;
-    font-weight: bold;
-  }
-  
-  
-  .search-box input {
-    border: none;
-    outline: none;
-    background: transparent;
-    padding: 5px 6px;
-    font-size: 14px;
-    width: auto;
-    min-width: 80px;
-  }
-  
-  .search-button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 18px;
-  }
-  
-  .qnapost-list {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-  }
-  
-  .post-card {
-    border-bottom: 1px solid #ddd;
-    padding-bottom: 20px;
-    cursor: pointer;
-  }
-  
-  .post-meta {
-    display: flex;
-    gap: 10px;
-    color: #666;
-    font-size: 13px;
-    margin-bottom: 6px;
-  }
-  
-  .post-title {
-    font-size: 16px;
-    font-weight: bold;
-    margin-bottom: 4px;
-    color: #000;
-  }
-  
-  .post-content-preview {
-    font-size: 14px;
-    color: #555;
-    line-height: 1.5;
-  }
-  
-  .pagination {
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-    margin-top: 30px;
-  }
-  
-  .page-btn {
-    border: none;
-    background-color: #f0f2f5;
-    padding: 6px 12px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 14px;
-  }
-  
-  .page-btn.active {
-    background-color: #4D77FF;
-    color: #fff;
-  }
-  
-  .page-btn:hover {
-    background-color: #DBEFFF;
-  }
-  
-  .write-button {
-    background-color: #4D77FF;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    padding: 8px 16px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    margin-left: auto;
-  }
+/* 태그 영역: 남는 폭 차지, 칩은 줄바꿈 */
+.qnapost-tags {
+  flex: 1 1 auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
 
-  
-  .tag.active-tag {
-    color: #4D77FF;
-  }
-  
+.freepost-subtext-wrapper {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.freepost-subtext {
+  background-color: #f1f6fb;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  margin: 16px auto 0;
+  color: #333;
+  text-align: center;
+}
+
+.freepost-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.freepost-card {
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 20px;
+  cursor: pointer;
+}
+
+.freepost-meta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 6px;
+}
+
+.freepost-title {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 4px;
+  color: #000;
+}
+
+.freepost-content-preview {
+  font-size: 14px;
+  color: #555;
+  line-height: 1.5;
+}
+
+/* 글쓰기 버튼 */
+.write-button {
+  background-color: #4d77ff;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-left: 0;
+}

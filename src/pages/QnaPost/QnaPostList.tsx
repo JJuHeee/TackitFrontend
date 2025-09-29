@@ -1,6 +1,7 @@
+// src/pages/qna/QnaPostList.tsx
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import './FreePostList.css'
+import './QnaPostList.css' // 공통 스타일 사용 (필요시 QnaPostList.css 분리)
 import HomeBar from '../../components/HomeBar'
 import api from '../../api/api'
 import { toast } from 'react-toastify'
@@ -9,12 +10,12 @@ import TagChips from '../../components/TagChips'
 import Pagination from '../../components/Pagination'
 
 type Post = {
-  id: number
+  postId: number
   writer: string
   title: string
   content: string
   tags: string[]
-  type: 'Free' | 'Qna' | 'Tip'
+  type?: 'Free' | 'Qna' | 'Tip'
   createdAt: string
 }
 
@@ -30,23 +31,23 @@ const fallbackResponse: ListResp = {
   page: 0,
   content: [
     {
-      id: 2,
+      postId: 2,
       writer: '기본값',
-      title: '요즘 날씨 너무 좋지 않나요?',
-      content: ' 코스 있으시면 댓글로 알려주세요!...',
-      tags: ['일상', '산책', '추천'],
+      title: 'React 상태관리 뭐로 할까요?',
+      content: 'Zustand vs Redux Toolkit 고민 중입니다… 경험 공유 부탁드려요!',
+      tags: ['리액트', '상태관리', '질문'],
       createdAt: '2025-05-26T00:49:09.773772',
-      type: 'Free',
+      type: 'Qna',
     },
     {
-      id: 1,
+      postId: 1,
       writer: 'test',
-      title: '프론트엔드 스터디 같이 하실 분!',
+      title: 'Axios 인터셉터 에러 처리 패턴 질문',
       content:
-        '안녕하세요.\n오늘은 날씨가 정말 좋네요!\n\n내일은 비가 온다고 합니다.',
-      tags: ['스터디', '프론트엔드', 'React', '모집'],
+        '팀 컨벤션 정하려는데 응답 스키마/리트라이 처리 어떻게 가져가세요?',
+      tags: ['Axios', '에러처리'],
       createdAt: '2025-05-26T00:47:58.054746',
-      type: 'Free',
+      type: 'Qna',
     },
   ],
   size: 5,
@@ -54,7 +55,7 @@ const fallbackResponse: ListResp = {
   totalPages: 1,
 }
 
-function FreePostList() {
+function QnaPostList() {
   const navigate = useNavigate()
 
   // 태그 0 또는 null = 전체
@@ -71,21 +72,35 @@ function FreePostList() {
     const fetchPosts = async () => {
       try {
         const isAll = tagId === 0 || tagId === null
-        const url = isAll ? `/api/free-posts` : `/api/free_tags/${tagId}/posts`
+        const url = isAll
+          ? `/api/qna-post/list`
+          : `/api/qna-tags/${tagId}/posts`
 
         const res = await api.get<ListResp>(url, {
           params: {
-            page: currentPage - 1, // 서버에는 0-base로 전달
+            page: currentPage - 1, // 서버는 0-base
             size,
             sort: 'createdAt,desc',
           },
         })
 
+        // 혹시 서버가 id로 내려줄 때를 대비해 postId 보정
         const data = res.data
-        setPosts(Array.isArray(data?.content) ? data.content : [])
+        const content = (Array.isArray(data?.content) ? data.content : []).map(
+          (p: any) => ({
+            postId: p.postId ?? p.id, // ← 보정 포인트
+            writer: p.writer,
+            title: p.title,
+            content: p.content,
+            tags: Array.isArray(p.tags) ? p.tags : [],
+            type: p.type,
+            createdAt: p.createdAt,
+          })
+        )
+
+        setPosts(content)
         setTotalPages(Math.max(1, Number(data?.totalPages ?? 1)))
       } catch (err) {
-        // 실패 시 폴백 사용
         setPosts(fallbackResponse.content)
         setTotalPages(Math.max(1, fallbackResponse.totalPages))
       }
@@ -97,16 +112,17 @@ function FreePostList() {
     <>
       <HomeBar />
 
-      <div className="post-container">
-        <div className="post-banner">
-          <img src="/banners/free-banner.svg" alt="자유게시판 배너" />
+      <div className="qnapost-container">
+        <div className="qnapost-banner">
+          <img src="/banners/qna-banner.svg" alt="질문게시판 배너" />
         </div>
 
         {/* 태그칩 + 글쓰기 버튼 (한 줄 정렬) */}
-        <div className="post-topbar">
-          <div className="post-tags">
+        <div className="qnapost-topbar">
+          <div className="qnapost-tags">
             <TagChips
-              endpoint="/api/free_tags"
+              // ✅ 태그 엔드포인트도 실제와 동일하게 하이픈 표기 & /list 사용
+              endpoint="/api/qna-tags/list"
               mode="single"
               value={tagId}
               onChange={(v) => {
@@ -115,35 +131,37 @@ function FreePostList() {
               }}
               includeAllItem
               gapPx={10}
+              // 서버가 {id, tagName} 형태라면 TagChips 내부 normalize에서
+              // name || tagName 둘 다 지원하도록 되어있는지 확인!
               fallbackTags={[
-                { id: 1, name: '업무팁' },
-                { id: 2, name: '인수인계' },
-                { id: 3, name: '꼭 지켜주세요' },
-                { id: 4, name: '조직문화' },
+                { id: 1, name: '리액트' },
+                { id: 2, name: '백엔드' },
+                { id: 3, name: '배포' },
+                { id: 4, name: 'CS' },
               ]}
             />
           </div>
 
           <button
             className="write-button"
-            onClick={() => navigate('/free/write')}
+            onClick={() => navigate('/qna/write')}
           >
             + 글쓰기
           </button>
         </div>
 
         {/* 리스트 */}
-        <div className="post-list">
+        <div className="freepost-list">
           {posts.length === 0 ? (
             <div className="no-result">게시글이 없습니다.</div>
           ) : (
             posts.map((post) => (
               <div
-                key={post.id ?? `${post.title}-${post.createdAt}`}
+                key={post.postId ?? `${post.title}-${post.createdAt}`}
                 className="post-card"
                 onClick={() => {
-                  if (post.id !== undefined && post.id !== null) {
-                    navigate(`/free/${post.id}`)
+                  if (post.postId !== undefined && post.postId !== null) {
+                    navigate(`/qna/${post.postId}`)
                   } else {
                     toast.error('잘못된 게시글 ID입니다.')
                   }
@@ -199,7 +217,6 @@ function FreePostList() {
               setCurrentPage(p)
               window.scrollTo({ top: 0, behavior: 'smooth' })
             }}
-            // siblingCount={1}
           />
         </div>
       </div>
@@ -209,4 +226,4 @@ function FreePostList() {
   )
 }
 
-export default FreePostList
+export default QnaPostList
