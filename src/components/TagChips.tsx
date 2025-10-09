@@ -48,7 +48,6 @@ export default function TagChips({
         setTags(includeAllItem ? [{ id: 0, name: '전체' }, ...base] : base)
       } catch {
         if (!mounted) return
-
         const base = fallbackTags
         setTags(includeAllItem ? [{ id: 0, name: '전체' }, ...base] : base)
       } finally {
@@ -61,23 +60,27 @@ export default function TagChips({
   }, [endpoint, includeAllItem, fallbackTags])
 
   const selectedSet = useMemo(() => {
-    if (mode === 'single') return new Set(value ? [value as any] : [])
-    return new Set(Array.isArray(value) ? (value as any[]) : [])
+    if (mode === 'single') {
+      const hasValue = value !== null && value !== undefined
+      return new Set(hasValue ? [String(value)] : [])
+    }
+    const arr = Array.isArray(value) ? (value as any[]) : []
+    return new Set(arr.map(String))
   }, [value, mode])
 
   const toggle = (id: number | string) => {
     if (!onChange) return
-    const numId = Number(id)
+    const key = String(id)
 
     if (mode === 'single') {
-      if (id === 0) {
+      if (key === '0') {
         onChange(0)
         return
       }
-      onChange(selectedSet.has(id) ? 0 : id)
+      onChange(selectedSet.has(key) ? 0 : id)
     } else {
       const next = new Set(selectedSet)
-      next.has(id) ? next.delete(id) : next.add(id)
+      next.has(key) ? next.delete(key) : next.add(key)
       onChange(Array.from(next))
     }
   }
@@ -93,7 +96,7 @@ export default function TagChips({
         <Chip
           key={t.id}
           label={t.name}
-          selected={selectedSet.has(Number(t.id) as any)}
+          selected={selectedSet.has(String(t.id))}
           onClick={() => toggle(t.id)}
         />
       ))}

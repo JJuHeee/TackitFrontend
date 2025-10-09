@@ -5,9 +5,9 @@
   box-sizing: border-box;
 }
 
-/* 배너: 100% 가로 + 둥근 모서리 + 아래 여백 크게 */
+/* 배너 */
 .post-banner {
-  margin: 16px 0 28px;
+  margin: 16px 0 50px;
 }
 .post-banner img {
   width: 100%;
@@ -17,15 +17,15 @@
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
 }
 
-/* 태그 + 글쓰기 버튼 바 (배너와 간격 충분히) */
+/* 태그 + 글쓰기 버튼 바 */
 .post-topbar {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin: 4px 0 30px; /* 배너 아래 여백 ↑ */
+  margin: 0px 0 30px;
 }
 
-/* 태그 영역: 남는 폭 차지, 칩은 줄바꿈 */
+/* 태그 영역 */
 .post-tags {
   flex: 1 1 auto;
   display: flex;
@@ -33,64 +33,29 @@
   gap: 10px;
 }
 
-.post-subtext-wrapper {
-  text-align: center;
-  margin-bottom: 40px;
-}
-
-.epost-subtext {
-  background-color: #f1f6fb;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-size: 14px;
-  margin: 16px auto 0;
-  color: #333;
-  text-align: center;
-}
-
 .post-list {
   display: flex;
   flex-direction: column;
-  gap: 20px;
 }
 
-.post-card {
-  border-bottom: 1px solid #ddd;
-  padding-bottom: 20px;
-  cursor: pointer;
-}
-
-.post-meta {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  font-size: 14px;
-  color: #666;
-  margin-bottom: 6px;
-}
-
-.post-title {
-  font-size: 16px;
-  font-weight: bold;
-  margin-bottom: 4px;
-  color: #000;
-}
-
-.post-content-preview {
-  font-size: 14px;
-  color: #555;
-  line-height: 1.5;
-}
-
-/* 글쓰기 버튼 */
 .write-button {
-  background-color: #4d77ff;
-  color: white;
+  background-color: var(--interaction-normal);
+  color: var(--label-inverse);
   border: none;
   border-radius: 12px;
   padding: 12px 16px;
-  font-size: 16px;
-  font-weight: 500;
+  font: var(--fw-body1-sb) var(--fs-body1-sb) / var(--lh-body1-sb)
+    var(--font-sans);
+  letter-spacing: var(--ls-body1-sb);
   cursor: pointer;
-  margin-left: 0;
+}
+.write-button:hover {
+  background-color: var(--interaction-hover);
+}
+.write-button:active {
+  background-color: var(--interaction-active);
+}
+.write-button:disabled {
+  background-color: var(--interaction-disable);
+  cursor: not-allowed;
 }

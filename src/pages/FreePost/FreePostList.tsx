@@ -7,6 +7,7 @@ import { toast } from 'react-toastify'
 import Footer from '../../components/layouts/Footer'
 import TagChips from '../../components/TagChips'
 import Pagination from '../../components/Pagination'
+import PostCard from '../../components/posts/PostCard' // ✅ 교체 포인트
 
 type Post = {
   id: number
@@ -57,14 +58,10 @@ const fallbackResponse: ListResp = {
 function FreePostList() {
   const navigate = useNavigate()
 
-  // 태그 0 또는 null = 전체
-  const [tagId, setTagId] = useState<number | null>(0)
+  const [tagId, setTagId] = useState<number | null>(0) // 0/null = 전체
   const [posts, setPosts] = useState<Post[]>([])
   const [totalPages, setTotalPages] = useState<number>(1)
-
-  // ✅ Pagination은 1-base로 사용
-  const [currentPage, setCurrentPage] = useState<number>(1)
-
+  const [currentPage, setCurrentPage] = useState<number>(1) // 1-base
   const size = 5
 
   useEffect(() => {
@@ -84,8 +81,7 @@ function FreePostList() {
         const data = res.data
         setPosts(Array.isArray(data?.content) ? data.content : [])
         setTotalPages(Math.max(1, Number(data?.totalPages ?? 1)))
-      } catch (err) {
-        // 실패 시 폴백 사용
+      } catch {
         setPosts(fallbackResponse.content)
         setTotalPages(Math.max(1, fallbackResponse.totalPages))
       }
@@ -102,7 +98,7 @@ function FreePostList() {
           <img src="/banners/free-banner.svg" alt="자유게시판 배너" />
         </div>
 
-        {/* 태그칩 + 글쓰기 버튼 (한 줄 정렬) */}
+        {/* 태그칩 + 글쓰기 버튼 */}
         <div className="post-topbar">
           <div className="post-tags">
             <TagChips
@@ -138,68 +134,32 @@ function FreePostList() {
             <div className="no-result">게시글이 없습니다.</div>
           ) : (
             posts.map((post) => (
-              <div
+              <PostCard
                 key={post.id ?? `${post.title}-${post.createdAt}`}
-                className="post-card"
+                id={post.id}
+                title={post.title}
+                content={post.content}
+                writer={post.writer}
+                createdAt={post.createdAt}
+                tags={post.tags}
                 onClick={() => {
-                  if (post.id !== undefined && post.id !== null) {
-                    navigate(`/free/${post.id}`)
-                  } else {
-                    toast.error('잘못된 게시글 ID입니다.')
-                  }
+                  if (post.id != null) navigate(`/free/${post.id}`)
+                  else toast.error('잘못된 게시글 ID입니다.')
                 }}
-              >
-                <div className="post-meta">
-                  <span className="nickname">
-                    {post.writer || '(알 수 없음)'}
-                  </span>
-                  <span className="date">
-                    {post.createdAt
-                      ? new Date(post.createdAt).toLocaleString('ko-KR')
-                      : '-'}
-                  </span>
-                  <span className="tags">
-                    {Array.isArray(post.tags)
-                      ? post.tags.map((tag: string) => `#${tag}`).join(' ')
-                      : ''}
-                  </span>
-                </div>
-
-                <div className="post-title">{post.title}</div>
-
-                <div className="post-content-preview">
-                  {(() => {
-                    const lines = (post.content ?? '').split('\n')
-                    const limitedLines = lines.slice(0, 2)
-                    const joined = limitedLines.join('\n').slice(0, 100)
-                    return joined
-                      .split('\n')
-                      .map((line: string, i: number, arr: string[]) => (
-                        <React.Fragment key={i}>
-                          {line}
-                          {i < arr.length - 1 && <br />}
-                        </React.Fragment>
-                      ))
-                  })()}
-                  {((post.content ?? '').split('\n').length > 2 ||
-                    (post.content ?? '').length > 100) &&
-                    '...'}
-                </div>
-              </div>
+              />
             ))
           )}
         </div>
 
-        {/* ✅ 페이지네이션 (1-base) */}
+        {/* 페이지네이션 */}
         <div className="flex justify-center mt-6">
           <Pagination
-            currentPage={currentPage} // 1-base
+            currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={(p) => {
               setCurrentPage(p)
               window.scrollTo({ top: 0, behavior: 'smooth' })
             }}
-            // siblingCount={1}
           />
         </div>
       </div>

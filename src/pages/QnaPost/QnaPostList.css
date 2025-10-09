@@ -5,16 +5,20 @@
   box-sizing: border-box;
 }
 
-/* 배너: 100% 가로 + 둥근 모서리 + 아래 여백 크게 */
 .qnapost-banner {
-  margin: 16px 0 28px;
+  margin: 16px 0 50px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  line-height: 0;
+  background: #e9efff;
 }
 .qnapost-banner img {
-  width: 100%;
-  height: auto;
   display: block;
-  border-radius: 12px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  width: 100%;
+  height: 101%;
+  object-fit: cover;
+  border-radius: 0;
 }
 
 /* 태그 + 글쓰기 버튼 바 (배너와 간격 충분히) */
@@ -22,7 +26,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  margin: 4px 0 30px; /* 배너 아래 여백 ↑ */
+  margin: 0 0 30px;
 }
 
 /* 태그 영역: 남는 폭 차지, 칩은 줄바꿈 */

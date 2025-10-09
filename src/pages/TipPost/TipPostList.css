@@ -7,7 +7,8 @@
 
 /* 2) 배너: 컨테이너 가로 100%, 둥근모서리+그림자, 아래 여백 크게 */
 .tippost-banner {
-  margin: 16px 0 24px; /* 위/아래 여백 */
+  margin: 16px 0 50px;
+  background: linear-gradient(180deg, #5f80ff 0%, #f4f6fa 100%);
 }
 .tippost-banner img {
   width: 100%;

@@ -1,13 +1,14 @@
 // src/pages/qna/QnaPostList.tsx
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import './QnaPostList.css' // 공통 스타일 사용 (필요시 QnaPostList.css 분리)
+import './QnaPostList.css' // 필요시만 개별 오버라이드
 import HomeBar from '../../components/HomeBar'
 import api from '../../api/api'
 import { toast } from 'react-toastify'
 import Footer from '../../components/layouts/Footer'
 import TagChips from '../../components/TagChips'
 import Pagination from '../../components/Pagination'
+import PostCard from '../../components/posts/PostCard'
 
 type Post = {
   postId: number
@@ -62,9 +63,7 @@ function QnaPostList() {
   const [tagId, setTagId] = useState<number | null>(0)
   const [posts, setPosts] = useState<Post[]>([])
   const [totalPages, setTotalPages] = useState<number>(1)
-
-  // ✅ Pagination은 1-base로 사용
-  const [currentPage, setCurrentPage] = useState<number>(1)
+  const [currentPage, setCurrentPage] = useState<number>(1) // 1-base
 
   const size = 5
 
@@ -84,23 +83,23 @@ function QnaPostList() {
           },
         })
 
-        // 혹시 서버가 id로 내려줄 때를 대비해 postId 보정
+        // 서버가 id로 내려줄 때 대비 postId 보정
         const data = res.data
-        const content = (Array.isArray(data?.content) ? data.content : []).map(
-          (p: any) => ({
-            postId: p.postId ?? p.id, // ← 보정 포인트
-            writer: p.writer,
-            title: p.title,
-            content: p.content,
-            tags: Array.isArray(p.tags) ? p.tags : [],
-            type: p.type,
-            createdAt: p.createdAt,
-          })
-        )
+        const content: Post[] = (
+          Array.isArray(data?.content) ? data.content : []
+        ).map((p: any) => ({
+          postId: p.postId ?? p.id,
+          writer: p.writer ?? '',
+          title: p.title ?? '',
+          content: p.content ?? '',
+          tags: Array.isArray(p.tags) ? p.tags : [],
+          type: p.type ?? 'Qna',
+          createdAt: p.createdAt ?? '',
+        }))
 
         setPosts(content)
         setTotalPages(Math.max(1, Number(data?.totalPages ?? 1)))
-      } catch (err) {
+      } catch {
         setPosts(fallbackResponse.content)
         setTotalPages(Math.max(1, fallbackResponse.totalPages))
       }
@@ -117,107 +116,70 @@ function QnaPostList() {
           <img src="/banners/qna-banner.svg" alt="질문게시판 배너" />
         </div>
 
-        {/* 태그칩 + 글쓰기 버튼 (한 줄 정렬) */}
-        <div className="qnapost-topbar">
-          <div className="qnapost-tags">
-            <TagChips
-              // ✅ 태그 엔드포인트도 실제와 동일하게 하이픈 표기 & /list 사용
-              endpoint="/api/qna-tags/list"
-              mode="single"
-              value={tagId}
-              onChange={(v) => {
-                setTagId(v as number | null)
-                setCurrentPage(1)
-              }}
-              includeAllItem
-              gapPx={10}
-              // 서버가 {id, tagName} 형태라면 TagChips 내부 normalize에서
-              // name || tagName 둘 다 지원하도록 되어있는지 확인!
-              fallbackTags={[
-                { id: 1, name: '리액트' },
-                { id: 2, name: '백엔드' },
-                { id: 3, name: '배포' },
-                { id: 4, name: 'CS' },
-              ]}
-            />
+        <div className="qnapost-inner">
+          <div className="qnapost-topbar">
+            <div className="qnapost-tags">
+              <TagChips
+                endpoint="/api/qna-tags/list"
+                mode="single"
+                value={tagId}
+                onChange={(v) => {
+                  setTagId(v as number | null)
+                  setCurrentPage(1)
+                }}
+                includeAllItem
+                gapPx={10}
+                fallbackTags={[
+                  { id: 1, name: '리액트' },
+                  { id: 2, name: '백엔드' },
+                  { id: 3, name: '배포' },
+                  { id: 4, name: 'CS' },
+                ]}
+              />
+            </div>
+
+            <button
+              className="write-button"
+              onClick={() => navigate('/qna/write')}
+            >
+              + 글쓰기
+            </button>
           </div>
 
-          <button
-            className="write-button"
-            onClick={() => navigate('/qna/write')}
-          >
-            + 글쓰기
-          </button>
-        </div>
+          {/* 리스트: PostCard로 렌더 */}
+          <div className="freepost-list">
+            {posts.length === 0 ? (
+              <div className="no-result">게시글이 없습니다.</div>
+            ) : (
+              posts.map((post) => (
+                <PostCard
+                  key={post.postId ?? `${post.title}-${post.createdAt}`}
+                  id={post.postId} // ✅ PostCard가 기대하는 id에 postId 매핑
+                  title={post.title}
+                  content={post.content}
+                  writer={post.writer}
+                  createdAt={post.createdAt}
+                  tags={post.tags}
+                  onClick={() => {
+                    if (post.postId != null) navigate(`/qna/${post.postId}`)
+                    else toast.error('잘못된 게시글 ID입니다.')
+                  }}
+                />
+              ))
+            )}
+          </div>
 
-        {/* 리스트 */}
-        <div className="freepost-list">
-          {posts.length === 0 ? (
-            <div className="no-result">게시글이 없습니다.</div>
-          ) : (
-            posts.map((post) => (
-              <div
-                key={post.postId ?? `${post.title}-${post.createdAt}`}
-                className="post-card"
-                onClick={() => {
-                  if (post.postId !== undefined && post.postId !== null) {
-                    navigate(`/qna/${post.postId}`)
-                  } else {
-                    toast.error('잘못된 게시글 ID입니다.')
-                  }
-                }}
-              >
-                <div className="post-meta">
-                  <span className="nickname">
-                    {post.writer || '(알 수 없음)'}
-                  </span>
-                  <span className="date">
-                    {post.createdAt
-                      ? new Date(post.createdAt).toLocaleString('ko-KR')
-                      : '-'}
-                  </span>
-                  <span className="tags">
-                    {Array.isArray(post.tags)
-                      ? post.tags.map((tag: string) => `#${tag}`).join(' ')
-                      : ''}
-                  </span>
-                </div>
-
-                <div className="post-title">{post.title}</div>
-
-                <div className="post-content-preview">
-                  {(() => {
-                    const lines = (post.content ?? '').split('\n')
-                    const limitedLines = lines.slice(0, 2)
-                    const joined = limitedLines.join('\n').slice(0, 100)
-                    return joined
-                      .split('\n')
-                      .map((line: string, i: number, arr: string[]) => (
-                        <React.Fragment key={i}>
-                          {line}
-                          {i < arr.length - 1 && <br />}
-                        </React.Fragment>
-                      ))
-                  })()}
-                  {((post.content ?? '').split('\n').length > 2 ||
-                    (post.content ?? '').length > 100) &&
-                    '...'}
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-
-        {/* ✅ 페이지네이션 (1-base) */}
-        <div className="flex justify-center mt-6">
-          <Pagination
-            currentPage={currentPage} // 1-base
-            totalPages={totalPages}
-            onPageChange={(p) => {
-              setCurrentPage(p)
-              window.scrollTo({ top: 0, behavior: 'smooth' })
-            }}
-          />
+          {/* ✅ 페이지네이션 (1-base) */}
+          <div className="flex justify-center mt-6">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={(p) => {
+                setCurrentPage(p)
+                window.scrollTo({ top: 0, behavior: 'smooth' })
+              }}
+            />
+          </div>
         </div>
       </div>
 
