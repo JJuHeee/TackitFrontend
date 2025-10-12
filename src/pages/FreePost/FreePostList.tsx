@@ -7,7 +7,7 @@ import { toast } from 'react-toastify'
 import Footer from '../../components/layouts/Footer'
 import TagChips from '../../components/TagChips'
 import Pagination from '../../components/Pagination'
-import PostCard from '../../components/posts/PostCard' // ✅ 교체 포인트
+import PostCard from '../../components/posts/PostCard'
 
 type Post = {
   id: number
@@ -17,6 +17,7 @@ type Post = {
   tags: string[]
   type: 'Free' | 'Qna' | 'Tip'
   createdAt: string
+  imageUrl?: string | null
 }
 
 type ListResp = {
@@ -38,6 +39,7 @@ const fallbackResponse: ListResp = {
       tags: ['일상', '산책', '추천'],
       createdAt: '2025-05-26T00:49:09.773772',
       type: 'Free',
+      imageUrl: null,
     },
     {
       id: 1,
@@ -48,6 +50,8 @@ const fallbackResponse: ListResp = {
       tags: ['스터디', '프론트엔드', 'React', '모집'],
       createdAt: '2025-05-26T00:47:58.054746',
       type: 'Free',
+      imageUrl:
+        'https://tackit.s3.ap-northeast-2.amazonaws.com/sample-image.jpg',
     },
   ],
   size: 5,
@@ -135,17 +139,14 @@ function FreePostList() {
           ) : (
             posts.map((post) => (
               <PostCard
-                key={post.id ?? `${post.title}-${post.createdAt}`}
                 id={post.id}
                 title={post.title}
                 content={post.content}
                 writer={post.writer}
                 createdAt={post.createdAt}
                 tags={post.tags}
-                onClick={() => {
-                  if (post.id != null) navigate(`/free/${post.id}`)
-                  else toast.error('잘못된 게시글 ID입니다.')
-                }}
+                imageUrl={post.imageUrl ?? null} // ⭐ 추가
+                onClick={() => navigate(`/free/${post.id}`)}
               />
             ))
           )}

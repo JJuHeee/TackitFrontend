@@ -1,0 +1,100 @@
+.write-editor .ql-toolbar button.ql-header[value='1'] .ql-stroke,
+.write-editor .ql-toolbar button.ql-header[value='1'] .ql-fill,
+.write-editor .ql-toolbar button.ql-header[value='2'] .ql-stroke,
+.write-editor .ql-toolbar button.ql-header[value='2'] .ql-fill,
+.write-editor .ql-toolbar button.ql-header[value='3'] .ql-stroke,
+.write-editor .ql-toolbar button.ql-header[value='3'] .ql-fill {
+  display: none !important;
+}
+
+.write-editor .ql-toolbar button.ql-header[value='1']::before {
+  content: 'H1';
+  font-weight: 700;
+  font-family: var(--font-sans);
+}
+.write-editor .ql-toolbar button.ql-header[value='2']::before {
+  content: 'H2';
+  font-weight: 700;
+  font-family: var(--font-sans);
+}
+.write-editor .ql-toolbar button.ql-header[value='3']::before {
+  content: 'H3';
+  font-weight: 700;
+  font-family: var(--font-sans);
+}
+
+.write-editor .ql-toolbar button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  line-height: 1;
+  color: var(--label-normal);
+}
+
+.write-editor .ql-toolbar button:hover,
+.write-editor .ql-toolbar button.ql-active {
+  color: var(--label-primary);
+}
+
+.write-editor .ql-toolbar .ql-formats:not(:first-child) {
+  border-left: 1px solid var(--line-normal);
+  margin-left: 12px;
+  padding-left: 12px;
+}
+/* 컨테이너 기본값 */
+.write-editor {
+  --min-height: 300px;
+}
+
+/* 툴바가 보이도록 */
+.write-editor .ql-toolbar {
+  display: block !important;
+  border: 1px solid var(--line-normal, #e5e7eb);
+  border-bottom: none;
+  border-radius: 12px 12px 0 0;
+  background: #fff;
+  /* 혹시 전역에서 0으로 내려간 경우 복구 */
+  height: auto !important;
+  visibility: visible !important;
+}
+
+/* 본문 영역이 0px 되지 않도록 */
+.write-editor .ql-container {
+  display: block !important;
+  border: 1px solid var(--line-normal, #e5e7eb);
+  border-radius: 0 0 12px 12px;
+  background: #fff;
+  min-height: var(--min-height, 300px) !important;
+  height: auto !important;
+}
+
+/* 실제 편집 영역 높이 보장 */
+.write-editor .ql-editor {
+  min-height: calc(var(--min-height, 300px) - 48px) !important;
+  padding: 12px 16px;
+  font-size: 14px;
+  line-height: 1.6;
+  font-style: normal !important;
+  color: var(--label-normal) !important;
+}
+
+/* placeholder가 잘 보이도록(전역 스타일 충돌 방지) */
+.ql-snow .ql-editor.ql-blank::before {
+  left: 16px;
+  right: 16px;
+  color: #9ca3af;
+}
+
+/* Quill placeholder - 기울임 강제 해제 */
+.write-editor .ql-container.ql-snow .ql-editor.ql-blank::before,
+.write-editor .ql-editor.ql-blank::before {
+  font-style: normal !important;
+  /* 필요시 함께 */
+  color: var(--label-assistive);
+  font-family: var(--font-sans);
+  font-size: var(--fs-body1-r);
+  line-height: var(--lh-body1-r);
+  letter-spacing: var(--ls-body1-r);
+  font-weight: var(--fw-body1-r);
+}

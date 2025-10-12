@@ -1,106 +1,109 @@
 .tippost-write-container {
-    background-color: white;
+  background-color: white;
+  width: 1100px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 48px 40px;
+  box-sizing: border-box;
+}
+
+.tippost-write-container h1 {
+  font-size: var(--fs-title1, 28px);
+  margin-top: 20px;
+  margin-bottom: 24px;
+  font-weight: bold;
+  color: var(--label-normal);
+}
+
+.write-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.write-editor {
+  border: 1px solid var(--line-normal);
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+}
+
+/* 툴바 */
+.write-editor .ql-toolbar.ql-snow {
+  border: none;
+  border-bottom: 1px solid var(--line-normal);
+  background: #fff;
+}
+
+/* 본문 컨테이너 */
+.write-editor .ql-container.ql-snow {
+  border: none;
+  background: #fff;
+}
+
+/* 본문 입력 영역 */
+.write-editor .ql-editor {
+  min-height: 300px;
+  padding: 16px;
+  color: var(--label-assistive);
+  font-family: var(--font-sans);
+  font-style: normal !important;
+}
+
+/* Quill placeholder 스타일 */
+.write-editor .ql-editor::before {
+  color: var(--label-assistive);
+  font-family: var(--font-sans);
+  font-size: var(--fs-body1-r);
+  line-height: var(--lh-body1-r);
+  letter-spacing: var(--ls-body1-r);
+  font-weight: var(--fw-body1-r);
+  opacity: 1;
+}
+
+/* ===== 입력 필드 ===== */
+.write-title-input {
+  width: 100%;
+  font-size: var(--fs-body1-r, 14px);
+  padding: 12px 16px;
+  border: 1px solid var(--line-normal);
+  border-radius: 12px;
+  background-color: #fff;
+  outline: none;
+  color: var(--label-normal);
+}
+
+/* 라벨 */
+.write-label {
+  font-size: var(--fs-body1-sb, 14px);
+  font-weight: var(--fw-body1-sb, 500);
+  color: var(--label-normal);
+  margin-top: 8px;
+}
+
+/* ===== 반응형 (웹 → 모바일 축소) ===== */
+
+/* 노트북 이하 (≤1280px) */
+@media (max-width: 1280px) {
+  .tippost-write-container {
     max-width: 900px;
-    margin: 0 auto;
-    padding: 40px 20px;
+    padding: 48px 32px;
   }
-  
-  .tippost-write-container h1 {
-    font-size: 28px;
-    margin-top: 20px;
-    margin-bottom: 24px;
-    font-weight: bold;
-  }
+}
 
-  
-  .write-submit-button {
-    background-color: #4D77FF;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    padding: 6px 12px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    padding: 8px 16px;
+/* 태블릿 이하 (≤1024px) */
+@media (max-width: 1024px) {
+  .tippost-write-container {
+    max-width: 700px;
+    padding: 40px 24px;
+  }
+}
 
-    align-self: flex-end;  
-    width: auto;          
-  }
-  
-  
-  
-  .write-form {
-    display: flex;
-    flex-direction: column;
-    gap: 12px; 
-  }
-  
-  
-  
-  /* 제목 영역 */
-  .write-title-input {
-    margin: 0;
-    font-size: 14px;
-    padding: 12px;
-    border: 1px solid #e0e0e0;
-    border-radius: 10px;
-    background-color: #f8fbfd;
-    outline: none;
+/* 모바일 (≤768px) */
+@media (max-width: 768px) {
+  .tippost-write-container {
+    max-width: 100%;
     width: 100%;
-    margin-bottom: 16px;
+    padding: 32px 16px;
   }
-  
-  /* 태그 버튼 */
-  .tag-buttons {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-
-  }
-  
-  .tag-button {
-    background-color: #f0f2f5;
-    border: none;
-    padding: 6px 12px;
-    font-size: 13px;
-    border-radius: 16px;
-    color: #333;
-    cursor: pointer;
-    margin-bottom: 16px;
-  }
-  
-  .tag-button.selected {
-    background-color: #4D77FF;
-    color: white;
-  }
-  
-  /* 내용 입력창 */
-  .write-textarea {
-    margin: 0;
-    padding: 16px;
-    font-size: 14px;
-    border: 1px solid #e0e0e0;
-    border-radius: 12px;
-    min-height: 280px;
-    resize: vertical;
-    background-color: #f8fbfd;
-    outline: none;
-    resize: none;
-  }
-  
-
-  .write-label {
-    margin: 0;
-    margin-bottom: 0px;  
-    margin-top: 0;      
-    font-size: 14px;     
-    font-weight: 500;    
-  }
-
-  .warning-icon {
-    vertical-align: middle; 
-    margin-right: 8px; 
-    width: 20px;
-    height: auto;
-  }
+}

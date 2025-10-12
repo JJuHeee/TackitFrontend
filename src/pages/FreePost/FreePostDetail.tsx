@@ -5,7 +5,7 @@ import HomeBar from '../../components/HomeBar'
 import api from '../../api/api'
 import useFetchUserInfo from '../../hooks/useFetchUserInfo'
 import { toast } from 'react-toastify'
-import { toastSuccess } from '@/utils/toast'
+import { toastSuccess } from '../../utils/toast'
 
 function FreePostDetail() {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null)
