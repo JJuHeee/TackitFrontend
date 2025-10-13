@@ -1,8 +1,8 @@
 import { toast, ToastOptions } from 'react-toastify'
-import { Check, AlertTriangle, XCircle } from 'lucide-react'
+import { Check, AlertTriangle, XCircle, Info } from 'lucide-react'
 import React from 'react'
 
-type ToastKind = 'success' | 'warn' | 'error'
+type ToastKind = 'success' | 'warn' | 'error' | 'info'
 
 const baseOptions: ToastOptions = {
   position: 'top-center',
@@ -41,6 +41,10 @@ function ToastBody({ message, kind }: { message: string; kind: ToastKind }) {
       iconStyle = { background: 'var(--accent-negative, #ef4444)' }
       IconComponent = XCircle
       break
+    case 'info':
+      iconStyle = { background: 'var(--accent-info, #3b82f6)' }
+      IconComponent = Info
+      break
   }
 
   return (
@@ -76,3 +80,6 @@ export const toastWarn = (msg = '입력값을 확인해 주세요.') =>
 
 export const toastError = (msg = '오류가 발생했습니다.') =>
   showToast(msg, 'error')
+
+export const toastInfo = (msg = '오류가 발생했습니다.') =>
+  showToast(msg, 'info')
