@@ -50,7 +50,12 @@ function FreePostWrite() {
       setLoadingTags(true)
       try {
         const res = await api.get('/api/free_tags')
-        setTagList(res.data)
+        // ✅ id를 number로 정규화
+        const normalized = (res.data ?? []).map((t: any) => ({
+          id: Number(t.id),
+          tagName: String(t.tagName ?? t.name ?? ''),
+        }))
+        setTagList(normalized)
       } catch {
         setTagList([
           { id: 2, tagName: '태그2' },
@@ -63,9 +68,12 @@ function FreePostWrite() {
     fetchTags()
   }, [])
 
-  const handleTagToggle = (id: number) => {
+  const handleTagToggle = (id: number | string) => {
+    const numId = Number(id)
     setSelectedTagIds((prev) =>
-      prev.includes(id) ? prev.filter((tagId) => tagId !== id) : [...prev, id]
+      prev.includes(numId)
+        ? prev.filter((tagId) => tagId !== numId)
+        : [...prev, numId]
     )
   }
 
@@ -94,21 +102,19 @@ function FreePostWrite() {
 
     setSubmitting(true)
     try {
-      // ✅ FormData 구성 (request: application/json, image: file)
       const form = new FormData()
+
       const payload: PostCreateReq = {
         title: title.trim(),
         content,
         tagIds: selectedTagIds,
       }
 
-      // request 파트를 반드시 application/json 으로!
       form.append(
-        'request',
+        'dto',
         new Blob([JSON.stringify(payload)], { type: 'application/json' })
       )
 
-      // 이미지 선택된 경우에만 파일 파트 추가 (선택 사항)
       if (coverFile) {
         form.append('image', coverFile)
       }
@@ -161,15 +167,16 @@ function FreePostWrite() {
           </p>
           <div className="flex flex-wrap gap-2">
             {tagList.map((tag) => {
-              const selected = selectedTagIds.includes(tag.id)
+              const tid = Number(tag.id)
+              const selected = selectedTagIds.includes(tid)
               return (
                 <Button
-                  key={tag.id}
+                  key={tid}
                   type="button"
                   variant="outlined"
                   size="outlinedS"
                   aria-pressed={selected}
-                  onClick={() => handleTagToggle(tag.id)}
+                  onClick={() => handleTagToggle(tid)}
                   className={clsx(
                     selected
                       ? 'border-[1px] border-[#4D77FF] text-[#4D77FF] bg-background-blue'
