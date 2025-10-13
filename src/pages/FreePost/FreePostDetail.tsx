@@ -353,25 +353,27 @@ function FreePostDetail() {
             )}
           </div>
 
-          {/* ✅ 댓글 목록 */}
-          {post && (
-            <CommentList
-              comments={comments}
-              currentUserNickname={userInfo?.nickname}
-              editCommentId={editCommentId}
-              onEdit={handleEditComment}
-              onDelete={handleDeleteComment}
-              onReport={handleReportComment}
-            />
-          )}
+          <div className="flow-root pb-0 mt-0">
+            {/* 댓글 목록 */}
+            {post && (
+              <CommentList
+                comments={comments}
+                currentUserNickname={userInfo?.nickname}
+                editCommentId={editCommentId}
+                onEdit={handleEditComment}
+                onDelete={handleDeleteComment}
+                onReport={handleReportComment}
+              />
+            )}
 
-          {/* ✅ 댓글 입력 */}
-          <CommentEditor
-            value={comment}
-            onChange={setComment}
-            onSubmit={handleCommentSubmit}
-            isEditing={false}
-          />
+            {/* 댓글 입력 */}
+            <CommentEditor
+              value={comment}
+              onChange={setComment}
+              onSubmit={handleCommentSubmit}
+              isEditing={false}
+            />
+          </div>
         </div>
       </div>
 

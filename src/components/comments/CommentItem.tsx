@@ -73,9 +73,6 @@ function CommentItemBase({
           답글 달기
         </button>
       </div>
-
-      {/* 구분선 */}
-      <div className="mt-6 border-b border-line-normal" />
     </div>
   )
 }

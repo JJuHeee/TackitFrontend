@@ -1,17 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react'
 import RichTextEditor from '../editor/RichTextEditor'
 import ModalButton from '../ui/ModalButton'
+import { isEditorEmpty } from '../../utils/editor'
 
 type CommentEditorProps = {
-  // 댓글 내용은 HTML 문자열로 관리 (ReactQuill 규격)
   value: string
   onChange: (html: string) => void
   onSubmit: () => void
   onCancel?: () => void
-  // 이미지를 누르면 실행할 업로드/선택 핸들러(선택)
-  onImageButtonClick?: () => void
   isEditing: boolean
-  // 접힘 상태일 때 placeholder
   collapsedPlaceholder?: string
 }
 
@@ -20,56 +17,85 @@ export default function CommentEditor({
   onChange,
   onSubmit,
   onCancel,
-  onImageButtonClick,
   isEditing,
   collapsedPlaceholder = '댓글을 입력해 주세요.',
 }: CommentEditorProps) {
   const rootRef = useRef<HTMLDivElement | null>(null)
-  const [isActive, setIsActive] = useState<boolean>(isEditing || !!value)
 
-  // 바깥 클릭 시(내용 없고, 편집중 아님) 다시 접기
+  // 내용이 있거나 편집중이면 펼침으로 시작
+  const [isActive, setIsActive] = useState<boolean>(
+    isEditing || !isEditorEmpty(value)
+  )
+
+  // 바깥 클릭을 ESC처럼: 내용 비고 편집중 아니면 접기
   useEffect(() => {
     const onDocClick = (e: MouseEvent) => {
       if (!rootRef.current?.contains(e.target as Node)) {
-        if (!value && !isEditing) setIsActive(false)
+        if (!isEditing && isEditorEmpty(value)) {
+          setIsActive(false)
+          onCancel?.()
+        }
       }
     }
     document.addEventListener('mousedown', onDocClick)
     return () => document.removeEventListener('mousedown', onDocClick)
-  }, [value, isEditing])
+  }, [value, isEditing, onCancel])
 
-  // ① 접힘 상태 (이미지 1)
+  // ① 접힘 상태
   if (!isActive) {
     return (
-      <div className="comment-collapsed" onClick={() => setIsActive(true)}>
-        <div className="avatar" />
-        <div className="collapsed-box">{collapsedPlaceholder}</div>
+      <div
+        className="flex items-center gap-3 mb-20 comment-collapsed"
+        onClick={() => setIsActive(true)}
+      >
+        {/* ✅ 아바타 색상 변경 */}
+        <div className="w-9 h-9 rounded-full bg-[#D9D9D9]" />
+
+        <div
+          className="
+          flex-1
+          h-11
+          border border-line-normal
+          rounded-[12px]
+          flex items-center
+          px-4
+          text-label-assistive
+          bg-white
+          cursor-text
+        "
+        >
+          {collapsedPlaceholder}
+        </div>
       </div>
     )
   }
 
-  // ② 펼침 상태 (이미지 2) — RichTextEditor 사용
+  // ② 펼침 상태
   return (
-    <div className="comment-expanded" ref={rootRef}>
-      <div className="avatar" />
-      <div className="editor-box">
+    <div className="flex gap-3 mb-20 comment-expanded" ref={rootRef}>
+      {/* 아바타: 36x36, 원형, #D9D9D9 */}
+      <div className="w-9 h-9 rounded-full bg-[#D9D9D9]" />
+
+      {/* 에디터 박스: 라운드 12px, 흰 배경 */}
+      <div className="flex-1 overflow-hidden bg-white editor-box rounded-xl">
         <RichTextEditor
+          variant="comment"
           value={value}
           onChange={onChange}
           placeholder={
             isEditing ? '댓글을 수정하세요.' : '자유롭게 답변을 작성해주세요.'
           }
-          minHeight={180} // 댓글용으로 조금 낮춤
-          className="comment-rte" // 댓글 스코프의 스타일
-          onImageButtonClick={onImageButtonClick}
+          minHeight={160}
+          className="comment-rte"
         />
 
-        <div className="flex justify-end gap-3 editor-actions">
+        {/* 버튼 영역: 오른쪽 정렬, 14px 좌우 패딩, 12px 위아래 패딩 */}
+        <div className="editor-actions flex justify-end gap-3 px-[14px] py-3">
           <ModalButton
             variant="ghost"
             size="l"
             onClick={() => {
-              if (!isEditing) setIsActive(false)
+              if (!isEditing && isEditorEmpty(value)) setIsActive(false)
               onCancel?.()
             }}
           >

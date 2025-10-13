@@ -56,11 +56,7 @@ export const ModalButton = React.forwardRef<
   return (
     <button
       ref={ref}
-      className={clsx(
-        modalButtonVariants({ variant, size }),
-        'mb-[20px]',
-        className
-      )}
+      className={clsx(modalButtonVariants({ variant, size }), className)}
       {...props}
     >
       {children}

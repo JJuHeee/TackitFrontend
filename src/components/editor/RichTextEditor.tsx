@@ -8,6 +8,8 @@ const icons = Quill.import('ui/icons')
 icons['link'] = '<img src="/icons/link.svg" style="width:18px;height:18px" />'
 icons['image'] = '<img src="/icons/image.svg" style="width:18px;height:18px" />'
 
+type Variant = 'post' | 'comment' // post: 이미지/헤더 포함, comment: 텍스트 위주
+
 type Props = {
   value: string
   onChange: (html: string) => void
@@ -16,6 +18,7 @@ type Props = {
   disabled?: boolean
   className?: string
   onImageButtonClick?: () => void
+  variant?: Variant
 }
 
 export default function RichTextEditor({
@@ -26,6 +29,7 @@ export default function RichTextEditor({
   disabled = false,
   className = '',
   onImageButtonClick,
+  variant = 'post',
 }: Props) {
   const quillRef = useRef<ReactQuill | null>(null)
 
@@ -48,37 +52,47 @@ export default function RichTextEditor({
         }
       },
       image: () => {
-        if (onImageButtonClick) {
-          onImageButtonClick()
-          return
-        }
+        if (variant === 'comment') return // 댓글 모드: 이미지 비활성
+        if (onImageButtonClick) onImageButtonClick()
       },
     }
+
+    // 툴바 구성: variant에 따라 다르게
+    const toolbarForPost = [
+      [{ header: 1 }, { header: 2 }, { header: 3 }],
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ list: 'ordered' }, { list: 'bullet' }],
+      ['link', 'image'],
+    ]
+
+    const toolbarForComment = [
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ list: 'ordered' }, { list: 'bullet' }],
+      ['link'], // 이미지/헤더 없음
+    ]
 
     return {
       toolbar: {
-        container: [
-          [{ header: 1 }, { header: 2 }, { header: 3 }],
-          ['bold', 'italic', 'underline', 'strike'],
-          [{ list: 'ordered' }, { list: 'bullet' }],
-          ['link', 'image'],
-        ],
+        container: variant === 'post' ? toolbarForPost : toolbarForComment,
         handlers,
       },
     }
-  }, [onImageButtonClick])
+  }, [onImageButtonClick, variant])
 
-  const formats = [
-    'header',
-    'bold',
-    'italic',
-    'underline',
-    'strike',
-    'list',
-    'bullet',
-    'link',
-    'image',
-  ]
+  const formats =
+    variant === 'post'
+      ? [
+          'header',
+          'bold',
+          'italic',
+          'underline',
+          'strike',
+          'list',
+          'bullet',
+          'link',
+          'image',
+        ]
+      : ['bold', 'italic', 'underline', 'strike', 'list', 'bullet', 'link'] // 댓글 포맷 제한
 
   return (
     <div
@@ -86,7 +100,7 @@ export default function RichTextEditor({
       style={{ ['--min-height' as any]: `${minHeight}px` }}
     >
       <ReactQuill
-        key={onImageButtonClick ? 'rte-cover-proxy' : 'rte-default'}
+        key={variant} // 툴바 변경 시 안전하게 리렌더
         ref={quillRef}
         theme="snow"
         value={value}

@@ -27,17 +27,22 @@ export default function CommentList({
         </span>
       </h3>
 
-      {comments.map((c) => (
-        <CommentItem
-          key={c.id}
-          comment={c}
-          currentUserNickname={currentUserNickname}
-          editCommentId={editCommentId}
-          onEdit={onEdit}
-          onDelete={onDelete}
-          onReport={onReport}
-        />
-      ))}
+      <div className="divide-y divide-line-normal">
+        {comments.map((c) => (
+          <div key={c.id} className="py-6">
+            {' '}
+            {/* ✅ 상하간격은 여기서만 */}
+            <CommentItem
+              comment={c}
+              currentUserNickname={currentUserNickname}
+              editCommentId={editCommentId}
+              onEdit={onEdit}
+              onDelete={onDelete}
+              onReport={onReport}
+            />
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
