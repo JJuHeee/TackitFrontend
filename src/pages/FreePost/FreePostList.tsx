@@ -8,6 +8,7 @@ import Footer from '../../components/layouts/Footer'
 import TagChips from '../../components/TagChips'
 import Pagination from '../../components/Pagination'
 import PostCard from '../../components/posts/PostCard'
+import { stripHtml } from '../../utils/stripHtml'
 
 type Post = {
   id: number
@@ -141,7 +142,7 @@ function FreePostList() {
               <PostCard
                 id={post.id}
                 title={post.title}
-                content={post.content}
+                content={stripHtml(post.content)}
                 writer={post.writer}
                 createdAt={post.createdAt}
                 tags={post.tags}

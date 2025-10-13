@@ -1,6 +1,7 @@
 import React from 'react'
 import { toast } from 'react-toastify'
 import PostMeta from './PostMeta'
+import PostPreview from './PostPreview'
 
 type PostCardProps = {
   id?: number
@@ -32,10 +33,6 @@ export default function PostCard({
     onClick?.()
   }
 
-  const lines = (content ?? '').split('\n')
-  const joined = lines.slice(0, 2).join('\n').slice(0, 100)
-  const needEllipsis = lines.length > 2 || (content ?? '').length > 100
-
   return (
     <article
       onClick={handleClick}
@@ -53,7 +50,7 @@ export default function PostCard({
       <div
         style={{
           display: 'flex',
-          gap: imageUrl ? 16 : 0, // ✅ 이미지 없을 땐 여백 제거
+          gap: imageUrl ? 16 : 0,
           alignItems: 'flex-start',
           justifyContent: 'space-between',
         }}
@@ -71,28 +68,18 @@ export default function PostCard({
           <h3 className="text-title-1 text-label-normal" style={{ margin: 0 }}>
             {title ?? '(제목 없음)'}
           </h3>
-          <p
+          <PostPreview
+            content={content}
             className="text-body-1 text-label-neutral"
-            style={{
-              margin: 0,
-              whiteSpace: 'pre-line',
-              overflow: 'hidden',
-              display: '-webkit-box',
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: 'vertical',
-            }}
-          >
-            {joined}
-            {needEllipsis && '...'}
-          </p>
+          />
         </div>
 
-        {/* 오른쪽: 썸네일 (✅ imageUrl 있을 때만 렌더링) */}
+        {/* 오른쪽: 썸네일 */}
         {imageUrl && (
           <div
             style={{
               width: 120,
-              height: 80, // ✅ 고정 높이
+              height: 80,
               flex: '0 0 120px',
               borderRadius: 8,
               overflow: 'hidden',

@@ -1,5 +1,6 @@
 import React from 'react'
 import PostAuthorMeta from '../posts/PostAuthorMeta'
+import { stripHtml } from '../../utils/stripHtml'
 
 export type CommentModel = {
   id: number
@@ -60,7 +61,7 @@ function CommentItemBase({
 
       {/* 댓글 본문 */}
       <p className="mt-3 whitespace-pre-line text-body-1 reading-regular text-label-normal">
-        {c.content}
+        {stripHtml(c.content)}
       </p>
 
       {/* 답글 달기 */}
