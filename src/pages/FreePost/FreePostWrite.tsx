@@ -94,12 +94,28 @@ function FreePostWrite() {
 
     setSubmitting(true)
     try {
-      // ✅ 타입 적용
-      const { data } = await api.post<PostCreateRes>('/api/free-posts', {
+      // ✅ FormData 구성 (request: application/json, image: file)
+      const form = new FormData()
+      const payload: PostCreateReq = {
         title: title.trim(),
         content,
         tagIds: selectedTagIds,
-      } satisfies PostCreateReq)
+      }
+
+      // request 파트를 반드시 application/json 으로!
+      form.append(
+        'request',
+        new Blob([JSON.stringify(payload)], { type: 'application/json' })
+      )
+
+      // 이미지 선택된 경우에만 파일 파트 추가 (선택 사항)
+      if (coverFile) {
+        form.append('image', coverFile)
+      }
+
+      const { data } = await api.post<PostCreateRes>('/api/free-posts', form, {
+        headers: {},
+      })
 
       toastSuccess('작성이 완료되었습니다.')
       navigate(`/free/${data.id}`, { state: { post: data } })

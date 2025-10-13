@@ -1,4 +1,3 @@
-// components/posts/PostMeta.tsx
 import React from 'react'
 import TagBadgeList from '../ui/TagBadgeList'
 
@@ -25,14 +24,18 @@ export default function PostMeta({
     })
   }
 
+  const hasTags = tags && tags.length > 0
+
   return (
     <div
-      className={`post-meta flex items-center justify-between text-caption text-label-neutral ${
-        className ?? ''
-      }`}
+      className={`post-meta flex items-center ${
+        hasTags ? 'justify-between' : 'justify-end'
+      } text-caption text-label-neutral ${className ?? ''}`}
     >
-      {/* ✅ 왼쪽: 태그 목록 */}
-      <TagBadgeList tags={tags} className="flex flex-wrap" gapPx={6} />
+      {/* ✅ 왼쪽: 태그 목록 (태그 있을 때만 렌더링) */}
+      {hasTags && (
+        <TagBadgeList tags={tags} className="flex flex-wrap" gapPx={6} />
+      )}
 
       {/* ✅ 오른쪽: 작성자 + 구분선 + 날짜 */}
       <div className="flex items-center gap-2">
