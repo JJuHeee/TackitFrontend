@@ -50,7 +50,6 @@ function FreePostWrite() {
       setLoadingTags(true)
       try {
         const res = await api.get('/api/free_tags')
-        // ✅ id를 number로 정규화
         const normalized = (res.data ?? []).map((t: any) => ({
           id: Number(t.id),
           tagName: String(t.tagName ?? t.name ?? ''),
@@ -162,25 +161,24 @@ function FreePostWrite() {
           />
 
           {/* 분류 */}
-          <p className="mt-4 text-label-normal text-body-1sb">
+          <p className="mt-4 write-label">
             분류 <span className="text-system-red">*</span>
           </p>
           <div className="flex flex-wrap gap-2">
             {tagList.map((tag) => {
-              const tid = Number(tag.id)
-              const selected = selectedTagIds.includes(tid)
+              const selected = selectedTagIds.includes(tag.id)
               return (
                 <Button
-                  key={tid}
+                  key={tag.id}
                   type="button"
                   variant="outlined"
                   size="outlinedS"
                   aria-pressed={selected}
-                  onClick={() => handleTagToggle(tid)}
+                  onClick={() => handleTagToggle(tag.id)}
                   className={clsx(
                     selected
-                      ? 'border-[1px] border-[#4D77FF] text-[#4D77FF] bg-background-blue'
-                      : 'border-line-normal text-label-normal bg-transparent'
+                      ? '!border-line-active text-label-primary bg-background-blue'
+                      : 'border-line-normal text-label-normal'
                   )}
                 >
                   #{tag.tagName}

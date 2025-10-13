@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import HomeBar from '../../components/HomeBar'
 import api from '../../api/api'
@@ -18,13 +18,23 @@ function TipPostWrite() {
   const [tagList, setTagList] = useState<{ id: number; tagName: string }[]>([])
   const [loadingTags, setLoadingTags] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [coverFile, setCoverFile] = useState<File | null>(null)
+  const [coverPreview, setCoverPreview] = useState<string | null>(null)
+  const coverInputRef = useRef<HTMLInputElement | null>(null)
+  const openCoverDialog = useCallback(() => {
+    coverInputRef.current?.click()
+  }, [])
 
   useEffect(() => {
     const fetchTags = async () => {
       setLoadingTags(true)
       try {
         const res = await api.get('/api/free-tags/list')
-        setTagList(res.data)
+        const normalized = (res.data ?? []).map((t: any) => ({
+          id: Number(t.id),
+          tagName: String(t.tagName ?? t.name ?? ''),
+        }))
+        setTagList(normalized)
       } catch {
         setTagList([
           { id: 2, tagName: '태그2' },
@@ -37,9 +47,10 @@ function TipPostWrite() {
     fetchTags()
   }, [])
 
-  const handleTagToggle = (id: number) => {
+  const handleTagToggle = (id: number | string) => {
+    const numId = Number(id)
     setSelectedTagIds((prev) =>
-      prev.includes(id) ? prev.filter((tagId) => tagId !== id) : [...prev, id]
+      prev.includes(numId) ? prev.filter((x) => x !== numId) : [...prev, numId]
     )
   }
 
@@ -57,6 +68,7 @@ function TipPostWrite() {
     return title.trim().length > 0 && hasMeaningfulContent(content)
   }, [title, content])
 
+  // ✅ 전송(요청 바디 타입 세이프가드)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (submitting) return
@@ -68,17 +80,29 @@ function TipPostWrite() {
 
     setSubmitting(true)
     try {
-      // ✅ 응답 타입 지정 + 요청 바디 타입 세이프가드
-      const { data } = await api.post<PostCreateRes>('/api/tip-posts', {
+      const form = new FormData()
+
+      const payload: PostCreateReq = {
         title: title.trim(),
         content,
-        tagIds: selectedTagIds,
-      } satisfies PostCreateReq)
+        tagIds: selectedTagIds, // number[] 보장
+      }
+
+      // dto(JSON) 파트
+      form.append(
+        'dto',
+        new Blob([JSON.stringify(payload)], { type: 'application/json' })
+      )
+      if (coverFile) {
+        form.append('image', coverFile)
+      }
+
+      const { data } = await api.post<PostCreateRes>('/api/tip-posts', form, {
+        headers: {},
+      })
 
       toastSuccess('글이 작성되었습니다.')
-      // ✅ TIP 상세 경로로 이동 (라우트가 /tip/:id 라고 가정)
       navigate(`/tip/${data.id}`, { state: { post: data } })
-      // 만약 글 목록으로만 가고 싶다면: navigate('/tip')
     } catch (err: any) {
       const msg = err?.response?.data?.message || '글 작성에 실패했습니다.'
       toastError(msg)
@@ -95,9 +119,10 @@ function TipPostWrite() {
           글쓰기
         </h1>
 
+        {/* ✅ form 영역: Free/Qna와 동일한 클래스/구조 */}
         <form className="write-form" onSubmit={handleSubmit}>
           {/* 제목 */}
-          <p className="mt-4 text-label-normal text-body-1sb">
+          <p className="write-label">
             제목 <span className="text-system-red">*</span>
           </p>
           <input
@@ -109,12 +134,12 @@ function TipPostWrite() {
           />
 
           {/* 분류(태그) */}
-          <p className="mt-4 text-label-normal text-body-1sb">
+          <p className="mt-4 write-label">
             분류 <span className="text-system-red">*</span>
           </p>
           <div className="flex flex-wrap gap-2">
             {tagList.map((tag) => {
-              const selected = selectedTagIds.includes(tag.id)
+              const selected = selectedTagIds.includes(Number(tag.id))
               return (
                 <Button
                   key={tag.id}
@@ -125,7 +150,7 @@ function TipPostWrite() {
                   onClick={() => handleTagToggle(tag.id)}
                   className={clsx(
                     selected
-                      ? 'border-line-active text-label-primary bg-background-blue'
+                      ? '!border-line-active text-label-primary bg-background-blue'
                       : 'border-line-normal text-label-normal'
                   )}
                 >
@@ -136,7 +161,7 @@ function TipPostWrite() {
           </div>
 
           {/* 본문 */}
-          <p className="mt-4 text-label-normal text-body-1sb">
+          <p className="mt-4 write-label">
             내용 <span className="text-system-red">*</span>
           </p>
           <RichTextEditor

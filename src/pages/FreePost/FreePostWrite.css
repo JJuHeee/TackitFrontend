@@ -54,8 +54,6 @@
   opacity: 1;
 }
 
-/* ===== 반응형: 화면이 작아질수록 축소 ===== */
-
 /* 노트북 이하 (≤1280px) */
 @media (max-width: 1280px) {
   .freepost-write-container {
