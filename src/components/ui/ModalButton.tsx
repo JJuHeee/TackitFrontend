@@ -34,13 +34,13 @@ const modalButtonVariants = cva(
       },
       size: {
         s: 'h-9 px-4 text-body-2 rounded-lg',
-        m: 'h-11 px-5 text-body-1sb rounded-xl',
+        m: 'w-[143.5px] h-[48px] text-body-1sb rounded-xl',
         l: 'w-[165px] h-[45px] text-body-1sb rounded-xl',
       },
     },
     defaultVariants: {
       variant: 'primary',
-      size: 'l', // 기본 L 사이즈로 지정
+      size: 'l',
     },
   }
 )

@@ -8,6 +8,8 @@ import DOMPurify from 'dompurify'
 import CommentList from '../../components/comments/CommentList'
 import CommentEditor from '../../components/comments/CommentEditor'
 import type { CommentModel } from '../../components/comments/CommentItem'
+import ReportModal from '../../components/modals/ReportModal'
+import type { ReportPayload } from '../../components/modals/ReportModal'
 
 import {
   toastSuccess,
@@ -42,8 +44,14 @@ function FreePostDetail() {
   const [comment, setComment] = useState('')
   const [editCommentId, setEditCommentId] = useState<number | null>(null)
   const [isScrapped, setIsScrapped] = useState(false)
-  const [showReportModal, setShowReportModal] = useState(false)
-  const [reportReason, setReportReason] = useState('')
+
+  // 신고 모달 상태
+  const [showPostReportModal, setShowPostReportModal] = useState(false)
+  const [showCommentReportModal, setShowCommentReportModal] = useState(false)
+  const [reportingCommentId, setReportingCommentId] = useState<number | null>(
+    null
+  )
+
   const { userInfo } = useFetchUserInfo()
 
   const normalizeComments = (raw: any): CommentModel[] => {
@@ -67,6 +75,7 @@ function FreePostDetail() {
       .filter((c: CommentModel) => Number.isFinite(c.id))
   }
 
+  // 게시글 로딩
   useEffect(() => {
     if (!id || Number.isNaN(Number(id))) {
       toastError('유효하지 않은 게시글 ID입니다.')
@@ -78,10 +87,6 @@ function FreePostDetail() {
       try {
         setLoading(true)
         const res = await api.get(`free-posts/${id}`)
-
-        // ✅ QnA처럼 normalize: 응답이 배열/컨텐츠 래핑/단일객체 모두 대응
-        // - 예) { content: [...] } 형태면 첫 항목 사용
-        // - 예) 단일 객체면 그대로 사용
         const raw = res?.data
         const picked = Array.isArray(raw?.content)
           ? raw.content[0]
@@ -103,13 +108,10 @@ function FreePostDetail() {
           tags: Array.isArray(picked.tags) ? picked.tags : [],
           createdAt: picked.createdAt ?? new Date().toISOString(),
           imageUrl: picked.imageUrl ?? null,
-          // 필요 시 타입 필드가 있다면 아래 라인 주석 해제
-          // type: (picked.type as 'Free' | 'QnA' | string) ?? 'Free',
         }
 
         setPost(normalized)
       } catch (err) {
-        // ✅ 실패 시 더미(Free 게시판 스킴에 맞춰 최소 필드만)
         setPost({
           id: postIdNumber || 0,
           writer: '기본',
@@ -127,13 +129,13 @@ function FreePostDetail() {
     fetchPost()
   }, [id, navigate, postIdNumber])
 
+  // 댓글 로딩 (오래된 → 최신 오름차순으로 정렬 보증)
   useEffect(() => {
     const fetchComments = async () => {
       try {
         const res = await api.get(`free-comments/${id}`)
-        setComments(normalizeComments(res.data))
+        setComments(normalizeComments(res.data)) // ✅ 단순히 상태만 설정
       } catch {
-        // 더미
         setComments([
           {
             id: 1,
@@ -153,6 +155,13 @@ function FreePostDetail() {
     if (id) fetchComments()
   }, [id])
 
+  // 댓글 수정 시작
+  const handleEditComment = (c: { id: number; content: string }) => {
+    setComment(c.content)
+    setEditCommentId(c.id)
+    if (textareaRef.current) textareaRef.current.focus()
+  }
+
   // 댓글 삭제
   const handleDeleteComment = async (commentId: number) => {
     try {
@@ -164,28 +173,15 @@ function FreePostDetail() {
     }
   }
 
-  const handleReportComment = async (commentId: number) => {
-    const confirmed = window.confirm('정말 이 댓글을 신고하시겠습니까?')
-    if (!confirmed) return
-
-    try {
-      await api.post(`free-comments/${commentId}/report`)
-      toastSuccess('댓글을 신고하였습니다.')
-    } catch (err) {
-      console.error('댓글 신고 실패:', err)
-      toastError('이미 삭제된 댓글입니다.')
-    }
+  // 댓글 신고: 모달 열기
+  const handleReportCommentOpen = (commentId: number) => {
+    setReportingCommentId(commentId)
+    setShowCommentReportModal(true)
   }
 
-  const handleEditComment = (c: { id: number; content: string }) => {
-    setComment(c.content)
-    setEditCommentId(c.id)
-    if (textareaRef.current) textareaRef.current.focus()
-  }
-
+  // 댓글 등록/수정 제출
   const handleCommentSubmit = async () => {
     const trimmed = comment.trim()
-
     if (!trimmed) return toastWarn('댓글을 입력해주세요.')
     if (trimmed.length > 250)
       return toastWarn('댓글은 최대 250자까지 작성할 수 있어요.')
@@ -204,7 +200,8 @@ function FreePostDetail() {
           freePostId: postIdNumber,
           content: trimmed,
         })
-        setComments((prev) => [res.data, ...prev])
+        // ✅ 새 댓글을 리스트 '맨 아래'에 추가
+        setComments((prev) => [...prev, res.data])
         toastSuccess('댓글이 등록되었습니다.')
       }
 
@@ -216,6 +213,7 @@ function FreePostDetail() {
     }
   }
 
+  // 게시글 삭제
   const handleDeletePost = async () => {
     const confirmed = window.confirm('이 글을 삭제하시겠습니까?')
     if (!confirmed) return
@@ -229,34 +227,48 @@ function FreePostDetail() {
     }
   }
 
-  const handleReportPost = async () => {
-    if (!reportReason) return toastWarn('신고 사유를 선택해주세요.')
-
+  // 게시글 신고 제출
+  const handleSubmitPostReport = async (p: ReportPayload) => {
+    if (p.targetType !== 'POST') return
     try {
       await api.post(`/reports/create`, {
-        targetId: postIdNumber,
-        targetType: 'POST',
-        reason: reportReason,
+        targetId: p.targetId,
+        targetType: p.targetType, // 'POST'
+        reason: p.reason,
       })
-
       const res = await api.post(`/free-posts/${id}/report`)
       const message =
         typeof res.data === 'string' ? res.data : res.data?.message
-
-      if (message === '게시글을 신고하였습니다.') {
-        toastSuccess('게시글이 신고되었습니다.')
-        setShowReportModal(false)
-        setReportReason('')
-      } else if (message === '이미 신고한 게시글입니다.') {
+      if (message === '게시글을 신고하였습니다.')
+        toastSuccess('신고처리가 완료되었습니다.')
+      else if (message === '이미 신고한 게시글입니다.')
         toastInfo('이미 신고한 게시글입니다.')
-      } else {
-        toastInfo(message || '신고가 접수되었습니다.')
-      }
+      else toastInfo(message || '신고가 접수되었습니다.')
+      setShowPostReportModal(false)
     } catch {
       toastError('신고 처리에 실패했습니다.')
     }
   }
 
+  // 댓글 신고 제출
+  const handleSubmitCommentReport = async (p: ReportPayload) => {
+    if (p.targetType !== 'COMMENT') return
+    try {
+      await api.post(`/reports/create`, {
+        targetId: p.targetId,
+        targetType: p.targetType, // 'COMMENT'
+        reason: p.reason,
+      })
+      await api.post(`free-comments/${p.targetId}/report`)
+      toastSuccess('신고처리가 완료되었습니다.')
+      setShowCommentReportModal(false)
+      setReportingCommentId(null)
+    } catch {
+      toastError('댓글 신고 처리에 실패했습니다.')
+    }
+  }
+
+  // 찜 토글
   const handleScrapToggle = async () => {
     try {
       const res = await api.post(`/free-posts/${id}/scrap`)
@@ -318,7 +330,7 @@ function FreePostDetail() {
             isAuthor={isAuthor}
             onEdit={() => navigate(`/free/edit/${post.id}`)}
             onDelete={handleDeletePost}
-            onReport={() => setShowReportModal(true)}
+            onReport={() => setShowPostReportModal(true)}
           />
         )}
 
@@ -362,7 +374,7 @@ function FreePostDetail() {
                 editCommentId={editCommentId}
                 onEdit={handleEditComment}
                 onDelete={handleDeleteComment}
-                onReport={handleReportComment}
+                onReport={handleReportCommentOpen}
               />
             )}
 
@@ -371,35 +383,35 @@ function FreePostDetail() {
               value={comment}
               onChange={setComment}
               onSubmit={handleCommentSubmit}
-              isEditing={false}
+              isEditing={!!editCommentId}
             />
           </div>
         </div>
       </div>
 
-      {/* ✅ 신고 모달은 컨테이너 밖에 */}
-      {showReportModal && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <h3>신고 사유를 선택해주세요</h3>
-            <select
-              value={reportReason}
-              onChange={(e) => setReportReason(e.target.value)}
-            >
-              <option value="">신고 사유를 선택해주세요</option>
-              <option value="ADVERTISEMENT">광고 및 홍보성 게시물</option>
-              <option value="DUPLICATE">중복 또는 도배성 게시물</option>
-              <option value="FALSE_INFO">허위 정보 또는 사실 왜곡</option>
-              <option value="IRRELEVANT">게시판 주제와 관련 없는 내용</option>
-              <option value="ETC">기타</option>
-            </select>
+      {/* 게시글 신고 모달 */}
+      {showPostReportModal && (
+        <ReportModal
+          isOpen={showPostReportModal}
+          targetId={postIdNumber}
+          targetType="POST"
+          onClose={() => setShowPostReportModal(false)}
+          onSubmit={handleSubmitPostReport}
+        />
+      )}
 
-            <div className="modal-buttons">
-              <button onClick={handleReportPost}>확인</button>
-              <button onClick={() => setShowReportModal(false)}>취소</button>
-            </div>
-          </div>
-        </div>
+      {/* 댓글 신고 모달 */}
+      {showCommentReportModal && reportingCommentId && (
+        <ReportModal
+          isOpen={showCommentReportModal}
+          targetId={reportingCommentId!}
+          targetType="COMMENT"
+          onClose={() => {
+            setShowCommentReportModal(false)
+            setReportingCommentId(null)
+          }}
+          onSubmit={handleSubmitCommentReport}
+        />
       )}
     </>
   )

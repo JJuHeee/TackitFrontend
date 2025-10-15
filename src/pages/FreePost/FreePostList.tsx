@@ -136,7 +136,16 @@ function FreePostList() {
         {/* 리스트 */}
         <div className="post-list">
           {posts.length === 0 ? (
-            <div className="no-result">게시글이 없습니다.</div>
+            <div className="flex flex-col items-center py-20 no-result">
+              <img
+                src="/icons/empty.svg"
+                alt="아직 작성한 글이 없어요!"
+                className="w-20 h-20 mb-4"
+              />
+              <p className="text-body-1sb text-label-normal">
+                아직 작성한 글이 없어요!
+              </p>
+            </div>
           ) : (
             posts.map((post) => (
               <PostCard

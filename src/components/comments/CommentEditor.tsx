@@ -26,6 +26,9 @@ export default function CommentEditor({
   const [isActive, setIsActive] = useState<boolean>(
     isEditing || !isEditorEmpty(value)
   )
+  useEffect(() => {
+    setIsActive(isEditing || !isEditorEmpty(value))
+  }, [isEditing, value])
 
   // 바깥 클릭을 ESC처럼: 내용 비고 편집중 아니면 접기
   useEffect(() => {

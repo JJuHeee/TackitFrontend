@@ -18,6 +18,13 @@ export default function CommentList({
   onDelete,
   onReport,
 }: CommentListProps) {
+  const ordered = [...comments].sort((a, b) => {
+    const ta = +new Date(a.createdAt || 0)
+    const tb = +new Date(b.createdAt || 0)
+    if (ta !== tb) return ta - tb
+    return (a.id ?? 0) - (b.id ?? 0)
+  })
+
   return (
     <div className="comment-list">
       <h3 className="comment-title text-title2-bold text-label-normal">
@@ -28,10 +35,8 @@ export default function CommentList({
       </h3>
 
       <div className="divide-y divide-line-normal">
-        {comments.map((c) => (
+        {ordered.map((c) => (
           <div key={c.id} className="py-6">
-            {' '}
-            {/* ✅ 상하간격은 여기서만 */}
             <CommentItem
               comment={c}
               currentUserNickname={currentUserNickname}
