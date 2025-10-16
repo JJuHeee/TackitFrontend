@@ -1,4 +1,3 @@
-// FreePostWrite.tsx (변경분만)
 import React, { useState, useEffect, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import HomeBar from '../../components/HomeBar'
@@ -70,11 +69,10 @@ function FreePostWrite() {
     [title, content]
   )
 
-  // ✅ 서버에 이미지 업로드하고 공개 URL을 반환
+  // 서버에 이미지 업로드하고 공개 URL을 반환 (백엔드 스펙에 맞게 수정)
   const uploadImage = async (file: File): Promise<string> => {
     const form = new FormData()
-    form.append('image', file)
-    // 백엔드에 맞게 엔드포인트/응답 키 수정
+    form.append('image', file) // ← 백엔드가 'file'을 기대하면 'file'로 변경
     const { data } = await api.post<{ url: string }>(
       '/api/uploads/images',
       form
@@ -85,6 +83,7 @@ function FreePostWrite() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (submitting) return
+
     if (!isReadyToSubmit) {
       toastWarn('제목과 내용을 입력해 주세요.')
       return
@@ -94,7 +93,7 @@ function FreePostWrite() {
     try {
       const payload: PostCreateReq = {
         title: title.trim(),
-        content, // ← 본문 안에 <img src="..."> 포함됨
+        content, // 본문에 <img src="..."> 포함
         tagIds: selectedTagIds,
       }
 
@@ -104,11 +103,10 @@ function FreePostWrite() {
         new Blob([JSON.stringify(payload)], { type: 'application/json' })
       )
 
-      // ✅ 더 이상 별도 대표이미지(form.append('image', ...)) 없음
       const { data } = await api.post<PostCreateRes>('/api/free-posts', form)
 
       toastSuccess('작성이 완료되었습니다.')
-      navigate(`/free/${data.id}`, { state: { post: data } })
+      navigate(`/free/${data.id}`, { state: { post: data } }) // ✅ 백틱으로 수정
     } catch (err: any) {
       const msg = err?.response?.data?.message || '글 작성에 실패했습니다.'
       toastError(msg)
@@ -170,7 +168,6 @@ function FreePostWrite() {
             내용 <span className="text-system-red">*</span>
           </p>
 
-          {/* ✅ 에디터에 업로드 함수만 전달 */}
           <RichTextEditor
             ref={editorRef}
             value={content}
@@ -178,6 +175,8 @@ function FreePostWrite() {
             placeholder="자유롭게 생각이나 이야기를 나눠주세요."
             minHeight={300}
             uploadImage={uploadImage}
+            // 필요하면 이미지 리사이즈/압축 옵션 조정
+            // imageOptions={{ maxWidth: 800, maxHeight: 800, quality: 0.85, mime: 'image/webp', compressOver: 300 * 1024 }}
           />
 
           {/* 등록 버튼 */}

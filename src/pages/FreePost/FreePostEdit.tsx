@@ -1,113 +1,146 @@
 // src/pages/free/FreePostEdit.tsx
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import './FreePostEdit.css'
 import HomeBar from '../../components/HomeBar'
 import api from '../../api/api'
-import { toast } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
+import Button from '../../components/ui/Button'
+import clsx from 'clsx'
+import './FreePostWrite.css' // 작성 페이지 스타일 재사용
+import RichTextEditor, {
+  RichTextEditorHandle,
+} from '../../components/editor/RichTextEditor'
+import { toastSuccess, toastWarn, toastError } from '../../utils/toast'
 
 type Tag = { id: number; tagName: string }
 
+// 서버 상세 응답 (본문만 사용하지만 타입은 참고용)
 type PostDetailResp = {
+  id: number
   writer: string
   title: string
-  content: string
-  tags: string[] // 서버에서 태그명을 배열로 내려주는 형태에 맞춤
+  content: string // HTML
+  tags: string[] // 태그명 배열
   createdAt: string
-}
-
-const fallbackTags: Tag[] = [
-  { id: 1, tagName: '태그1' },
-  { id: 2, tagName: '태그2' },
-  { id: 3, tagName: '태그3' },
-]
-
-const fallbackPost: PostDetailResp = {
-  writer: '',
-  title: '본문1 제목',
-  content: '내용4',
-  tags: ['태그1', '태그3', '태그2'],
-  createdAt: '2025-05-13T19:34:53.52603',
 }
 
 function FreePostEdit() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
 
-  const [title, setTitle] = useState<string>('')
-  const [content, setContent] = useState<string>('')
-  const [tagIds, setTagIds] = useState<number[]>([])
-  const [tagOptions, setTagOptions] = useState<Tag[]>(fallbackTags)
-  const [loading, setLoading] = useState<boolean>(false)
-  const [saving, setSaving] = useState<boolean>(false)
+  const [title, setTitle] = useState('')
+  const [content, setContent] = useState('')
+  const [selectedTagIds, setSelectedTagIds] = useState<number[]>([])
+  const [tagList, setTagList] = useState<Tag[]>([])
+  const [loading, setLoading] = useState(false)
+  const [saving, setSaving] = useState(false)
 
-  const toggleTag = (tagId: number) => {
-    setTagIds((prev) =>
-      prev.includes(tagId) ? prev.filter((v) => v !== tagId) : [...prev, tagId]
-    )
+  // ✅ 백엔드 스펙 준수: dto에 항상 포함 (본문 이미지만 쓸 거면 기본 false)
+  const [removeImage] = useState<boolean>(false)
+
+  const editorRef = useRef<RichTextEditorHandle | null>(null)
+
+  // 본문 의미 있는지 검사
+  const hasMeaningfulContent = (html: string) => {
+    if (!html) return false
+    if (/<img|<video|<iframe/i.test(html)) return true
+    const text = html
+      .replace(/<[^>]*>/g, '')
+      .replace(/&nbsp;/g, ' ')
+      .trim()
+    return text.length > 0
   }
 
+  const isReadyToSubmit = useMemo(
+    () => title.trim().length > 0 && hasMeaningfulContent(content),
+    [title, content]
+  )
+
+  // 본문 내 이미지 업로드 (에디터 툴바 이미지 버튼에서 사용)
+  const uploadImage = async (file: File): Promise<string> => {
+    const form = new FormData()
+    form.append('image', file)
+    const { data } = await api.post<{ url: string }>(
+      '/api/uploads/images',
+      form
+    )
+    return data.url // 이 URL이 content에 <img src="...">로 삽입됨
+  }
+
+  // 태그/게시글 불러오기
   useEffect(() => {
     if (!id) return
-    const fetchTagsAndPost = async () => {
+    const fetchAll = async () => {
       setLoading(true)
-      let tagsData: Tag[] = fallbackTags
-
       try {
-        const tagResp = await api.get<Tag[]>('/api/free_tags')
-        tagsData = tagResp.data
-        setTagOptions(tagsData)
-      } catch {
-        setTagOptions(fallbackTags)
-      }
+        // 1) 태그 목록
+        const tagRes = await api.get('/api/free_tags')
+        const tagNormalized: Tag[] = (tagRes.data ?? []).map((t: any) => ({
+          id: Number(t.id),
+          tagName: String(t.tagName ?? t.name ?? ''),
+        }))
+        setTagList(tagNormalized)
 
-      try {
-        const postResp = await api.get<PostDetailResp>(`/api/free-posts/${id}`)
-        const { title, content, tags: postTags } = postResp.data
+        // 2) 게시글 상세
+        const postRes = await api.get<PostDetailResp>(`/api/free-posts/${id}`)
+        const p = postRes.data
+        setTitle(p.title ?? '')
+        setContent(String(p.content ?? ''))
 
-        setTitle(title)
-        setContent(content)
-
-        const matchedTags = tagsData.filter((t) => postTags.includes(t.tagName))
-        setTagIds(matchedTags.map((t) => t.id))
-      } catch {
-        toast.warn(
-          '게시글 정보를 서버에서 불러오지 못해 더미 데이터를 사용합니다.'
+        // 태그명 → 태그ID 매핑
+        const matched = tagNormalized.filter((t) =>
+          (p.tags ?? []).includes(t.tagName)
         )
-        setTitle(fallbackPost.title)
-        setContent(fallbackPost.content)
-        const matchedTags = tagsData.filter((t) =>
-          fallbackPost.tags.includes(t.tagName)
-        )
-        setTagIds(matchedTags.map((t) => t.id))
+        setSelectedTagIds(matched.map((t) => t.id))
+      } catch {
+        toastError('게시글 또는 태그 정보를 불러오지 못했습니다.')
       } finally {
         setLoading(false)
       }
     }
-
-    fetchTagsAndPost()
+    fetchAll()
   }, [id])
 
-  const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleTagToggle = (tid: number | string) => {
+    const numId = Number(tid)
+    setSelectedTagIds((prev) =>
+      prev.includes(numId) ? prev.filter((v) => v !== numId) : [...prev, numId]
+    )
+  }
+
+  const handleSave: React.FormEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault()
     if (!id) return
-    if (!title.trim() || !content.trim()) {
-      toast.warn('제목과 내용을 모두 입력해주세요!')
+    if (!isReadyToSubmit) {
+      toastWarn('제목과 내용을 입력해 주세요.')
       return
     }
 
     try {
       setSaving(true)
-      await api.put(`/api/free-posts/${id}`, {
+
+      // ✅ 서버 요구사항: multipart + dto(JSON) (+ 필요한 경우만 파일)
+      // 본문 이미지만 사용하므로 파일 첨부는 없음
+      const dto = {
         title: title.trim(),
-        content, // 길이 제한 제거. HTML/텍스트 그대로 전송
-        tagIds: tagIds,
-      })
-      toast.success('게시글이 수정되었습니다.')
+        content, // HTML (본문 이미지 포함)
+        tagIds: selectedTagIds,
+        removeImage, // 항상 포함 (기본 false)
+      }
+
+      const form = new FormData()
+      form.append(
+        'dto',
+        new Blob([JSON.stringify(dto)], { type: 'application/json' })
+      )
+
+      await api.put(`/api/free-posts/${id}`, form)
+
+      toastSuccess('게시글이 수정되었습니다.')
       navigate(`/free/${id}`)
-    } catch (err) {
-      console.error('게시글 수정 실패:', err)
-      toast.error('게시글 수정에 실패했습니다.')
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || '게시글 수정에 실패했습니다.'
+      toastError(msg)
     } finally {
       setSaving(false)
     }
@@ -118,67 +151,89 @@ function FreePostEdit() {
   return (
     <>
       <HomeBar />
-      <div className="freepost-write-container">
-        <h1 className="board-title" onClick={() => navigate('/free')}>
-          자유 게시판
+      <div className="freepost-write-container max-w-[1200px] pt-2">
+        <h1 className="mb-5 font-bold text-title-1 text-label-normal">
+          글 수정
         </h1>
 
         <form className="write-form" onSubmit={handleSave}>
-          <div className="button-group">
-            <button
-              type="button"
-              className="button-common button-gray"
-              onClick={handleCancel}
-              disabled={saving}
-            >
-              취소
-            </button>
-            <button
-              type="submit"
-              className="button-common"
-              disabled={saving || loading}
-            >
-              {saving ? '저장 중…' : '저장'}
-            </button>
-          </div>
-
-          <p className="write-label">글 제목</p>
+          {/* 제목 */}
+          <p className="mt-4 text-label-normal text-body-1sb">
+            제목 <span className="text-system-red">*</span>
+          </p>
           <input
             type="text"
-            className="write-title-input"
-            placeholder="글 제목은 내용을 대표할 수 있도록 간결하게 작성해 주세요."
+            placeholder="내용을 대표할 수 있는 제목을 입력해 주세요."
             value={title}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setTitle(e.target.value)
-            }
+            onChange={(e) => setTitle(e.target.value)}
+            className="w-full px-4 py-3 bg-white border outline-none border-line-normal rounded-xl text-label-normal text-body-1"
+            disabled={loading}
           />
 
-          <div className="tag-buttons">
-            {tagOptions.map((tag) => (
-              <button
-                key={tag.id}
-                type="button"
-                className={`tag-button ${
-                  tagIds.includes(tag.id) ? 'selected' : ''
-                }`}
-                onClick={() => toggleTag(tag.id)}
-                aria-pressed={tagIds.includes(tag.id)}
-                disabled={saving}
-              >
-                #{tag.tagName}
-              </button>
-            ))}
+          {/* 분류(태그) */}
+          <p className="mt-4 write-label">
+            분류 <span className="text-system-red">*</span>
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {tagList.map((tag) => {
+              const selected = selectedTagIds.includes(tag.id)
+              return (
+                <Button
+                  key={tag.id}
+                  type="button"
+                  variant="outlined"
+                  size="outlinedS"
+                  aria-pressed={selected}
+                  onClick={() => handleTagToggle(tag.id)}
+                  className={clsx(
+                    selected
+                      ? '!border-line-active text-label-primary bg-background-blue'
+                      : 'border-line-normal text-label-normal'
+                  )}
+                  disabled={loading}
+                >
+                  #{tag.tagName}
+                </Button>
+              )
+            })}
           </div>
 
-          <p className="write-label">내용</p>
-          <textarea
-            className="write-textarea"
-            placeholder="자유롭게 의견을 남겨주세요."
+          {/* 내용(본문): 이미지 업로드는 툴바 이미지를 통해 삽입 */}
+          <p className="mt-6 text-label-normal text-body-1sb">
+            내용 <span className="text-system-red">*</span>
+          </p>
+          <RichTextEditor
+            ref={editorRef}
             value={content}
-            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-              setContent(e.target.value)
-            }
+            onChange={setContent}
+            placeholder="자유롭게 생각이나 이야기를 나눠주세요."
+            minHeight={300}
+            uploadImage={uploadImage}
+            imageOptions={{
+              maxWidth: 800,
+              maxHeight: 800,
+              quality: 0.85,
+              mime: 'image/webp',
+              compressOver: 300 * 1024,
+            }}
           />
+
+          {/* 하단 버튼 */}
+          <div className="flex justify-center mb-4">
+            <Button
+              type="submit"
+              variant="primary"
+              size="m"
+              disabled={saving || loading || !isReadyToSubmit}
+              className={clsx(
+                'w-[120px] h-11',
+                (!isReadyToSubmit || saving || loading) &&
+                  'opacity-50 cursor-not-allowed'
+              )}
+            >
+              {saving ? '저장 중…' : '저장'}
+            </Button>
+          </div>
         </form>
       </div>
     </>
