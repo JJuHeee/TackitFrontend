@@ -96,86 +96,88 @@ function FreePostList() {
 
   return (
     <>
-      <HomeBar />
-
-      <div className="post-container">
-        <div className="post-banner">
-          <img src="/banners/free-banner.svg" alt="자유게시판 배너" />
-        </div>
-
-        {/* 태그칩 + 글쓰기 버튼 */}
-        <div className="post-topbar">
-          <div className="post-tags">
-            <TagChips
-              endpoint="/api/free_tags"
-              mode="single"
-              value={tagId}
-              onChange={(v) => {
-                setTagId(v as number | null)
-                setCurrentPage(1)
-              }}
-              includeAllItem
-              gapPx={10}
-              fallbackTags={[
-                { id: 1, name: '업무팁' },
-                { id: 2, name: '인수인계' },
-                { id: 3, name: '꼭 지켜주세요' },
-                { id: 4, name: '조직문화' },
-              ]}
-            />
-          </div>
-
-          <button
-            className="write-button"
-            onClick={() => navigate('/free/write')}
-          >
-            + 글쓰기
-          </button>
-        </div>
-
-        {/* 리스트 */}
-        <div className="post-list">
-          {posts.length === 0 ? (
-            <div className="flex flex-col items-center py-20 no-result">
-              <img
-                src="/icons/empty.svg"
-                alt="아직 작성한 글이 없어요!"
-                className="w-20 h-20 mb-4"
-              />
-              <p className="text-body-1sb text-label-normal">
-                아직 작성한 글이 없어요!
-              </p>
+      <div className="flex flex-col min-h-screen">
+        <HomeBar />
+        <main className="flex-1">
+          <div className="post-container">
+            <div className="post-banner">
+              <img src="/banners/free-banner.svg" alt="자유게시판 배너" />
             </div>
-          ) : (
-            posts.map((post) => (
-              <PostCard
-                id={post.id}
-                title={post.title}
-                content={stripHtml(post.content)}
-                writer={post.writer}
-                createdAt={post.createdAt}
-                tags={post.tags}
-                imageUrl={post.imageUrl ?? null} // ⭐ 추가
-                onClick={() => navigate(`/free/${post.id}`)}
+
+            {/* 태그칩 + 글쓰기 버튼 */}
+            <div className="post-topbar">
+              <div className="post-tags">
+                <TagChips
+                  endpoint="/api/free_tags"
+                  mode="single"
+                  value={tagId}
+                  onChange={(v) => {
+                    setTagId(v as number | null)
+                    setCurrentPage(1)
+                  }}
+                  includeAllItem
+                  gapPx={10}
+                  fallbackTags={[
+                    { id: 1, name: '업무팁' },
+                    { id: 2, name: '인수인계' },
+                    { id: 3, name: '꼭 지켜주세요' },
+                    { id: 4, name: '조직문화' },
+                  ]}
+                />
+              </div>
+
+              <button
+                className="write-button"
+                onClick={() => navigate('/free/write')}
+              >
+                + 글쓰기
+              </button>
+            </div>
+
+            {/* 리스트 */}
+            <div className="post-list">
+              {posts.length === 0 ? (
+                <div className="flex flex-col items-center py-20 no-result">
+                  <img
+                    src="/icons/empty.svg"
+                    alt="아직 작성한 글이 없어요!"
+                    className="w-20 h-20 mb-4"
+                  />
+                  <p className="text-body-1sb text-label-normal">
+                    아직 작성한 글이 없어요!
+                  </p>
+                </div>
+              ) : (
+                posts.map((post) => (
+                  <PostCard
+                    id={post.id}
+                    title={post.title}
+                    content={stripHtml(post.content)}
+                    writer={post.writer}
+                    createdAt={post.createdAt}
+                    tags={post.tags}
+                    imageUrl={post.imageUrl ?? null} // ⭐ 추가
+                    onClick={() => navigate(`/free/${post.id}`)}
+                  />
+                ))
+              )}
+            </div>
+
+            {/* 페이지네이션 */}
+            <div className="flex justify-center mt-6">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={(p) => {
+                  setCurrentPage(p)
+                  window.scrollTo({ top: 0, behavior: 'smooth' })
+                }}
               />
-            ))
-          )}
-        </div>
-
-        {/* 페이지네이션 */}
-        <div className="flex justify-center mt-6">
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={(p) => {
-              setCurrentPage(p)
-              window.scrollTo({ top: 0, behavior: 'smooth' })
-            }}
-          />
-        </div>
+            </div>
+          </div>
+        </main>
+        <Footer />
       </div>
-
-      <Footer />
     </>
   )
 }

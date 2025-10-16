@@ -1,6 +1,9 @@
-import React from 'react'
+// src/components/comments/CommentItem.tsx
+import React, { useEffect, useState } from 'react'
 import PostAuthorMeta from '../posts/PostAuthorMeta'
 import { stripHtml } from '../../utils/stripHtml'
+import DOMPurify from 'dompurify'
+import CommentEditor from '../comments/CommentEditor'
 
 export type CommentModel = {
   id: number
@@ -16,6 +19,8 @@ type CommentItemProps = {
   onEdit: (c: { id: number; content: string }) => void
   onDelete: (commentId: number) => void
   onReport: (commentId: number) => void
+  onBeginEdit?: (id: number) => void
+  onCancelEdit?: () => void
 }
 
 function CommentItemBase({
@@ -25,13 +30,38 @@ function CommentItemBase({
   onEdit,
   onDelete,
   onReport,
+  onBeginEdit,
+  onCancelEdit,
 }: CommentItemProps) {
   const isAuthor = currentUserNickname === c.writer
   const isEditingThis = editCommentId === c.id
 
+  // 인라인 수정용 로컬 상태 (HTML)
+  const [editContent, setEditContent] = useState<string>(c.content ?? '')
+
+  // 수정 대상을 바꿀 때 원문 동기화
+  useEffect(() => {
+    if (isEditingThis) setEditContent(c.content ?? '')
+  }, [isEditingThis, c.content])
+
+  const unchanged = (editContent ?? '') === (c.content ?? '')
+  const handleSave = () => {
+    const trimmed = (editContent ?? '').trim()
+    if (!trimmed || unchanged) return
+    onEdit({ id: c.id, content: trimmed })
+  }
+  const handleCancel = () => {
+    setEditContent(c.content ?? '')
+    onCancelEdit?.()
+  }
+
   return (
-    <div className="comment-item" key={c.id}>
-      {/* 메타 + 액션 (between 배치) */}
+    <div
+      className={`comment-item ${
+        isEditingThis ? 'bg-background-blue/10 rounded-lg p-3' : ''
+      }`}
+    >
+      {/* 상단 메타 + 액션 */}
       <div className="flex items-center justify-between">
         <PostAuthorMeta
           writer={c.writer || '(알 수 없음)'}
@@ -39,44 +69,70 @@ function CommentItemBase({
           className="justify-start"
         />
 
-        {/* 수정 / 삭제 / 신고 */}
         <div className="flex items-center text-body-2 text-label-neutral">
           {isAuthor && !isEditingThis ? (
             <>
-              <span className="cursor-pointer" onClick={() => onEdit(c)}>
+              <button
+                type="button"
+                className="cursor-pointer hover:text-label-primary"
+                onClick={() => onBeginEdit?.(c.id)}
+              >
                 수정
-              </span>
+              </button>
               <span className="mx-2 text-line-normal">|</span>
-              <span className="cursor-pointer" onClick={() => onDelete(c.id)}>
+              <button
+                type="button"
+                className="cursor-pointer hover:text-system-red"
+                onClick={() => onDelete(c.id)}
+              >
                 삭제
-              </span>
+              </button>
             </>
           ) : !isAuthor ? (
-            <span className="cursor-pointer" onClick={() => onReport(c.id)}>
+            <button
+              type="button"
+              className="cursor-pointer hover:text-label-primary"
+              onClick={() => onReport(c.id)}
+            >
               신고
-            </span>
+            </button>
           ) : null}
         </div>
       </div>
 
-      {/* 댓글 본문 */}
-      <p className="mt-3 whitespace-pre-line text-body-1 reading-regular text-label-normal">
-        {stripHtml(c.content)}
-      </p>
+      {isEditingThis ? (
+        <div className="mt-3">
+          <CommentEditor
+            value={editContent}
+            onChange={setEditContent}
+            onSubmit={handleSave}
+            onCancel={handleCancel}
+            isEditing={true}
+            collapsedPlaceholder="댓글을 입력해 주세요."
+          />
+        </div>
+      ) : (
+        <div
+          className="mt-3 whitespace-pre-line text-body-1 reading-regular text-label-normal"
+          dangerouslySetInnerHTML={{
+            __html: DOMPurify.sanitize(String(c.content ?? '')),
+          }}
+        />
+      )}
 
-      {/* 답글 달기 */}
-      <div className="mt-[10px] flex justify-start">
-        <button
-          type="button"
-          className="text-label-neutral text-body-1 normal-regular"
-        >
-          답글 달기
-        </button>
-      </div>
+      {!isEditingThis && (
+        <div className="mt-[10px] flex justify-start">
+          <button
+            type="button"
+            className="text-label-neutral text-body-1 normal-regular hover:text-label-primary"
+          >
+            답글 달기
+          </button>
+        </div>
+      )}
     </div>
   )
 }
 
-/** 불필요한 리렌더 방지 */
 const CommentItem = React.memo(CommentItemBase)
 export default CommentItem

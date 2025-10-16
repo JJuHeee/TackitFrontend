@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useEffect } from 'react' // ✅ textareaRef 제거
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import './FreePostDetail.css'
 import HomeBar from '../../components/HomeBar'
@@ -21,7 +21,7 @@ import {
 import PostHeader from '../../components/posts/PostHeader'
 
 function FreePostDetail() {
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null)
+  // const textareaRef = useRef<HTMLTextAreaElement | null>(null)           // ❌ 제거
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const location = useLocation()
@@ -41,7 +41,7 @@ function FreePostDetail() {
 
   const [comments, setComments] = useState<CommentModel[]>([])
 
-  const [comment, setComment] = useState('')
+  const [comment, setComment] = useState('') // 신규 작성용 입력값
   const [editCommentId, setEditCommentId] = useState<number | null>(null)
   const [isScrapped, setIsScrapped] = useState(false)
 
@@ -134,7 +134,7 @@ function FreePostDetail() {
     const fetchComments = async () => {
       try {
         const res = await api.get(`free-comments/${id}`)
-        setComments(normalizeComments(res.data)) // ✅ 단순히 상태만 설정
+        setComments(normalizeComments(res.data))
       } catch {
         setComments([
           {
@@ -155,11 +155,34 @@ function FreePostDetail() {
     if (id) fetchComments()
   }, [id])
 
-  // 댓글 수정 시작
-  const handleEditComment = (c: { id: number; content: string }) => {
-    setComment(c.content)
-    setEditCommentId(c.id)
-    if (textareaRef.current) textareaRef.current.focus()
+  // ✅ 인라인 수정: 시작/취소/저장 분리
+  const handleBeginEditComment = (targetId: number) => {
+    setEditCommentId(targetId)
+  }
+
+  const handleCancelEditComment = () => {
+    setEditCommentId(null)
+  }
+
+  const handleSaveEditComment = async ({
+    id,
+    content,
+  }: {
+    id: number
+    content: string
+  }) => {
+    const trimmed = String(content ?? '').trim()
+    if (!trimmed) return toastWarn('댓글을 입력해주세요.')
+    if (trimmed.length > 250)
+      return toastWarn('댓글은 최대 250자까지 작성할 수 있어요.')
+    try {
+      const res = await api.patch(`free-comments/${id}`, { content: trimmed })
+      setComments((prev) => prev.map((c) => (c.id === id ? res.data : c)))
+      toastSuccess('댓글이 수정되었습니다.')
+      setEditCommentId(null)
+    } catch {
+      toastError('댓글 수정에 실패했습니다.')
+    }
   }
 
   // 댓글 삭제
@@ -179,7 +202,7 @@ function FreePostDetail() {
     setShowCommentReportModal(true)
   }
 
-  // 댓글 등록/수정 제출
+  // ✅ 댓글 등록(신규)만 담당
   const handleCommentSubmit = async () => {
     const trimmed = comment.trim()
     if (!trimmed) return toastWarn('댓글을 입력해주세요.')
@@ -187,29 +210,15 @@ function FreePostDetail() {
       return toastWarn('댓글은 최대 250자까지 작성할 수 있어요.')
 
     try {
-      if (editCommentId) {
-        const res = await api.patch(`free-comments/${editCommentId}`, {
-          content: trimmed,
-        })
-        setComments((prev) =>
-          prev.map((c) => (c.id === editCommentId ? res.data : c))
-        )
-        toastSuccess('댓글이 수정되었습니다.')
-      } else {
-        const res = await api.post('free-comments', {
-          freePostId: postIdNumber,
-          content: trimmed,
-        })
-        // ✅ 새 댓글을 리스트 '맨 아래'에 추가
-        setComments((prev) => [...prev, res.data])
-        toastSuccess('댓글이 등록되었습니다.')
-      }
-
+      const res = await api.post('free-comments', {
+        freePostId: postIdNumber,
+        content: trimmed,
+      })
+      setComments((prev) => [...prev, res.data]) // 새 댓글 맨 아래
       setComment('')
-      setEditCommentId(null)
-      if (textareaRef.current) textareaRef.current.style.height = 'auto'
+      toastSuccess('댓글이 등록되었습니다.')
     } catch {
-      toastError('댓글 처리에 실패했습니다.')
+      toastError('댓글 등록에 실패했습니다.')
     }
   }
 
@@ -372,19 +381,24 @@ function FreePostDetail() {
                 comments={comments}
                 currentUserNickname={userInfo?.nickname}
                 editCommentId={editCommentId}
-                onEdit={handleEditComment}
+                // ⬇️ ✅ 인라인 수정 제어 콜백들 전달
+                onBeginEdit={handleBeginEditComment}
+                onCancelEdit={handleCancelEditComment}
+                onEdit={handleSaveEditComment} // 저장
                 onDelete={handleDeleteComment}
                 onReport={handleReportCommentOpen}
               />
             )}
 
-            {/* 댓글 입력 */}
-            <CommentEditor
-              value={comment}
-              onChange={setComment}
-              onSubmit={handleCommentSubmit}
-              isEditing={!!editCommentId}
-            />
+            {/* 댓글 입력: 수정 중에는 숨김 */}
+            {!editCommentId && (
+              <CommentEditor
+                value={comment}
+                onChange={setComment}
+                onSubmit={handleCommentSubmit}
+                isEditing={false} // ✅ 의미상 false 고정
+              />
+            )}
           </div>
         </div>
       </div>
