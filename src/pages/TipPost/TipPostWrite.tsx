@@ -1,11 +1,12 @@
-import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
+// TipPostWrite.tsx
+import React, { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
+import './TipPostWrite.css'
 import HomeBar from '../../components/HomeBar'
 import api from '../../api/api'
-import 'react-toastify/dist/ReactToastify.css'
 import Button from '../../components/ui/Button'
 import clsx from 'clsx'
-import './TipPostWrite.css'
+import 'react-toastify/dist/ReactToastify.css'
 import RichTextEditor from '../../components/editor/RichTextEditor'
 import { toastSuccess, toastWarn, toastError } from '../../utils/toast'
 import { PostCreateReq, PostCreateRes } from '../../types/post'
@@ -18,18 +19,13 @@ function TipPostWrite() {
   const [tagList, setTagList] = useState<{ id: number; tagName: string }[]>([])
   const [loadingTags, setLoadingTags] = useState(false)
   const [submitting, setSubmitting] = useState(false)
-  const [coverFile, setCoverFile] = useState<File | null>(null)
-  const [coverPreview, setCoverPreview] = useState<string | null>(null)
-  const coverInputRef = useRef<HTMLInputElement | null>(null)
-  const openCoverDialog = useCallback(() => {
-    coverInputRef.current?.click()
-  }, [])
 
   useEffect(() => {
     const fetchTags = async () => {
       setLoadingTags(true)
       try {
-        const res = await api.get('/api/free-tags/list')
+        // ✅ 실제 백엔드에 맞게 엔드포인트 확인하세요.
+        const res = await api.get('/api/tip-tags/list')
         const normalized = (res.data ?? []).map((t: any) => ({
           id: Number(t.id),
           tagName: String(t.tagName ?? t.name ?? ''),
@@ -64,15 +60,26 @@ function TipPostWrite() {
     return text.length > 0
   }
 
-  const isReadyToSubmit = useMemo(() => {
-    return title.trim().length > 0 && hasMeaningfulContent(content)
-  }, [title, content])
+  const isReadyToSubmit = useMemo(
+    () => title.trim().length > 0 && hasMeaningfulContent(content),
+    [title, content]
+  )
 
-  // ✅ 전송(요청 바디 타입 세이프가드)
+  // ✅ 이미지 업로드 → 공개 URL 반환
+  const uploadImage = async (file: File): Promise<string> => {
+    const form = new FormData()
+    form.append('image', file)
+    // 백엔드 응답 키가 다르면 여기만 수정 (예: data.imageUrl)
+    const { data } = await api.post<{ url: string }>(
+      '/api/uploads/images',
+      form
+    )
+    return data.url
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (submitting) return
-
     if (!isReadyToSubmit) {
       toastWarn('제목과 내용을 입력해 주세요.')
       return
@@ -80,26 +87,20 @@ function TipPostWrite() {
 
     setSubmitting(true)
     try {
-      const form = new FormData()
-
       const payload: PostCreateReq = {
         title: title.trim(),
-        content,
-        tagIds: selectedTagIds, // number[] 보장
+        content, // ← 본문에 <img src="..."> 그대로 포함
+        tagIds: selectedTagIds,
       }
 
-      // dto(JSON) 파트
+      const form = new FormData()
       form.append(
         'dto',
         new Blob([JSON.stringify(payload)], { type: 'application/json' })
       )
-      if (coverFile) {
-        form.append('image', coverFile)
-      }
 
-      const { data } = await api.post<PostCreateRes>('/api/tip-posts', form, {
-        headers: {},
-      })
+      // ✅ 대표이미지/미리보기 제거 → 별도 form.append('image', ...) 없음
+      const { data } = await api.post<PostCreateRes>('/api/tip-posts', form)
 
       toastSuccess('글이 작성되었습니다.')
       navigate(`/tip/${data.id}`, { state: { post: data } })
@@ -119,7 +120,6 @@ function TipPostWrite() {
           글쓰기
         </h1>
 
-        {/* ✅ form 영역: Free/Qna와 동일한 클래스/구조 */}
         <form className="write-form" onSubmit={handleSubmit}>
           {/* 제목 */}
           <p className="write-label">
@@ -169,6 +169,7 @@ function TipPostWrite() {
             onChange={setContent}
             placeholder="후배가 더 빨리 적응할 수 있도록 경험을 나눠주세요."
             minHeight={300}
+            uploadImage={uploadImage} // ✅ 툴바 이미지 → 업로드 → 커서삽입
           />
 
           {/* 등록 버튼 */}

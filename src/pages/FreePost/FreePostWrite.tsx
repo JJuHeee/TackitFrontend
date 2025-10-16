@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
+// FreePostWrite.tsx (변경분만)
+import React, { useState, useEffect, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import HomeBar from '../../components/HomeBar'
 import api from '../../api/api'
@@ -6,7 +7,9 @@ import 'react-toastify/dist/ReactToastify.css'
 import Button from '../../components/ui/Button'
 import clsx from 'clsx'
 import './FreePostWrite.css'
-import RichTextEditor from '../../components/editor/RichTextEditor'
+import RichTextEditor, {
+  RichTextEditorHandle,
+} from '../../components/editor/RichTextEditor'
 import { toastSuccess, toastWarn, toastError } from '../../utils/toast'
 import { PostCreateReq, PostCreateRes } from '../../types/post'
 
@@ -18,32 +21,8 @@ function FreePostWrite() {
   const [tagList, setTagList] = useState<{ id: number; tagName: string }[]>([])
   const [loadingTags, setLoadingTags] = useState(false)
   const [submitting, setSubmitting] = useState(false)
-  const [coverFile, setCoverFile] = useState<File | null>(null)
-  const [coverPreview, setCoverPreview] = useState<string | null>(null)
-  const coverInputRef = useRef<HTMLInputElement | null>(null)
-  const openCoverDialog = useCallback(() => {
-    coverInputRef.current?.click()
-  }, [])
 
-  const handleCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    if (!file.type.startsWith('image/')) return
-    setCoverFile(file)
-    setCoverPreview(URL.createObjectURL(file))
-  }
-
-  const removeCover = () => {
-    if (coverPreview) URL.revokeObjectURL(coverPreview)
-    setCoverPreview(null)
-    setCoverFile(null)
-    if (coverInputRef.current) coverInputRef.current.value = ''
-  }
-  useEffect(() => {
-    return () => {
-      if (coverPreview) URL.revokeObjectURL(coverPreview)
-    }
-  }, [coverPreview])
+  const editorRef = useRef<RichTextEditorHandle | null>(null)
 
   useEffect(() => {
     const fetchTags = async () => {
@@ -86,14 +65,26 @@ function FreePostWrite() {
     return text.length > 0
   }
 
-  const isReadyToSubmit = useMemo(() => {
-    return title.trim().length > 0 && hasMeaningfulContent(content)
-  }, [title, content])
+  const isReadyToSubmit = useMemo(
+    () => title.trim().length > 0 && hasMeaningfulContent(content),
+    [title, content]
+  )
+
+  // ✅ 서버에 이미지 업로드하고 공개 URL을 반환
+  const uploadImage = async (file: File): Promise<string> => {
+    const form = new FormData()
+    form.append('image', file)
+    // 백엔드에 맞게 엔드포인트/응답 키 수정
+    const { data } = await api.post<{ url: string }>(
+      '/api/uploads/images',
+      form
+    )
+    return data.url
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (submitting) return
-
     if (!isReadyToSubmit) {
       toastWarn('제목과 내용을 입력해 주세요.')
       return
@@ -101,26 +92,20 @@ function FreePostWrite() {
 
     setSubmitting(true)
     try {
-      const form = new FormData()
-
       const payload: PostCreateReq = {
         title: title.trim(),
-        content,
+        content, // ← 본문 안에 <img src="..."> 포함됨
         tagIds: selectedTagIds,
       }
 
+      const form = new FormData()
       form.append(
         'dto',
         new Blob([JSON.stringify(payload)], { type: 'application/json' })
       )
 
-      if (coverFile) {
-        form.append('image', coverFile)
-      }
-
-      const { data } = await api.post<PostCreateRes>('/api/free-posts', form, {
-        headers: {},
-      })
+      // ✅ 더 이상 별도 대표이미지(form.append('image', ...)) 없음
+      const { data } = await api.post<PostCreateRes>('/api/free-posts', form)
 
       toastSuccess('작성이 완료되었습니다.')
       navigate(`/free/${data.id}`, { state: { post: data } })
@@ -136,13 +121,6 @@ function FreePostWrite() {
     <>
       <HomeBar />
       <div className="freepost-write-container max-w-[1200px] pt-2">
-        <input
-          ref={coverInputRef}
-          type="file"
-          accept="image/*"
-          onChange={handleCoverChange}
-          style={{ display: 'none' }}
-        />
         <h1 className="mb-5 font-bold text-title-1 text-label-normal">
           글쓰기
         </h1>
@@ -191,36 +169,15 @@ function FreePostWrite() {
           <p className="mt-4 text-label-normal text-body-1sb">
             내용 <span className="text-system-red">*</span>
           </p>
-          {/* 미리보기: 에디터 “안처럼” 보이게 위에 렌더링 (하지만 본문 데이터는 아님) */}
-          {coverPreview && (
-            <div className="mt-3">
-              <p className="mb-2 text-sm text-label-assistive">
-                대표 이미지 미리보기
-              </p>
-              <div className="relative inline-block w-fit">
-                <img
-                  src={coverPreview}
-                  alt="대표 이미지 미리보기"
-                  className="block max-w-[360px] h-auto rounded-xl border border-line-normal"
-                />
-                <button
-                  type="button"
-                  onClick={removeCover}
-                  className="absolute flex items-center justify-center text-sm text-white rounded-full top-2 right-2 bg-black/60 w-7 h-7 hover:bg-black/80"
-                >
-                  ×
-                </button>
-              </div>
-            </div>
-          )}
 
+          {/* ✅ 에디터에 업로드 함수만 전달 */}
           <RichTextEditor
+            ref={editorRef}
             value={content}
             onChange={setContent}
             placeholder="자유롭게 생각이나 이야기를 나눠주세요."
             minHeight={300}
-            // ✅ 이미지 아이콘 클릭 시 대표이미지 선택창 열리게 연결
-            onImageButtonClick={openCoverDialog}
+            uploadImage={uploadImage}
           />
 
           {/* 등록 버튼 */}

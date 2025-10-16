@@ -98,3 +98,9 @@
   letter-spacing: var(--ls-body1-r);
   font-weight: var(--fw-body1-r);
 }
+
+/* RichTextEditor.css */
+.ql-editor img {
+  max-width: 100%;
+  height: auto;
+}

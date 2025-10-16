@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
+// QnaPostWrite.tsx
+import React, { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './QnaPostWrite.css'
 import HomeBar from '../../components/HomeBar'
@@ -19,32 +20,6 @@ function QnaPostWrite() {
   const [tagList, setTagList] = useState<{ id: number; tagName: string }[]>([])
   const [loadingTags, setLoadingTags] = useState(false)
   const [submitting, setSubmitting] = useState(false)
-  const [coverFile, setCoverFile] = useState<File | null>(null)
-  const [coverPreview, setCoverPreview] = useState<string | null>(null)
-  const coverInputRef = useRef<HTMLInputElement | null>(null)
-  const openCoverDialog = useCallback(() => {
-    coverInputRef.current?.click()
-  }, [])
-
-  const handleCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    if (!file.type.startsWith('image/')) return
-    setCoverFile(file)
-    setCoverPreview(URL.createObjectURL(file))
-  }
-
-  const removeCover = () => {
-    if (coverPreview) URL.revokeObjectURL(coverPreview)
-    setCoverPreview(null)
-    setCoverFile(null)
-    if (coverInputRef.current) coverInputRef.current.value = ''
-  }
-  useEffect(() => {
-    return () => {
-      if (coverPreview) URL.revokeObjectURL(coverPreview)
-    }
-  }, [coverPreview])
 
   useEffect(() => {
     const fetchTags = async () => {
@@ -57,7 +32,6 @@ function QnaPostWrite() {
         }))
         setTagList(normalized)
       } catch {
-        // 폴백(더미)
         setTagList([
           { id: 2, tagName: '태그2' },
           { id: 3, tagName: '태그3' },
@@ -86,9 +60,22 @@ function QnaPostWrite() {
     return text.length > 0
   }
 
-  const isReadyToSubmit = useMemo(() => {
-    return title.trim().length > 0 && hasMeaningfulContent(content)
-  }, [title, content])
+  const isReadyToSubmit = useMemo(
+    () => title.trim().length > 0 && hasMeaningfulContent(content),
+    [title, content]
+  )
+
+  // ✅ 이미지 업로드 → 공개 URL 반환 (엔드포인트/응답 키는 백엔드에 맞게 수정)
+  const uploadImage = async (file: File): Promise<string> => {
+    const form = new FormData()
+    form.append('image', file)
+    const { data } = await api.post<{ url: string }>(
+      '/api/uploads/images',
+      form
+    )
+    return data.url
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (submitting) return
@@ -100,29 +87,22 @@ function QnaPostWrite() {
 
     setSubmitting(true)
     try {
-      const form = new FormData()
-
       const payload: PostCreateReq = {
         title: title.trim(),
-        content,
+        content, // ← 본문 안에 <img src="..."> 포함됨
         tagIds: selectedTagIds,
       }
 
+      const form = new FormData()
       form.append(
         'dto',
         new Blob([JSON.stringify(payload)], { type: 'application/json' })
       )
 
-      if (coverFile) {
-        form.append('image', coverFile)
-      }
-
+      // ✅ 대표이미지/미리보기 제거 → 별도 form.append('image', ...) 없음
       const { data } = await api.post<PostCreateRes>(
         '/api/qna-post/create',
-        form,
-        {
-          headers: {},
-        }
+        form
       )
 
       toastSuccess('작성이 완료되었습니다.')
@@ -142,14 +122,6 @@ function QnaPostWrite() {
         <h1 className="mb-5 font-bold text-title-1 text-label-normal">
           글쓰기
         </h1>
-
-        <input
-          ref={coverInputRef}
-          type="file"
-          accept="image/*"
-          onChange={handleCoverChange}
-          style={{ display: 'none' }}
-        />
 
         <form className="write-form" onSubmit={handleSubmit}>
           {/* 제목 */}
@@ -200,7 +172,7 @@ function QnaPostWrite() {
             onChange={setContent}
             placeholder="궁금한 점을 자유롭게 질문해 주세요."
             minHeight={300}
-            onImageButtonClick={openCoverDialog}
+            uploadImage={uploadImage} // ✅ 툴바 이미지 → 업로드 → 커서삽입
           />
 
           {/* 등록 버튼 */}
