@@ -17,31 +17,21 @@ type Tag = { id: number; tagName: string }
 function FreePostWrite() {
   const navigate = useNavigate()
   const editorRef = useRef<RichTextEditorHandle | null>(null)
-
-  // 제목/본문/태그
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('') // HTML
   const [selectedTagIds, setSelectedTagIds] = useState<number[]>([])
-
-  // 태그 목록 및 로딩
   const [tagList, setTagList] = useState<Tag[]>([])
   const [loadingTags, setLoadingTags] = useState(false)
-
-  // 제출/업로딩 상태
   const [submitting, setSubmitting] = useState(false)
-
-  // ✅ 단일 이미지 전용 상태
   const [pickedImage, setPickedImage] = useState<File | null>(null)
   const [pickedPreviewUrl, setPickedPreviewUrl] = useState<string | null>(null)
 
-  // unmount 시 blob URL 정리
   useEffect(() => {
     return () => {
       if (pickedPreviewUrl) URL.revokeObjectURL(pickedPreviewUrl)
     }
   }, [pickedPreviewUrl])
 
-  // ✅ 태그 목록 불러오기
   useEffect(() => {
     const fetchTags = async () => {
       setLoadingTags(true)
@@ -65,7 +55,6 @@ function FreePostWrite() {
     fetchTags()
   }, [])
 
-  // ✅ 태그 토글
   const handleTagToggle = (id: number | string) => {
     const numId = Number(id)
     setSelectedTagIds((prev) =>
@@ -73,7 +62,6 @@ function FreePostWrite() {
     )
   }
 
-  // ✅ 에디터 → 부모: 단일 이미지 파일 수신 (교체 시 기존 blob URL 해제)
   const handlePickImageFile = useCallback(
     (file: File, previewUrl: string) => {
       if (pickedPreviewUrl) URL.revokeObjectURL(pickedPreviewUrl)
@@ -83,11 +71,10 @@ function FreePostWrite() {
     [pickedPreviewUrl]
   )
 
-  // ✅ 내용 유효성 검사
   const hasMeaningfulContent = (html: string) => {
     if (!html) return false
-    if (/<img|<video|<iframe/i.test(html)) return true
     const text = html
+      .replace(/<img[^>]*>/gi, '')
       .replace(/<[^>]*>/g, '')
       .replace(/&nbsp;/g, ' ')
       .trim()
@@ -99,10 +86,8 @@ function FreePostWrite() {
     [title, content]
   )
 
-  // ✅ 전송 전 본문에서 모든 <img ...> 제거
   const stripImages = (html: string) => html.replace(/<img[^>]*>/gi, '')
 
-  // ✅ 제출
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (submitting || loadingTags) return
@@ -114,7 +99,6 @@ function FreePostWrite() {
 
     setSubmitting(true)
     try {
-      // ❗본문의 <img> 태그 제거 후 전송
       const contentForServer = stripImages(content)
 
       const payload: PostCreateReq = {
@@ -125,7 +109,7 @@ function FreePostWrite() {
 
       const form = new FormData()
       if (pickedImage) {
-        form.append('image', pickedImage) // ✅ 단일 이미지
+        form.append('image', pickedImage)
       }
       form.append(
         'dto',
@@ -203,7 +187,6 @@ function FreePostWrite() {
             placeholder="자유롭게 작성해 주세요."
             minHeight={300}
             variant="post"
-            // ✅ 업로드는 제출 시 한 번에: 여기서는 파일만 수집
             onPickImageFile={handlePickImageFile}
           />
 

@@ -13,3 +13,7 @@ export type PostCreateRes = {
   createdAt: string
   imageUrl?: string | null
 }
+
+export type PostUpdateReq = PostCreateReq & {
+  removeImage: boolean
+}

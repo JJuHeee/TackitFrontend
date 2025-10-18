@@ -120,21 +120,16 @@ function InternalEditor(
     if (!quill) return
 
     try {
-      const previewUrl = URL.createObjectURL(file)
+      const reader = new FileReader()
+      reader.onload = () => {
+        const previewUrl = String(reader.result) // data:image/jpeg;base64,...
+        const hasImage = !!quill.root.querySelector('img')
+        if (hasImage) replaceFirstImageWith(quill, previewUrl)
+        else insertAtCursor(previewUrl)
 
-      // 에디터 내 이미지가 이미 있으면 같은 위치에 교체
-      const hasImage = !!quill.root.querySelector('img')
-      if (hasImage) {
-        // 확인 UI가 필요하면 window.confirm 대신 프로젝트의 모달/토스트-액션 사용
-        // const ok = window.confirm('이미지가 있습니다. 교체할까요?')
-        // if (!ok) return
-        replaceFirstImageWith(quill, previewUrl)
-      } else {
-        insertAtCursor(previewUrl)
+        onPickImageFile?.(file, previewUrl)
       }
-
-      // 부모에 파일/미리보기 전달 (단일 이미지 전략)
-      onPickImageFile?.(file, previewUrl)
+      reader.readAsDataURL(file) // ⭐️ blob 대신 dataURL로
     } finally {
       if (fileInputRef.current) fileInputRef.current.value = ''
     }

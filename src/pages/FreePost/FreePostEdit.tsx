@@ -10,19 +10,9 @@ import RichTextEditor, {
   RichTextEditorHandle,
 } from '../../components/editor/RichTextEditor'
 import { toastSuccess, toastWarn, toastError } from '../../utils/toast'
+import { PostUpdateReq, PostCreateRes } from '../../types/post'
 
 type Tag = { id: number; tagName: string }
-
-// 서버 상세 응답 (참고용)
-type PostDetailResp = {
-  id: number
-  writer: string
-  title: string
-  content: string // HTML
-  tags: string[] // 태그명 배열
-  createdAt: string
-  // imageUrl?: string  // 백엔드가 내려주면 사용 가능
-}
 
 function FreePostEdit() {
   const { id } = useParams<{ id: string }>()
@@ -34,21 +24,16 @@ function FreePostEdit() {
   const [tagList, setTagList] = useState<Tag[]>([])
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
-
-  // 단일 이미지 파일(새로 고른 경우만 서버에 보냄)
   const [pickedImage, setPickedImage] = useState<File | null>(null)
   const [pickedPreviewUrl, setPickedPreviewUrl] = useState<string | null>(null)
-
-  // removeImage는 서버 스펙상 필요하면 유지 (현재는 삭제 기능 없음 → 기본 false)
   const [removeImage] = useState<boolean>(false)
 
   const editorRef = useRef<RichTextEditorHandle | null>(null)
 
-  // 본문 의미 있는지 검사
   const hasMeaningfulContent = (html: string) => {
     if (!html) return false
-    if (/<img|<video|<iframe/i.test(html)) return true
     const text = html
+      .replace(/<img[^>]*>/gi, '')
       .replace(/<[^>]*>/g, '')
       .replace(/&nbsp;/g, ' ')
       .trim()
@@ -75,7 +60,7 @@ function FreePostEdit() {
         setTagList(tagNormalized)
 
         // 2) 게시글 상세
-        const postRes = await api.get<PostDetailResp>(`/api/free-posts/${id}`)
+        const postRes = await api.get<PostCreateRes>(`/api/free-posts/${id}`)
         const p = postRes.data
         setTitle(p.title ?? '')
         setContent(String(p.content ?? ''))
@@ -101,7 +86,6 @@ function FreePostEdit() {
     )
   }
 
-  // 에디터 → 부모: 파일 수신 (Write와 동일)
   const handlePickImageFile = useCallback(
     (file: File, previewUrl: string) => {
       if (pickedPreviewUrl) URL.revokeObjectURL(pickedPreviewUrl)
@@ -111,7 +95,6 @@ function FreePostEdit() {
     [pickedPreviewUrl]
   )
 
-  // 전송 전 본문에서 모든 <img ...> 제거 (서버는 imageUrl로 관리하므로 혼선 방지)
   const stripImages = (html: string) => html.replace(/<img[^>]*>/gi, '')
 
   const handleSave: React.FormEventHandler<HTMLFormElement> = async (e) => {
@@ -125,24 +108,22 @@ function FreePostEdit() {
     try {
       setSaving(true)
 
-      // Write와 동일: multipart(FormData)로 dto + (선택) image
-      const dto = {
+      const reqPayload: PostUpdateReq = {
         title: title.trim(),
-        content: stripImages(content), // 본문 내 <img> 제거
+        content: stripImages(content),
         tagIds: selectedTagIds,
-        removeImage, // 스펙에 맞춰 항상 포함(여기서는 false)
+        removeImage,
       }
 
       const form = new FormData()
-      if (pickedImage) {
-        form.append('image', pickedImage) // 새 이미지 선택시에만
-      }
+
       form.append(
-        'dto',
-        new Blob([JSON.stringify(dto)], { type: 'application/json' })
+        'req',
+        new Blob([JSON.stringify(reqPayload)], { type: 'application/json' })
       )
-      // 서버가 'request' 키를 요구하면 위 라인을 다음처럼 변경:
-      // form.append('request', new Blob([JSON.stringify(dto)], { type: 'application/json' }))
+      if (pickedImage) {
+        form.append('image', pickedImage)
+      }
 
       await api.put(`/api/free-posts/${id}`, form)
 
@@ -218,7 +199,6 @@ function FreePostEdit() {
             onChange={setContent}
             placeholder="자유롭게 생각이나 이야기를 나눠주세요."
             minHeight={300}
-            // ✅ Write와 동일: 즉시 업로드 안 하고 파일만 수집
             onPickImageFile={handlePickImageFile}
           />
 
