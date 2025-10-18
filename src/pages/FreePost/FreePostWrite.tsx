@@ -11,6 +11,7 @@ import RichTextEditor, {
 } from '../../components/editor/RichTextEditor'
 import { toastSuccess, toastWarn, toastError } from '../../utils/toast'
 import { PostCreateReq, PostCreateRes } from '../../types/post'
+import { replaceFirstDataUrlImgWithToken } from '../../utils/coverToken'
 
 type Tag = { id: number; tagName: string }
 
@@ -64,7 +65,9 @@ function FreePostWrite() {
 
   const handlePickImageFile = useCallback(
     (file: File, previewUrl: string) => {
-      if (pickedPreviewUrl) URL.revokeObjectURL(pickedPreviewUrl)
+      if (pickedPreviewUrl && pickedPreviewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(pickedPreviewUrl)
+      }
       setPickedImage(file)
       setPickedPreviewUrl(previewUrl)
     },
@@ -86,8 +89,6 @@ function FreePostWrite() {
     [title, content]
   )
 
-  const stripImages = (html: string) => html.replace(/<img[^>]*>/gi, '')
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (submitting || loadingTags) return
@@ -96,10 +97,9 @@ function FreePostWrite() {
       toastWarn('제목과 내용을 입력해 주세요.')
       return
     }
-
     setSubmitting(true)
     try {
-      const contentForServer = stripImages(content)
+      const contentForServer = replaceFirstDataUrlImgWithToken(content)
 
       const payload: PostCreateReq = {
         title: title.trim(),

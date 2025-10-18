@@ -39,8 +39,8 @@ type Props = {
   className?: string
   imageOptions?: ImageOptions
   variant?: Variant
-  /** 파일을 부모에서 수집해 제출 시 FormData에 넣기 위해 알림 */
   onPickImageFile?: (file: File, previewUrl: string) => void
+  onUploadImage?: (file: File) => Promise<string>
 }
 
 function InternalEditor(
@@ -51,9 +51,9 @@ function InternalEditor(
     minHeight = 300,
     disabled = false,
     className = '',
-    // imageOptions, // 필요 시 사용
     variant = 'post',
     onPickImageFile,
+    onUploadImage,
   }: Props,
   ref: React.Ref<RichTextEditorHandle>
 ) {
@@ -113,23 +113,37 @@ function InternalEditor(
   // 파일 선택 처리 (단일)
   const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (!file) return
-    if (!file.type.startsWith('image/')) return
+    if (!file || !file.type.startsWith('image/')) return
 
     const quill = quillRef.current?.getEditor()
     if (!quill) return
 
     try {
+      const sel = quill.getSelection()
       const reader = new FileReader()
-      reader.onload = () => {
-        const previewUrl = String(reader.result) // data:image/jpeg;base64,...
-        const hasImage = !!quill.root.querySelector('img')
-        if (hasImage) replaceFirstImageWith(quill, previewUrl)
-        else insertAtCursor(previewUrl)
+      reader.onload = async () => {
+        const previewUrl = String(reader.result)
+
+        const index = sel ? sel.index : Math.max(0, quill.getLength() - 1)
+        quill.insertEmbed(index, 'image', previewUrl, 'user')
+        quill.setSelection(index + 1, 0, 'user')
 
         onPickImageFile?.(file, previewUrl)
+
+        if (onUploadImage) {
+          try {
+            const uploadedUrl = await onUploadImage(file)
+            const imgs = quill.root.querySelectorAll<HTMLImageElement>('img')
+            imgs.forEach((img) => {
+              if (img.src === previewUrl) img.src = uploadedUrl
+            })
+            onChange(quill.root.innerHTML)
+          } catch {}
+        } else {
+          onChange(quill.root.innerHTML)
+        }
       }
-      reader.readAsDataURL(file) // ⭐️ blob 대신 dataURL로
+      reader.readAsDataURL(file)
     } finally {
       if (fileInputRef.current) fileInputRef.current.value = ''
     }

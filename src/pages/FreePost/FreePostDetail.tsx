@@ -1,15 +1,16 @@
-import React, { useState, useEffect } from 'react' // ✅ textareaRef 제거
+import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import './FreePostDetail.css'
 import HomeBar from '../../components/HomeBar'
 import api from '../../api/api'
 import useFetchUserInfo from '../../hooks/useFetchUserInfo'
-import DOMPurify from 'dompurify'
+import { sanitizeHtml } from '../../utils/sanitize'
 import CommentList from '../../components/comments/CommentList'
 import CommentEditor from '../../components/comments/CommentEditor'
 import type { CommentModel } from '../../components/comments/CommentItem'
 import ReportModal from '../../components/modals/ReportModal'
 import type { ReportPayload } from '../../components/modals/ReportModal'
+import { hydrateCoverToken } from '../../utils/coverToken'
 
 import {
   toastSuccess,
@@ -21,7 +22,6 @@ import {
 import PostHeader from '../../components/posts/PostHeader'
 
 function FreePostDetail() {
-  // const textareaRef = useRef<HTMLTextAreaElement | null>(null)           // ❌ 제거
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const location = useLocation()
@@ -45,7 +45,6 @@ function FreePostDetail() {
   const [editCommentId, setEditCommentId] = useState<number | null>(null)
   const [isScrapped, setIsScrapped] = useState(false)
 
-  // 신고 모달 상태
   const [showPostReportModal, setShowPostReportModal] = useState(false)
   const [showCommentReportModal, setShowCommentReportModal] = useState(false)
   const [reportingCommentId, setReportingCommentId] = useState<number | null>(
@@ -347,26 +346,15 @@ function FreePostDetail() {
           <div className="freepost-box">
             {post && (
               <>
-                {post.imageUrl && (
-                  <div className="detail-image">
-                    <img
-                      src={post.imageUrl}
-                      alt="첨부 이미지"
-                      style={{ maxWidth: '100%', borderRadius: 8 }}
-                      onError={(e) => {
-                        ;(e.target as HTMLImageElement).style.display = 'none'
-                      }}
-                    />
-                  </div>
-                )}
-
-                {/* ✅ Quill 내용 그대로 렌더 */}
                 <div className="prose detail-content max-w-none">
                   <div
                     dangerouslySetInnerHTML={{
-                      __html: DOMPurify.sanitize(String(post.content ?? ''), {
-                        USE_PROFILES: { html: true },
-                      }),
+                      __html: sanitizeHtml(
+                        hydrateCoverToken(
+                          String(post.content ?? ''),
+                          post.imageUrl
+                        )
+                      ),
                     }}
                   />
                 </div>

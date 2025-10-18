@@ -11,6 +11,10 @@ import RichTextEditor, {
 } from '../../components/editor/RichTextEditor'
 import { toastSuccess, toastWarn, toastError } from '../../utils/toast'
 import { PostUpdateReq, PostCreateRes } from '../../types/post'
+import {
+  hydrateCoverToken,
+  replaceFirstDataUrlImgWithToken,
+} from '../../utils/coverToken'
 
 type Tag = { id: number; tagName: string }
 
@@ -63,7 +67,9 @@ function FreePostEdit() {
         const postRes = await api.get<PostCreateRes>(`/api/free-posts/${id}`)
         const p = postRes.data
         setTitle(p.title ?? '')
-        setContent(String(p.content ?? ''))
+        setContent(
+          hydrateCoverToken(String(p.content ?? ''), p.imageUrl ?? null)
+        )
 
         // 태그명 → 태그ID 매핑
         const matched = tagNormalized.filter((t) =>
@@ -88,14 +94,14 @@ function FreePostEdit() {
 
   const handlePickImageFile = useCallback(
     (file: File, previewUrl: string) => {
-      if (pickedPreviewUrl) URL.revokeObjectURL(pickedPreviewUrl)
+      if (pickedPreviewUrl && pickedPreviewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(pickedPreviewUrl)
+      }
       setPickedImage(file)
       setPickedPreviewUrl(previewUrl)
     },
     [pickedPreviewUrl]
   )
-
-  const stripImages = (html: string) => html.replace(/<img[^>]*>/gi, '')
 
   const handleSave: React.FormEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault()
@@ -107,10 +113,11 @@ function FreePostEdit() {
 
     try {
       setSaving(true)
+      const contentForServer = replaceFirstDataUrlImgWithToken(content)
 
       const reqPayload: PostUpdateReq = {
         title: title.trim(),
-        content: stripImages(content),
+        content: contentForServer,
         tagIds: selectedTagIds,
         removeImage,
       }

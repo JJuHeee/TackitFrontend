@@ -32,11 +32,9 @@
 }
 
 /* 첨부 이미지 */
-.detail-image img {
-  width: 100%;
+.detail-content img {
+  max-width: 100%;
   height: auto;
-  display: block;
-  border-radius: 8px;
 }
 
 /* ===== 댓글 (Tailwind 주도 → 최소치만 유지) ===== */
