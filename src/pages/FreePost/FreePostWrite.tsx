@@ -20,9 +20,11 @@ function FreePostWrite() {
   const [tagList, setTagList] = useState<{ id: number; tagName: string }[]>([])
   const [loadingTags, setLoadingTags] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [uploadingImage, setUploadingImage] = useState(false)
 
   const editorRef = useRef<RichTextEditorHandle | null>(null)
 
+  // ✅ 태그 목록 불러오기
   useEffect(() => {
     const fetchTags = async () => {
       setLoadingTags(true)
@@ -45,6 +47,7 @@ function FreePostWrite() {
     fetchTags()
   }, [])
 
+  // ✅ 태그 선택 토글
   const handleTagToggle = (id: number | string) => {
     const numId = Number(id)
     setSelectedTagIds((prev) =>
@@ -54,6 +57,7 @@ function FreePostWrite() {
     )
   }
 
+  // ✅ 내용 유효성 검사
   const hasMeaningfulContent = (html: string) => {
     if (!html) return false
     if (/<img|<video|<iframe/i.test(html)) return true
@@ -69,20 +73,42 @@ function FreePostWrite() {
     [title, content]
   )
 
-  // 서버에 이미지 업로드하고 공개 URL을 반환 (백엔드 스펙에 맞게 수정)
+  // ✅ 이미지 업로드 (에디터 → 서버)
   const uploadImage = async (file: File): Promise<string> => {
-    const form = new FormData()
-    form.append('image', file) // ← 백엔드가 'file'을 기대하면 'file'로 변경
-    const { data } = await api.post<{ url: string }>(
-      '/api/uploads/images',
-      form
-    )
-    return data.url
+    setUploadingImage(true)
+    try {
+      const form = new FormData()
+      form.append('file', file)
+      const meta = {
+        type: 'EDITOR_IMAGE',
+        originalName: file.name,
+        size: file.size,
+        mime: file.type,
+      }
+      form.append(
+        'dto',
+        new Blob([JSON.stringify(meta)], { type: 'application/json' })
+      )
+
+      // 🟢 서버에서 이미지 업로드를 /api/free-posts로 처리하는 경우
+      // 백엔드가 업로드 후 url 반환하도록 구현되어 있어야 함
+      const { data } = await api.post('/api/free-posts', form)
+      const url = data?.url || data?.imageUrl || data?.location
+      if (!url) throw new Error('이미지 업로드 응답에 URL이 없습니다.')
+      return url
+    } catch (err) {
+      console.error(err)
+      toastError('이미지 업로드 실패')
+      throw err
+    } finally {
+      setUploadingImage(false)
+    }
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // ✅ 글 제출
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    if (submitting) return
+    if (submitting || uploadingImage) return
 
     if (!isReadyToSubmit) {
       toastWarn('제목과 내용을 입력해 주세요.')
@@ -93,7 +119,7 @@ function FreePostWrite() {
     try {
       const payload: PostCreateReq = {
         title: title.trim(),
-        content, // 본문에 <img src="..."> 포함
+        content, // 서버에서 이미지 URL이 포함된 HTML 저장
         tagIds: selectedTagIds,
       }
 
@@ -106,7 +132,7 @@ function FreePostWrite() {
       const { data } = await api.post<PostCreateRes>('/api/free-posts', form)
 
       toastSuccess('작성이 완료되었습니다.')
-      navigate(`/free/${data.id}`, { state: { post: data } }) // ✅ 백틱으로 수정
+      navigate(`/free/${data.id}`, { state: { post: data } })
     } catch (err: any) {
       const msg = err?.response?.data?.message || '글 작성에 실패했습니다.'
       toastError(msg)
@@ -122,7 +148,6 @@ function FreePostWrite() {
         <h1 className="mb-5 font-bold text-title-1 text-label-normal">
           글쓰기
         </h1>
-
         <form className="write-form" onSubmit={handleSubmit}>
           {/* 제목 */}
           <p className="mt-4 text-label-normal text-body-1sb">
@@ -130,13 +155,13 @@ function FreePostWrite() {
           </p>
           <input
             type="text"
-            placeholder="내용을 대표할 수 있는 제목을 입력해 주세요."
+            placeholder="제목을 입력해 주세요."
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             className="w-full px-4 py-3 bg-white border outline-none border-line-normal rounded-xl text-label-normal text-body-1"
           />
 
-          {/* 분류 */}
+          {/* 태그 선택 */}
           <p className="mt-4 write-label">
             분류 <span className="text-system-red">*</span>
           </p>
@@ -163,20 +188,17 @@ function FreePostWrite() {
             })}
           </div>
 
-          {/* 내용 */}
+          {/* 본문 */}
           <p className="mt-4 text-label-normal text-body-1sb">
             내용 <span className="text-system-red">*</span>
           </p>
-
           <RichTextEditor
             ref={editorRef}
             value={content}
             onChange={setContent}
-            placeholder="자유롭게 생각이나 이야기를 나눠주세요."
+            placeholder="자유롭게 작성해 주세요."
             minHeight={300}
-            uploadImage={uploadImage}
-            // 필요하면 이미지 리사이즈/압축 옵션 조정
-            // imageOptions={{ maxWidth: 800, maxHeight: 800, quality: 0.85, mime: 'image/webp', compressOver: 300 * 1024 }}
+            uploadImage={uploadImage} // 🟢 커서에 이미지 삽입 시 서버 업로드
           />
 
           {/* 등록 버튼 */}

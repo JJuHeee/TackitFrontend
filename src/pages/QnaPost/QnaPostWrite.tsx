@@ -68,12 +68,26 @@ function QnaPostWrite() {
   // ✅ 이미지 업로드 → 공개 URL 반환 (엔드포인트/응답 키는 백엔드에 맞게 수정)
   const uploadImage = async (file: File): Promise<string> => {
     const form = new FormData()
+
+    // 1) 파일 파트 (키: image)  ← 서버가 'file'이면 'file'로 바꾸세요
     form.append('image', file)
-    const { data } = await api.post<{ url: string }>(
-      '/api/uploads/images',
-      form
+
+    // 2) JSON 파트 (키: dto, Content-Type: application/json)
+    const meta = {
+      type: 'EDITOR_IMAGE', // 필요 없다면 제거
+      originalName: file.name,
+      size: file.size,
+      mime: file.type,
+    }
+    form.append(
+      'dto',
+      new Blob([JSON.stringify(meta)], { type: 'application/json' })
     )
-    return data.url
+
+    const { data } = await api.post('/api/uploads/images', form)
+    const url = data?.url ?? data?.location ?? data?.data?.url
+    if (!url) throw new Error('Upload response has no url')
+    return url
   }
 
   const handleSubmit = async (e: React.FormEvent) => {

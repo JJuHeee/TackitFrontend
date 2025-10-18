@@ -1,5 +1,10 @@
-// RichTextEditor.tsx
-import React, { useMemo, useRef, forwardRef, useImperativeHandle } from 'react'
+import React, {
+  useMemo,
+  useRef,
+  forwardRef,
+  useImperativeHandle,
+  useCallback,
+} from 'react'
 import ReactQuill, { Quill } from 'react-quill'
 import 'react-quill/dist/quill.snow.css'
 import './RichTextEditor.css'
@@ -15,7 +20,7 @@ export type RichTextEditorHandle = {
   focus: () => void
 }
 
-// ✅ 추가: 클라 리사이즈/압축 옵션 타입
+// 클라 리사이즈/압축 옵션 (현재 파일에서는 사용하지 않지만, Props용으로 유지)
 type ImageOptions = {
   maxWidth?: number
   maxHeight?: number
@@ -33,9 +38,11 @@ type Props = {
   className?: string
   /** 파일 업로드 → 공개 URL 반환 (없으면 base64로 삽입) */
   uploadImage?: (file: File) => Promise<string>
-  /** ✅ 추가: 리사이즈/압축 옵션 */
+  /** 리사이즈/압축 옵션 */
   imageOptions?: ImageOptions
   variant?: Variant
+  /** 에디터에서 고른 원본 파일을 부모로 올려보낼 때 사용 */
+  onPickImageFile?: (file: File) => void
 }
 
 function InternalEditor(
@@ -46,9 +53,10 @@ function InternalEditor(
     minHeight = 300,
     disabled = false,
     className = '',
-    uploadImage,
-    imageOptions,
+    // uploadImage,      // 현재 사용하지 않으므로 구조분해에서 제외
+    // imageOptions,     // 현재 사용하지 않으므로 구조분해에서 제외
     variant = 'post',
+    onPickImageFile,
   }: Props,
   ref: React.Ref<RichTextEditorHandle>
 ) {
@@ -69,22 +77,25 @@ function InternalEditor(
     focus: () => quillRef.current?.focus(),
   }))
 
-  const pickImage = () => {
+  // ✅ pickImage를 useCallback으로 메모이즈
+  const pickImage = useCallback(() => {
     if (variant === 'comment') return
     fileInputRef.current?.click()
-  }
+  }, [variant])
 
-  // ✅ 변경: 파일 선택 → (리사이즈/압축) → 업로드 시도 → 실패 시 base64 폴백 → 커서 삽입
+  // 파일 선택 → 부모에 파일 전달 + 미리보기 URL을 에디터에 삽입
   const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
     if (!file.type.startsWith('image/')) return
+
     try {
-      const url = await processImageAndGetURL(file, {
-        uploadImage,
-        imageOptions,
-      })
-      insertAtCursor(url)
+      // 부모로 파일 전달 (submit 시 FormData에 넣을 수 있게)
+      onPickImageFile?.(file)
+
+      // 미리보기: object URL로 즉시 삽입
+      const previewUrl = URL.createObjectURL(file)
+      insertAtCursor(previewUrl)
     } finally {
       if (fileInputRef.current) fileInputRef.current.value = ''
     }
@@ -138,7 +149,7 @@ function InternalEditor(
         handlers,
       },
     }
-  }, [variant])
+  }, [variant, pickImage]) // ✅ pickImage 의존성 추가
 
   const formats =
     variant === 'post'
@@ -184,116 +195,3 @@ function InternalEditor(
 }
 
 export default forwardRef(InternalEditor)
-
-/* ===== 아래 유틸 함수들 추가 ===== */
-
-// ✅ 핵심: 리사이즈/압축 후 업로드 시도, 실패하면 base64로 폴백
-async function processImageAndGetURL(
-  file: File,
-  opts: {
-    uploadImage?: (file: File) => Promise<string>
-    imageOptions?: ImageOptions
-  }
-): Promise<string> {
-  const {
-    maxWidth = 800,
-    maxHeight = 800,
-    quality = 0.85,
-    mime = 'image/webp',
-    compressOver = 300 * 1024,
-  } = opts.imageOptions || {}
-
-  const needCompress = file.size >= compressOver
-  const processedBlob = needCompress
-    ? await downscaleImage(file, { maxWidth, maxHeight, quality, mime })
-    : file
-
-  if (opts.uploadImage) {
-    try {
-      const asFile = blobToFile(processedBlob, guessName(file.name, mime))
-      return await opts.uploadImage(asFile) // 서버 URL
-    } catch {
-      // 업로드 실패하면 base64로 폴백
-      return await blobToDataURL(processedBlob)
-    }
-  }
-
-  // 업로드 함수가 없으면(로컬) base64로 삽입
-  return await blobToDataURL(processedBlob)
-}
-
-function guessName(original: string, mime: string) {
-  const base = original.replace(/\.[^.]+$/, '')
-  const ext = mime.split('/')[1] || 'jpg'
-  return `${base}.${ext}`
-}
-
-function blobToFile(blob: Blob, name: string): File {
-  return new File([blob], name, {
-    type: blob.type || 'application/octet-stream',
-  })
-}
-
-function blobToDataURL(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const fr = new FileReader()
-    fr.onload = () => resolve(String(fr.result))
-    fr.onerror = reject
-    fr.readAsDataURL(blob)
-  })
-}
-
-function downscaleImage(
-  file: File,
-  opts: { maxWidth: number; maxHeight: number; quality: number; mime: string }
-): Promise<Blob> {
-  const { maxWidth, maxHeight, quality, mime } = opts
-  return new Promise((resolve, reject) => {
-    const img = new Image()
-    const objectUrl = URL.createObjectURL(file)
-
-    const cleanup = () => {
-      URL.revokeObjectURL(objectUrl)
-    }
-
-    img.addEventListener('load', () => {
-      try {
-        let { width, height } = img
-        const ratio = Math.min(maxWidth / width, maxHeight / height, 1)
-        const w = Math.round(width * ratio)
-        const h = Math.round(height * ratio)
-
-        const canvas = document.createElement('canvas')
-        canvas.width = w
-        canvas.height = h
-        const ctx = canvas.getContext('2d')
-        if (!ctx) {
-          cleanup()
-          return reject(new Error('Canvas not supported'))
-        }
-        ctx.clearRect(0, 0, w, h)
-        ctx.drawImage(img, 0, 0, w, h)
-
-        canvas.toBlob(
-          (blob) => {
-            cleanup()
-            if (!blob) return reject(new Error('toBlob failed'))
-            resolve(blob)
-          },
-          mime,
-          quality
-        )
-      } catch (err) {
-        cleanup()
-        reject(err)
-      }
-    })
-
-    img.addEventListener('error', (e) => {
-      cleanup()
-      reject(new Error('Image load error'))
-    })
-
-    img.src = objectUrl
-  })
-}
