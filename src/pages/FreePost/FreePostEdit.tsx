@@ -1,12 +1,11 @@
-// src/pages/free/FreePostEdit.tsx
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import HomeBar from '../../components/HomeBar'
 import api from '../../api/api'
 import 'react-toastify/dist/ReactToastify.css'
 import Button from '../../components/ui/Button'
 import clsx from 'clsx'
-import './FreePostWrite.css' // 작성 페이지 스타일 재사용
+import './FreePostWrite.css'
 import RichTextEditor, {
   RichTextEditorHandle,
 } from '../../components/editor/RichTextEditor'
@@ -14,7 +13,7 @@ import { toastSuccess, toastWarn, toastError } from '../../utils/toast'
 
 type Tag = { id: number; tagName: string }
 
-// 서버 상세 응답 (본문만 사용하지만 타입은 참고용)
+// 서버 상세 응답 (참고용)
 type PostDetailResp = {
   id: number
   writer: string
@@ -22,6 +21,7 @@ type PostDetailResp = {
   content: string // HTML
   tags: string[] // 태그명 배열
   createdAt: string
+  // imageUrl?: string  // 백엔드가 내려주면 사용 가능
 }
 
 function FreePostEdit() {
@@ -35,7 +35,11 @@ function FreePostEdit() {
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
 
-  // ✅ 백엔드 스펙 준수: dto에 항상 포함 (본문 이미지만 쓸 거면 기본 false)
+  // 단일 이미지 파일(새로 고른 경우만 서버에 보냄)
+  const [pickedImage, setPickedImage] = useState<File | null>(null)
+  const [pickedPreviewUrl, setPickedPreviewUrl] = useState<string | null>(null)
+
+  // removeImage는 서버 스펙상 필요하면 유지 (현재는 삭제 기능 없음 → 기본 false)
   const [removeImage] = useState<boolean>(false)
 
   const editorRef = useRef<RichTextEditorHandle | null>(null)
@@ -55,17 +59,6 @@ function FreePostEdit() {
     () => title.trim().length > 0 && hasMeaningfulContent(content),
     [title, content]
   )
-
-  // 본문 내 이미지 업로드 (에디터 툴바 이미지 버튼에서 사용)
-  const uploadImage = async (file: File): Promise<string> => {
-    const form = new FormData()
-    form.append('image', file)
-    const { data } = await api.post<{ url: string }>(
-      '/api/uploads/images',
-      form
-    )
-    return data.url // 이 URL이 content에 <img src="...">로 삽입됨
-  }
 
   // 태그/게시글 불러오기
   useEffect(() => {
@@ -108,6 +101,19 @@ function FreePostEdit() {
     )
   }
 
+  // 에디터 → 부모: 파일 수신 (Write와 동일)
+  const handlePickImageFile = useCallback(
+    (file: File, previewUrl: string) => {
+      if (pickedPreviewUrl) URL.revokeObjectURL(pickedPreviewUrl)
+      setPickedImage(file)
+      setPickedPreviewUrl(previewUrl)
+    },
+    [pickedPreviewUrl]
+  )
+
+  // 전송 전 본문에서 모든 <img ...> 제거 (서버는 imageUrl로 관리하므로 혼선 방지)
+  const stripImages = (html: string) => html.replace(/<img[^>]*>/gi, '')
+
   const handleSave: React.FormEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault()
     if (!id) return
@@ -119,20 +125,24 @@ function FreePostEdit() {
     try {
       setSaving(true)
 
-      // ✅ 서버 요구사항: multipart + dto(JSON) (+ 필요한 경우만 파일)
-      // 본문 이미지만 사용하므로 파일 첨부는 없음
+      // Write와 동일: multipart(FormData)로 dto + (선택) image
       const dto = {
         title: title.trim(),
-        content, // HTML (본문 이미지 포함)
+        content: stripImages(content), // 본문 내 <img> 제거
         tagIds: selectedTagIds,
-        removeImage, // 항상 포함 (기본 false)
+        removeImage, // 스펙에 맞춰 항상 포함(여기서는 false)
       }
 
       const form = new FormData()
+      if (pickedImage) {
+        form.append('image', pickedImage) // 새 이미지 선택시에만
+      }
       form.append(
         'dto',
         new Blob([JSON.stringify(dto)], { type: 'application/json' })
       )
+      // 서버가 'request' 키를 요구하면 위 라인을 다음처럼 변경:
+      // form.append('request', new Blob([JSON.stringify(dto)], { type: 'application/json' }))
 
       await api.put(`/api/free-posts/${id}`, form)
 
@@ -198,7 +208,7 @@ function FreePostEdit() {
             })}
           </div>
 
-          {/* 내용(본문): 이미지 업로드는 툴바 이미지를 통해 삽입 */}
+          {/* 내용(본문): 업로드는 제출 시 한 번에 */}
           <p className="mt-6 text-label-normal text-body-1sb">
             내용 <span className="text-system-red">*</span>
           </p>
@@ -208,14 +218,8 @@ function FreePostEdit() {
             onChange={setContent}
             placeholder="자유롭게 생각이나 이야기를 나눠주세요."
             minHeight={300}
-            uploadImage={uploadImage}
-            imageOptions={{
-              maxWidth: 800,
-              maxHeight: 800,
-              quality: 0.85,
-              mime: 'image/webp',
-              compressOver: 300 * 1024,
-            }}
+            // ✅ Write와 동일: 즉시 업로드 안 하고 파일만 수집
+            onPickImageFile={handlePickImageFile}
           />
 
           {/* 하단 버튼 */}

@@ -1,4 +1,4 @@
-// QnaPostWrite.tsx
+// src/pages/qna/QnaPostWrite.tsx
 import React, { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './QnaPostWrite.css'
@@ -65,30 +65,8 @@ function QnaPostWrite() {
     [title, content]
   )
 
-  // ✅ 이미지 업로드 → 공개 URL 반환 (엔드포인트/응답 키는 백엔드에 맞게 수정)
-  const uploadImage = async (file: File): Promise<string> => {
-    const form = new FormData()
-
-    // 1) 파일 파트 (키: image)  ← 서버가 'file'이면 'file'로 바꾸세요
-    form.append('image', file)
-
-    // 2) JSON 파트 (키: dto, Content-Type: application/json)
-    const meta = {
-      type: 'EDITOR_IMAGE', // 필요 없다면 제거
-      originalName: file.name,
-      size: file.size,
-      mime: file.type,
-    }
-    form.append(
-      'dto',
-      new Blob([JSON.stringify(meta)], { type: 'application/json' })
-    )
-
-    const { data } = await api.post('/api/uploads/images', form)
-    const url = data?.url ?? data?.location ?? data?.data?.url
-    if (!url) throw new Error('Upload response has no url')
-    return url
-  }
+  // 전송 직전 모든 <img> 제거 (QnA는 이미지 별도 관리 X)
+  const stripImages = (html: string) => html.replace(/<img[^>]*>/gi, '')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -103,7 +81,7 @@ function QnaPostWrite() {
     try {
       const payload: PostCreateReq = {
         title: title.trim(),
-        content, // ← 본문 안에 <img src="..."> 포함됨
+        content: stripImages(content), // 👈 <img> 제거된 본문 전송
         tagIds: selectedTagIds,
       }
 
@@ -113,7 +91,7 @@ function QnaPostWrite() {
         new Blob([JSON.stringify(payload)], { type: 'application/json' })
       )
 
-      // ✅ 대표이미지/미리보기 제거 → 별도 form.append('image', ...) 없음
+      // QnA는 대표 이미지/파일 업로드가 없으므로 image append 없음
       const { data } = await api.post<PostCreateRes>(
         '/api/qna-post/create',
         form
@@ -186,7 +164,7 @@ function QnaPostWrite() {
             onChange={setContent}
             placeholder="궁금한 점을 자유롭게 질문해 주세요."
             minHeight={300}
-            uploadImage={uploadImage} // ✅ 툴바 이미지 → 업로드 → 커서삽입
+            // ❌ uploadImage 제거 (에디터의 이미지 버튼로 넣어도 제출 시 stripImages로 제거됨)
           />
 
           {/* 등록 버튼 */}

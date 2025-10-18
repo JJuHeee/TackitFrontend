@@ -9,6 +9,7 @@ import ReactQuill, { Quill } from 'react-quill'
 import 'react-quill/dist/quill.snow.css'
 import './RichTextEditor.css'
 
+// 툴바 아이콘 교체 (옵션)
 const icons = Quill.import('ui/icons')
 icons['link'] = '<img src="/icons/link.svg" style="width:18px;height:18px" />'
 icons['image'] = '<img src="/icons/image.svg" style="width:18px;height:18px" />'
@@ -20,13 +21,13 @@ export type RichTextEditorHandle = {
   focus: () => void
 }
 
-// 클라 리사이즈/압축 옵션 (현재 파일에서는 사용하지 않지만, Props용으로 유지)
+// 클라 이미지 옵션(현재 미사용, 확장 여지)
 type ImageOptions = {
   maxWidth?: number
   maxHeight?: number
-  quality?: number // 0~1
-  mime?: string // 'image/jpeg' | 'image/webp' 등
-  compressOver?: number // 바이트: 이 크기 이상이면 압축 시도
+  quality?: number
+  mime?: string
+  compressOver?: number
 }
 
 type Props = {
@@ -36,13 +37,10 @@ type Props = {
   minHeight?: number
   disabled?: boolean
   className?: string
-  /** 파일 업로드 → 공개 URL 반환 (없으면 base64로 삽입) */
-  uploadImage?: (file: File) => Promise<string>
-  /** 리사이즈/압축 옵션 */
   imageOptions?: ImageOptions
   variant?: Variant
-  /** 에디터에서 고른 원본 파일을 부모로 올려보낼 때 사용 */
-  onPickImageFile?: (file: File) => void
+  /** 파일을 부모에서 수집해 제출 시 FormData에 넣기 위해 알림 */
+  onPickImageFile?: (file: File, previewUrl: string) => void
 }
 
 function InternalEditor(
@@ -53,8 +51,7 @@ function InternalEditor(
     minHeight = 300,
     disabled = false,
     className = '',
-    // uploadImage,      // 현재 사용하지 않으므로 구조분해에서 제외
-    // imageOptions,     // 현재 사용하지 않으므로 구조분해에서 제외
+    // imageOptions, // 필요 시 사용
     variant = 'post',
     onPickImageFile,
   }: Props,
@@ -77,28 +74,23 @@ function InternalEditor(
     focus: () => quillRef.current?.focus(),
   }))
 
-  // ✅ pickImage를 useCallback으로 메모이즈
-  const pickImage = useCallback(() => {
-    if (variant === 'comment') return
-    fileInputRef.current?.click()
-  }, [variant])
-
-  // 파일 선택 → 부모에 파일 전달 + 미리보기 URL을 에디터에 삽입
-  const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    if (!file.type.startsWith('image/')) return
-
-    try {
-      // 부모로 파일 전달 (submit 시 FormData에 넣을 수 있게)
-      onPickImageFile?.(file)
-
-      // 미리보기: object URL로 즉시 삽입
-      const previewUrl = URL.createObjectURL(file)
-      insertAtCursor(previewUrl)
-    } finally {
-      if (fileInputRef.current) fileInputRef.current.value = ''
+  // 에디터에 있는 "첫 번째 이미지"를 새 URL로 교체
+  const replaceFirstImageWith = (quill: any, newUrl: string) => {
+    const imgEl = quill.root.querySelector('img')
+    if (!imgEl) {
+      const range = quill.getSelection(true) || {
+        index: quill.getLength(),
+        length: 0,
+      }
+      quill.insertEmbed(range.index, 'image', newUrl, 'user')
+      quill.setSelection(range.index + 1, 0, 'user')
+      return
     }
+    const blot = Quill.find(imgEl)
+    const index = quill.getIndex(blot)
+    quill.deleteText(index, 1, 'user') // embed 길이는 1
+    quill.insertEmbed(index, 'image', newUrl, 'user')
+    quill.setSelection(index + 1, 0, 'user')
   }
 
   const insertAtCursor = (url: string) => {
@@ -110,6 +102,42 @@ function InternalEditor(
     }
     quill.insertEmbed(range.index, 'image', url, 'user')
     quill.setSelection(range.index + 1, 0, 'user')
+  }
+
+  // 이미지 버튼 → 파일 선택
+  const pickImage = useCallback(() => {
+    if (variant === 'comment') return
+    fileInputRef.current?.click()
+  }, [variant])
+
+  // 파일 선택 처리 (단일)
+  const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (!file.type.startsWith('image/')) return
+
+    const quill = quillRef.current?.getEditor()
+    if (!quill) return
+
+    try {
+      const previewUrl = URL.createObjectURL(file)
+
+      // 에디터 내 이미지가 이미 있으면 같은 위치에 교체
+      const hasImage = !!quill.root.querySelector('img')
+      if (hasImage) {
+        // 확인 UI가 필요하면 window.confirm 대신 프로젝트의 모달/토스트-액션 사용
+        // const ok = window.confirm('이미지가 있습니다. 교체할까요?')
+        // if (!ok) return
+        replaceFirstImageWith(quill, previewUrl)
+      } else {
+        insertAtCursor(previewUrl)
+      }
+
+      // 부모에 파일/미리보기 전달 (단일 이미지 전략)
+      onPickImageFile?.(file, previewUrl)
+    } finally {
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
   }
 
   const modules = useMemo(() => {
@@ -149,7 +177,7 @@ function InternalEditor(
         handlers,
       },
     }
-  }, [variant, pickImage]) // ✅ pickImage 의존성 추가
+  }, [variant, pickImage])
 
   const formats =
     variant === 'post'
@@ -171,7 +199,7 @@ function InternalEditor(
       className={`write-editor ${className}`}
       style={{ ['--min-height' as any]: `${minHeight}px` }}
     >
-      {/* 숨겨진 파일 입력: 툴바 이미지 버튼이 이걸 연다 */}
+      {/* 숨겨진 파일 입력: 단일 파일만 */}
       <input
         ref={fileInputRef}
         type="file"
@@ -179,6 +207,7 @@ function InternalEditor(
         onChange={onFileChange}
         style={{ display: 'none' }}
       />
+
       <ReactQuill
         key={variant}
         ref={quillRef}

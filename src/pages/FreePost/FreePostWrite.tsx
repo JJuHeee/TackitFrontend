@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react'
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import HomeBar from '../../components/HomeBar'
 import api from '../../api/api'
@@ -12,17 +12,34 @@ import RichTextEditor, {
 import { toastSuccess, toastWarn, toastError } from '../../utils/toast'
 import { PostCreateReq, PostCreateRes } from '../../types/post'
 
+type Tag = { id: number; tagName: string }
+
 function FreePostWrite() {
   const navigate = useNavigate()
-  const [title, setTitle] = useState('')
-  const [content, setContent] = useState('')
-  const [selectedTagIds, setSelectedTagIds] = useState<number[]>([])
-  const [tagList, setTagList] = useState<{ id: number; tagName: string }[]>([])
-  const [loadingTags, setLoadingTags] = useState(false)
-  const [submitting, setSubmitting] = useState(false)
-  const [uploadingImage, setUploadingImage] = useState(false)
-
   const editorRef = useRef<RichTextEditorHandle | null>(null)
+
+  // 제목/본문/태그
+  const [title, setTitle] = useState('')
+  const [content, setContent] = useState('') // HTML
+  const [selectedTagIds, setSelectedTagIds] = useState<number[]>([])
+
+  // 태그 목록 및 로딩
+  const [tagList, setTagList] = useState<Tag[]>([])
+  const [loadingTags, setLoadingTags] = useState(false)
+
+  // 제출/업로딩 상태
+  const [submitting, setSubmitting] = useState(false)
+
+  // ✅ 단일 이미지 전용 상태
+  const [pickedImage, setPickedImage] = useState<File | null>(null)
+  const [pickedPreviewUrl, setPickedPreviewUrl] = useState<string | null>(null)
+
+  // unmount 시 blob URL 정리
+  useEffect(() => {
+    return () => {
+      if (pickedPreviewUrl) URL.revokeObjectURL(pickedPreviewUrl)
+    }
+  }, [pickedPreviewUrl])
 
   // ✅ 태그 목록 불러오기
   useEffect(() => {
@@ -36,6 +53,7 @@ function FreePostWrite() {
         }))
         setTagList(normalized)
       } catch {
+        // 실패 시 더미
         setTagList([
           { id: 2, tagName: '태그2' },
           { id: 3, tagName: '태그3' },
@@ -47,15 +65,23 @@ function FreePostWrite() {
     fetchTags()
   }, [])
 
-  // ✅ 태그 선택 토글
+  // ✅ 태그 토글
   const handleTagToggle = (id: number | string) => {
     const numId = Number(id)
     setSelectedTagIds((prev) =>
-      prev.includes(numId)
-        ? prev.filter((tagId) => tagId !== numId)
-        : [...prev, numId]
+      prev.includes(numId) ? prev.filter((v) => v !== numId) : [...prev, numId]
     )
   }
+
+  // ✅ 에디터 → 부모: 단일 이미지 파일 수신 (교체 시 기존 blob URL 해제)
+  const handlePickImageFile = useCallback(
+    (file: File, previewUrl: string) => {
+      if (pickedPreviewUrl) URL.revokeObjectURL(pickedPreviewUrl)
+      setPickedImage(file)
+      setPickedPreviewUrl(previewUrl)
+    },
+    [pickedPreviewUrl]
+  )
 
   // ✅ 내용 유효성 검사
   const hasMeaningfulContent = (html: string) => {
@@ -73,42 +99,13 @@ function FreePostWrite() {
     [title, content]
   )
 
-  // ✅ 이미지 업로드 (에디터 → 서버)
-  const uploadImage = async (file: File): Promise<string> => {
-    setUploadingImage(true)
-    try {
-      const form = new FormData()
-      form.append('file', file)
-      const meta = {
-        type: 'EDITOR_IMAGE',
-        originalName: file.name,
-        size: file.size,
-        mime: file.type,
-      }
-      form.append(
-        'dto',
-        new Blob([JSON.stringify(meta)], { type: 'application/json' })
-      )
+  // ✅ 전송 전 본문에서 모든 <img ...> 제거
+  const stripImages = (html: string) => html.replace(/<img[^>]*>/gi, '')
 
-      // 🟢 서버에서 이미지 업로드를 /api/free-posts로 처리하는 경우
-      // 백엔드가 업로드 후 url 반환하도록 구현되어 있어야 함
-      const { data } = await api.post('/api/free-posts', form)
-      const url = data?.url || data?.imageUrl || data?.location
-      if (!url) throw new Error('이미지 업로드 응답에 URL이 없습니다.')
-      return url
-    } catch (err) {
-      console.error(err)
-      toastError('이미지 업로드 실패')
-      throw err
-    } finally {
-      setUploadingImage(false)
-    }
-  }
-
-  // ✅ 글 제출
+  // ✅ 제출
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    if (submitting || uploadingImage) return
+    if (submitting || loadingTags) return
 
     if (!isReadyToSubmit) {
       toastWarn('제목과 내용을 입력해 주세요.')
@@ -117,13 +114,19 @@ function FreePostWrite() {
 
     setSubmitting(true)
     try {
+      // ❗본문의 <img> 태그 제거 후 전송
+      const contentForServer = stripImages(content)
+
       const payload: PostCreateReq = {
         title: title.trim(),
-        content, // 서버에서 이미지 URL이 포함된 HTML 저장
+        content: contentForServer,
         tagIds: selectedTagIds,
       }
 
       const form = new FormData()
+      if (pickedImage) {
+        form.append('image', pickedImage) // ✅ 단일 이미지
+      }
       form.append(
         'dto',
         new Blob([JSON.stringify(payload)], { type: 'application/json' })
@@ -148,6 +151,7 @@ function FreePostWrite() {
         <h1 className="mb-5 font-bold text-title-1 text-label-normal">
           글쓰기
         </h1>
+
         <form className="write-form" onSubmit={handleSubmit}>
           {/* 제목 */}
           <p className="mt-4 text-label-normal text-body-1sb">
@@ -198,7 +202,9 @@ function FreePostWrite() {
             onChange={setContent}
             placeholder="자유롭게 작성해 주세요."
             minHeight={300}
-            uploadImage={uploadImage} // 🟢 커서에 이미지 삽입 시 서버 업로드
+            variant="post"
+            // ✅ 업로드는 제출 시 한 번에: 여기서는 파일만 수집
+            onPickImageFile={handlePickImageFile}
           />
 
           {/* 등록 버튼 */}

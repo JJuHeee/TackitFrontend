@@ -1,4 +1,4 @@
-// TipPostWrite.tsx
+// src/pages/tip/TipPostWrite.tsx
 import React, { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './TipPostWrite.css'
@@ -24,7 +24,7 @@ function TipPostWrite() {
     const fetchTags = async () => {
       setLoadingTags(true)
       try {
-        // ✅ 실제 백엔드에 맞게 엔드포인트 확인하세요.
+        // ✅ 실제 백엔드 엔드포인트 확인
         const res = await api.get('/api/tip-tags/list')
         const normalized = (res.data ?? []).map((t: any) => ({
           id: Number(t.id),
@@ -65,17 +65,8 @@ function TipPostWrite() {
     [title, content]
   )
 
-  // ✅ 이미지 업로드 → 공개 URL 반환
-  const uploadImage = async (file: File): Promise<string> => {
-    const form = new FormData()
-    form.append('image', file)
-    // 백엔드 응답 키가 다르면 여기만 수정 (예: data.imageUrl)
-    const { data } = await api.post<{ url: string }>(
-      '/api/uploads/images',
-      form
-    )
-    return data.url
-  }
+  // ✅ 전송 직전 모든 <img> 제거 (이미지는 별도 관리 안 함)
+  const stripImages = (html: string) => html.replace(/<img[^>]*>/gi, '')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -89,7 +80,7 @@ function TipPostWrite() {
     try {
       const payload: PostCreateReq = {
         title: title.trim(),
-        content, // ← 본문에 <img src="..."> 그대로 포함
+        content: stripImages(content), // 👈 이미지 태그 제거
         tagIds: selectedTagIds,
       }
 
@@ -99,7 +90,7 @@ function TipPostWrite() {
         new Blob([JSON.stringify(payload)], { type: 'application/json' })
       )
 
-      // ✅ 대표이미지/미리보기 제거 → 별도 form.append('image', ...) 없음
+      // 대표 이미지 업로드 없음
       const { data } = await api.post<PostCreateRes>('/api/tip-posts', form)
 
       toastSuccess('글이 작성되었습니다.')
@@ -169,7 +160,7 @@ function TipPostWrite() {
             onChange={setContent}
             placeholder="후배가 더 빨리 적응할 수 있도록 경험을 나눠주세요."
             minHeight={300}
-            uploadImage={uploadImage} // ✅ 툴바 이미지 → 업로드 → 커서삽입
+            // ❌ uploadImage 제거 (에디터 이미지가 있어도 전송 시 stripImages로 제거)
           />
 
           {/* 등록 버튼 */}
