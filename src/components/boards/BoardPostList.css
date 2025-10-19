@@ -1,0 +1,109 @@
+/* 공통 레이아웃 */
+.post-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 20px 40px;
+  box-sizing: border-box;
+}
+
+/* 배너(공통 마진만) */
+.post-banner {
+  margin: 16px 0 50px;
+}
+
+/* ===== 보드별 배너 모디파이어 ===== */
+
+/* FREE: 이미지 태그 자체에 라운드+그림자 */
+.board--free .post-banner img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+}
+
+/* QNA: 래퍼에 스타일 몰아주기 */
+.board--qna .post-banner {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  line-height: 0;
+  background: #e9efff;
+}
+.board--qna .post-banner img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* TIP: 래퍼에 스타일 몰아주기 (그라데이션) */
+.board--tip .post-banner {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  line-height: 0;
+  background: linear-gradient(180deg, #5f80ff 0%, #f4f6fa 100%);
+}
+.board--tip .post-banner img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* 태그 + 글쓰기 버튼 바 */
+.post-topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0px 0 30px;
+}
+
+/* 태그 영역 */
+.post-tags {
+  flex: 1 1 auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* 리스트 */
+.post-list {
+  display: flex;
+  flex-direction: column;
+}
+
+/* 글쓰기 버튼 */
+.write-button {
+  background-color: var(--interaction-normal);
+  color: var(--label-inverse);
+  border: none;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font: var(--fw-body1-sb) var(--fs-body1-sb) / var(--lh-body1-sb)
+    var(--font-sans);
+  letter-spacing: var(--ls-body1-sb);
+  cursor: pointer;
+}
+.write-button:hover {
+  background-color: var(--interaction-hover);
+}
+.write-button:active {
+  background-color: var(--interaction-active);
+}
+.write-button:disabled {
+  background-color: var(--interaction-disable);
+  cursor: not-allowed;
+}
+
+/* 카드 본문 줄임/풀기 */
+.post-card-content {
+  white-space: normal;
+  overflow: visible;
+}
+.post-card-content.clamped {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

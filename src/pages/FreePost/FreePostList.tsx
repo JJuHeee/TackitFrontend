@@ -3,62 +3,39 @@ import { useNavigate } from 'react-router-dom'
 import './FreePostList.css'
 import HomeBar from '../../components/HomeBar'
 import api from '../../api/api'
-import { toast } from 'react-toastify'
 import Footer from '../../components/layouts/Footer'
 import TagChips from '../../components/TagChips'
 import Pagination from '../../components/Pagination'
 import PostCard from '../../components/posts/PostCard'
 import { stripHtml } from '../../utils/stripHtml'
+import { hydrateCoverToken } from '../../utils/coverToken'
+import type {
+  Post,
+  ListRespAll,
+  ListRespByTag,
+  ApiPostAll,
+  ApiPostByTag,
+} from '../../types/post'
 
-type Post = {
-  id: number
-  writer: string
-  title: string
-  content: string
-  tags: string[]
-  type: 'Free' | 'Qna' | 'Tip'
-  createdAt: string
-  imageUrl?: string | null
-}
+const mapAllToPost = (p: ApiPostAll): Post => ({
+  id: p.id,
+  writer: p.writer,
+  title: p.title,
+  content: p.content,
+  tags: p.tags,
+  createdAt: p.createdAt,
+  imageUrl: p.imageUrl ?? null,
+})
 
-type ListResp = {
-  page: number // 0-base
-  content: Post[]
-  size: number
-  totalElements: number
-  totalPages: number
-}
-
-const fallbackResponse: ListResp = {
-  page: 0,
-  content: [
-    {
-      id: 2,
-      writer: '기본값',
-      title: '요즘 날씨 너무 좋지 않나요?',
-      content: ' 코스 있으시면 댓글로 알려주세요!...',
-      tags: ['일상', '산책', '추천'],
-      createdAt: '2025-05-26T00:49:09.773772',
-      type: 'Free',
-      imageUrl: null,
-    },
-    {
-      id: 1,
-      writer: 'test',
-      title: '프론트엔드 스터디 같이 하실 분!',
-      content:
-        '안녕하세요.\n오늘은 날씨가 정말 좋네요!\n\n내일은 비가 온다고 합니다.',
-      tags: ['스터디', '프론트엔드', 'React', '모집'],
-      createdAt: '2025-05-26T00:47:58.054746',
-      type: 'Free',
-      imageUrl:
-        'https://tackit.s3.ap-northeast-2.amazonaws.com/sample-image.jpg',
-    },
-  ],
-  size: 5,
-  totalElements: 2,
-  totalPages: 1,
-}
+const mapByTagToPost = (p: ApiPostByTag): Post => ({
+  id: p.postId, 
+  writer: p.writer,
+  title: p.title,
+  content: p.content,
+  tags: p.tags,
+  createdAt: p.createdAt,
+  imageUrl: p.imageUrl ?? null,
+})
 
 function FreePostList() {
   const navigate = useNavigate()
@@ -75,20 +52,55 @@ function FreePostList() {
         const isAll = tagId === 0 || tagId === null
         const url = isAll ? `/api/free-posts` : `/api/free_tags/${tagId}/posts`
 
-        const res = await api.get<ListResp>(url, {
+        const res = await api.get<ListRespAll | ListRespByTag>(url, {
           params: {
-            page: currentPage - 1, // 서버에는 0-base로 전달
+            page: currentPage - 1, 
             size,
             sort: 'createdAt,desc',
           },
         })
 
         const data = res.data
-        setPosts(Array.isArray(data?.content) ? data.content : [])
+        const normalized: Post[] = (data.content as any[]).map((item) =>
+          'postId' in item
+            ? mapByTagToPost(item as ApiPostByTag)
+            : mapAllToPost(item as ApiPostAll)
+        )
+
+        setPosts(normalized)
         setTotalPages(Math.max(1, Number(data?.totalPages ?? 1)))
       } catch {
+        // fallback
+        const fallbackResponse = {
+          page: 0,
+          content: [
+            {
+              id: 2,
+              writer: '기본값',
+              title: '요즘 날씨 너무 좋지 않나요?',
+              content: '코스 있으시면 댓글로 알려주세요!...',
+              tags: ['일상', '산책', '추천'],
+              createdAt: '2025-05-26T00:49:09.773772',
+              imageUrl: null,
+            },
+            {
+              id: 1,
+              writer: 'test',
+              title: '프론트엔드 스터디 같이 하실 분!',
+              content:
+                '안녕하세요.\n오늘은 날씨가 정말 좋네요!\n\n내일은 비가 온다고 합니다.',
+              tags: ['스터디', '프론트엔드', 'React', '모집'],
+              createdAt: '2025-05-26T00:47:58.054746',
+              imageUrl:
+                'https://tackit.s3.ap-northeast-2.amazonaws.com/sample-image.jpg',
+            },
+          ],
+          size: 5,
+          totalElements: 2,
+          totalPages: 1,
+        }
         setPosts(fallbackResponse.content)
-        setTotalPages(Math.max(1, fallbackResponse.totalPages))
+        setTotalPages(fallbackResponse.totalPages)
       }
     }
     fetchPosts()
@@ -152,11 +164,13 @@ function FreePostList() {
                   <PostCard
                     id={post.id}
                     title={post.title}
-                    content={stripHtml(post.content)}
+                    content={stripHtml(
+                      hydrateCoverToken(post.content, post.imageUrl)
+                    )}
                     writer={post.writer}
                     createdAt={post.createdAt}
                     tags={post.tags}
-                    imageUrl={post.imageUrl ?? null} // ⭐ 추가
+                    imageUrl={post.imageUrl ?? null}
                     onClick={() => navigate(`/free/${post.id}`)}
                   />
                 ))

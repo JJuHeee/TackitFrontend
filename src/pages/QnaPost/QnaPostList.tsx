@@ -1,7 +1,7 @@
 // src/pages/qna/QnaPostList.tsx
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import './QnaPostList.css' // 필요시만 개별 오버라이드
+import './QnaPostList.css'
 import HomeBar from '../../components/HomeBar'
 import api from '../../api/api'
 import { toast } from 'react-toastify'

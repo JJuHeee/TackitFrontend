@@ -7,6 +7,7 @@ import AuthLayout from '../../components/layouts/AuthLayout'
 import { AuthCard } from '../../components/ui/AuthCard'
 import { Button } from '../../components/ui/Button'
 
+
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -157,7 +158,7 @@ export default function LoginPage() {
 
             <div className="mt-2 text-right">
               <Link
-                to="/forgot-password"
+                to="/main"
                 className="text-xs text-label-neutral hover:text-label-primary"
               >
                 비밀번호 찾기
