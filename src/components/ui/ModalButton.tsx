@@ -27,7 +27,9 @@ const modalButtonVariants = cva(
           bg-[var(--background-common)]
           border border-[var(--line-normal)]
           text-[var(--label-normal)]
-          hover:bg-[var(--background-hover)]
+           hover:bg-gray-50
+          active:text-[var(--interaction-normal)]
+          focus:text-[var(--interaction-normal)] 
           active:border-[var(--line-active)]
           disabled:text-[var(--label-disable)] disabled:border-[var(--line-normal)]
         `,

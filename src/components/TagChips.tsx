@@ -4,7 +4,6 @@ import api from '../api/api'
 
 type Mode = 'single' | 'multiple'
 type TagItem = { id: number | string; name: string }
-
 type Props = {
   endpoint?: string
   mode?: Mode

@@ -2,6 +2,10 @@
   "name": "front",
   "version": "0.1.0",
   "private": true,
+  "overrides": {
+    "@types/react": "18.2.67",
+    "@types/react-dom": "18.2.22"
+  },
   "dependencies": {
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
@@ -52,8 +56,8 @@
   "devDependencies": {
     "@tailwindcss/line-clamp": "^0.4.4",
     "@types/node": "^24.5.2",
-    "@types/react": "^18.3.26",
-    "@types/react-dom": "^18.3.7",
+    "@types/react": "18.2.67",
+    "@types/react-dom": "18.2.22",
     "autoprefixer": "^10.4.21",
     "daisyui": "^5.1.12",
     "postcss": "^8.5.6",

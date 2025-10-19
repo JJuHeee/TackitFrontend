@@ -13,7 +13,8 @@
 html,
 body,
 #root {
-  height: 100%;
+  background-color: #ffffff !important;
+  min-height: 100vh;
 }
 
 html {
@@ -25,6 +26,7 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: #ffffff;
 }
 
 code {
@@ -32,10 +34,18 @@ code {
     'Liberation Mono', 'Courier New', monospace;
 }
 
-/* 기존 전역 클래스 유지 */
 .main-content {
   padding-top: 120px;
 }
 .App {
   text-align: center;
+}
+.password-mask {
+  -webkit-text-security: disc;
+  text-security: disc;
+}
+main,
+.container,
+.page {
+  background-color: var(--app-bg);
 }

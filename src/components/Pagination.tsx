@@ -4,31 +4,30 @@ type Props = {
   currentPage: number // 1-base
   totalPages: number
   onPageChange: (page: number) => void
-  siblingCount?: number // 현재 페이지 양옆 개수
+  groupSize?: number // 한 번에 보여줄 페이지 개수 (기본 5)
   className?: string
 }
 
-export default function Pagination({
+export default function PaginationGroup({
   currentPage,
   totalPages,
   onPageChange,
-  siblingCount = 1,
+  groupSize = 5,
   className = '',
 }: Props) {
   if (totalPages <= 1) return null
 
   const clamp = (n: number) => Math.min(Math.max(n, 1), totalPages)
-  const createRange = (s: number, e: number) =>
-    Array.from({ length: e - s + 1 }, (_, i) => s + i)
 
-  const start = Math.max(2, currentPage - siblingCount)
-  const end = Math.min(totalPages - 1, currentPage + siblingCount)
+  // 현재 페이지가 속한 그룹 계산 (0-base 그룹 인덱스)
+  const currentGroup = Math.floor((currentPage - 1) / groupSize)
+  const start = currentGroup * groupSize + 1
+  const end = Math.min(start + groupSize - 1, totalPages)
 
-  const pages: (number | 'ellipsis')[] = [1]
-  if (start > 2) pages.push('ellipsis')
-  pages.push(...createRange(start, end))
-  if (end < totalPages - 1) pages.push('ellipsis')
-  pages.push(totalPages)
+  const pages = Array.from({ length: end - start + 1 }, (_, i) => start + i)
+
+  const isFirstGroup = start === 1
+  const isLastGroup = end === totalPages
 
   const baseBtn =
     'inline-flex items-center justify-center w-8 h-8 rounded-lg text-body-2 transition-colors ' +
@@ -55,49 +54,40 @@ export default function Pagination({
       className={`flex items-center gap-3 select-none ${className}`}
       aria-label="Pagination"
     >
-      {/* Prev */}
+      {/* Prev Group */}
       <button
         type="button"
-        className={navBtn(currentPage === 1)}
-        onClick={() => currentPage > 1 && onPageChange(clamp(currentPage - 1))}
-        aria-label="Previous page"
-        disabled={currentPage === 1}
+        className={navBtn(isFirstGroup)}
+        onClick={() => !isFirstGroup && onPageChange(clamp(start - groupSize))}
+        aria-label="Previous pages"
+        disabled={isFirstGroup}
       >
         &lt;
       </button>
 
-      {/* Page Numbers */}
+      {/* Page Numbers (fixed group size view) */}
       <ol className="flex items-center gap-2">
-        {pages.map((p, idx) =>
-          p === 'ellipsis' ? (
-            <li key={`e-${idx}`} className="px-1 text-label-assistive">
-              …
-            </li>
-          ) : (
-            <li key={p}>
-              <button
-                type="button"
-                className={numberBtn(p, p === currentPage)}
-                onClick={() => onPageChange(p)}
-                aria-current={p === currentPage ? 'page' : undefined}
-                aria-label={`Page ${p}`}
-              >
-                {p}
-              </button>
-            </li>
-          )
-        )}
+        {pages.map((p) => (
+          <li key={p}>
+            <button
+              type="button"
+              className={numberBtn(p, p === currentPage)}
+              onClick={() => onPageChange(p)}
+              aria-current={p === currentPage ? 'page' : undefined}
+              aria-label={`Page ${p}`}
+            >
+              {p}
+            </button>
+          </li>
+        ))}
       </ol>
 
-      {/* Next */}
       <button
         type="button"
-        className={navBtn(currentPage === totalPages)}
-        onClick={() =>
-          currentPage < totalPages && onPageChange(clamp(currentPage + 1))
-        }
-        aria-label="Next page"
-        disabled={currentPage === totalPages}
+        className={navBtn(isLastGroup)}
+        onClick={() => !isLastGroup && onPageChange(clamp(end + 1))}
+        aria-label="Next pages"
+        disabled={isLastGroup}
       >
         &gt;
       </button>

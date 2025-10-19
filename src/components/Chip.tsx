@@ -26,10 +26,10 @@ export default function Chip({
         'h-10 min-w-[66px] px-3 py-2 rounded-lg',
         'whitespace-nowrap select-none transition',
         selected
-          ? 'bg-[var(--background-active)] text-[var(--label-inverse)]'
-          : 'bg-[var(--background-neutral)] text-[var(--label-normal)]',
+          ? 'bg-[var(--background-active)] text-[var(--label-inverse)] text-body-1sb' // ✅ 선택 시 semibold
+          : 'bg-[var(--background-neutral)] text-[var(--label-normal)] text-body-1', // ✅ 기본은 regular
         disabled ? 'opacity-50 cursor-not-allowed' : 'hover:brightness-95',
-        'text-body-2',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--line-focus)] focus-visible:ring-offset-2',
         className,
       ].join(' ')}
     >
