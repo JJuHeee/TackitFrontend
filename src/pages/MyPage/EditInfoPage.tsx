@@ -116,10 +116,7 @@ export default function EditInfoPage() {
                   src="/icons/profile.svg"
                   alt="프로필 아이콘"
                   className="h-[100px] w-[100px] cursor-pointer hover:opacity-80 transition"
-                  onClick={() => {
-                    // TODO: 이미지 업로드 로직 연결
-                    toastSuccess('프로필 이미지를 변경할 수 있습니다.')
-                  }}
+                  onClick={() => {}}
                 />
               </div>
 

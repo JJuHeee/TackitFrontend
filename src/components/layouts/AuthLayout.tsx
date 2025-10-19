@@ -28,10 +28,12 @@ export default function AuthLayout({
   const strip = icons[0]
 
   return (
-    <div className="relative overflow-x-hidden min-h-dvh">
-      {/* 전체 배경 */}
-      <div className="fixed inset-0 -z-10 bg-gradient-to-b from-white to-background-blue" />
-
+    <div
+      className="relative overflow-x-hidden min-h-dvh"
+      style={{ ['--app-bg' as any]: 'transparent' }}
+    >
+      {/* ✅ 전역 흰색(body) 위에 올라오도록 z-0 (음수 아님) + 클릭 막지 않도록 pointer-events-none */}
+      <div className="fixed inset-0 z-0 pointer-events-none bg-gradient-to-b from-white to-background-blue" />
       {/* 컨텐츠 영역 */}
       <div className="relative z-10 flex flex-col min-h-dvh">
         {/* 폼 영역 */}
