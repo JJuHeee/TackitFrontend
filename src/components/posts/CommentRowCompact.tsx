@@ -1,7 +1,7 @@
 import React from 'react'
 import { toast } from 'react-toastify'
 import PostPreview from './PostPreview'
-import PostAuthorMeta from '../posts/PostAuthorMeta'
+import PostAuthorMeta from './PostAuthorMeta'
 
 export type CommentRowProps = {
   id?: number

@@ -28,7 +28,7 @@ const mapAllToPost = (p: ApiPostAll): Post => ({
 })
 
 const mapByTagToPost = (p: ApiPostByTag): Post => ({
-  id: p.postId, 
+  id: p.postId,
   writer: p.writer,
   title: p.title,
   content: p.content,
@@ -54,7 +54,7 @@ function FreePostList() {
 
         const res = await api.get<ListRespAll | ListRespByTag>(url, {
           params: {
-            page: currentPage - 1, 
+            page: currentPage - 1,
             size,
             sort: 'createdAt,desc',
           },

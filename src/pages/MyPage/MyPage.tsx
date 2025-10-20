@@ -7,6 +7,7 @@ import Modal from '../../components/modals/Modal'
 import api from '../../api/api'
 import { toastSuccess, toastError } from '../../utils/toast'
 import { Button } from '../../components/ui/Button'
+import { notificationSSE } from '../../services/notificationSSE'
 
 const ROUTES = {
   posts: '/mypage/posts',
@@ -22,15 +23,24 @@ export default function MyPageHome() {
   /** ✅ 로그아웃 */
   const handleConfirmLogout = () => {
     setLogoutOpen(false)
+
+    // 1) 먼저 SSE 연결 종료
+    try {
+      notificationSSE.stop()
+    } catch (e) {
+      console.warn('SSE stop failed (ignored)', e)
+    }
+
+    // 2) 토큰/세션 정리
     localStorage.removeItem('accessToken')
     localStorage.removeItem('refreshToken')
     localStorage.removeItem('accessTokenExpiresIn')
     localStorage.removeItem('grantType')
     localStorage.removeItem('role')
+
     navigate('/login')
   }
 
-  /** ✅ 탈퇴 API 연결 */
   const handleConfirmWithdraw = async () => {
     const accessToken = localStorage.getItem('accessToken')
     if (!accessToken) {
@@ -43,15 +53,17 @@ export default function MyPageHome() {
       const response = await api.post(
         '/withdraw',
         {},
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${accessToken}` } }
       )
-
       toastSuccess(response.data.message || '탈퇴가 완료되었습니다.')
 
+      try {
+        notificationSSE.stop()
+      } catch (e) {
+        console.warn(e)
+      }
+
+      // 토큰 정리
       localStorage.removeItem('accessToken')
       localStorage.removeItem('refreshToken')
       localStorage.removeItem('accessTokenExpiresIn')

@@ -1,22 +1,22 @@
 import React, { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import HomeBar from '../../components/HomeBar'
+import HomeBar from '../HomeBar'
 import api from '../../api/api'
 import useFetchUserInfo from '../../hooks/useFetchUserInfo'
 import { sanitizeHtml } from '../../utils/sanitize'
 import { hydrateCoverToken } from '../../utils/coverToken'
-import CommentList from '../../components/comments/CommentList'
-import CommentEditor from '../../components/comments/CommentEditor'
-import type { CommentModel } from '../../components/comments/CommentItem'
-import ReportModal from '../../components/modals/ReportModal'
-import type { ReportPayload } from '../../components/modals/ReportModal'
+import CommentList from '../comments/CommentList'
+import CommentEditor from '../comments/CommentEditor'
+import type { CommentModel } from '../comments/CommentItem'
+import ReportModal from '../modals/ReportModal'
+import type { ReportPayload } from '../modals/ReportModal'
 import {
   toastSuccess,
   toastWarn,
   toastError,
   toastInfo,
 } from '../../utils/toast'
-import PostHeader from '../../components/posts/PostHeader'
+import PostHeader from '../posts/PostHeader'
 
 type PostDto = {
   id: number

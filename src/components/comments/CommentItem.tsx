@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react'
 import PostAuthorMeta from '../posts/PostAuthorMeta'
 import { stripHtml } from '../../utils/stripHtml'
 import DOMPurify from 'dompurify'
-import CommentEditor from '../comments/CommentEditor'
+import CommentEditor from './CommentEditor'
 
 export type CommentModel = {
   id: number

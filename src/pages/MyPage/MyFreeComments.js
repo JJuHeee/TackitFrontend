@@ -1,8 +1,8 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import './PostPageList.css';
-import HomeBar from '../../components/HomeBar';
-import api from '../../api/api';
+import React, { useEffect, useState, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
+import './PostPageList.css'
+import HomeBar from '../../components/HomeBar'
+import api from '../../api/api'
 
 const fallbackResponse = {
   page: 0,
@@ -10,58 +10,61 @@ const fallbackResponse = {
     {
       commentId: 2,
       postId: 1,
-      content: "두 번째 자유댓글입니다.\n두 줄로 구성되어 있어요.",
-      createdAt: "2025-05-26T01:33:16.108661",
-      type: "Free",
+      content: '두 번째 자유댓글입니다.\n두 줄로 구성되어 있어요.',
+      createdAt: '2025-05-26T01:33:16.108661',
+      type: 'Free',
     },
     {
       commentId: 1,
       postId: 1,
-      content: "첫 번째 자유댓글입니다.",
-      createdAt: "2025-05-25T01:32:14.798548",
-      type: "Free",
+      content: '첫 번째 자유댓글입니다.',
+      createdAt: '2025-05-25T01:32:14.798548',
+      type: 'Free',
     },
   ],
   size: 5,
   totalElements: 2,
   totalPages: 1,
-};
+}
 
 function MyFreeComments() {
-  const navigate = useNavigate();
-  const [comments, setComments] = useState([]);
-  const [sortOrder, setSortOrder] = useState('desc');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const size = 5;
+  const navigate = useNavigate()
+  const [comments, setComments] = useState([])
+  const [sortOrder, setSortOrder] = useState('desc')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const size = 5
 
   const fetchComments = useCallback(async () => {
     try {
       const response = await api.get(
-        `/api/mypage/free-comments?page=${currentPage - 1}&size=${size}&sort=createdAt,${sortOrder}`
-      );
-      setComments(response.data.content);
-      setTotalPages(response.data.totalPages);
+        `/api/mypage/free-comments?page=${
+          currentPage - 1
+        }&size=${size}&sort=createdAt,${sortOrder}`
+      )
+      setComments(response.data.content)
+      setTotalPages(response.data.totalPages)
     } catch (error) {
       const sortedFallback = [...fallbackResponse.content].sort((a, b) =>
         sortOrder === 'desc'
           ? new Date(b.createdAt) - new Date(a.createdAt)
           : new Date(a.createdAt) - new Date(b.createdAt)
-      );
-      setComments(sortedFallback.slice((currentPage - 1) * size, currentPage * size));
-      setTotalPages(Math.ceil(fallbackResponse.totalElements / size));
+      )
+      setComments(
+        sortedFallback.slice((currentPage - 1) * size, currentPage * size)
+      )
+      setTotalPages(Math.ceil(fallbackResponse.totalElements / size))
     }
-  }, [currentPage, sortOrder]);
-  
+  }, [currentPage, sortOrder])
 
   useEffect(() => {
-    fetchComments();
-  }, [fetchComments]);
+    fetchComments()
+  }, [fetchComments])
 
   const handleSortChange = (e) => {
-    setSortOrder(e.target.value);
-    setCurrentPage(1);
-  };
+    setSortOrder(e.target.value)
+    setCurrentPage(1)
+  }
 
   return (
     <>
@@ -73,7 +76,9 @@ function MyFreeComments() {
 
       <div className="freepost-container">
         <div className="sort-dropdown-container">
-          <label htmlFor="sortOrder" className="sort-label"> </label>
+          <label htmlFor="sortOrder" className="sort-label">
+            {' '}
+          </label>
           <select
             id="sortOrder"
             value={sortOrder}
@@ -101,7 +106,7 @@ function MyFreeComments() {
                   </span>
                 </div>
                 <div className="comment-preview">
-                  💬{" "}
+                  💬{' '}
                   {comment.content.split('\n').map((line, i) => (
                     <React.Fragment key={i}>
                       {line}
@@ -122,17 +127,23 @@ function MyFreeComments() {
           >
             &laquo;
           </button>
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
-            <button
-              key={pageNum}
-              className={`page-btn ${currentPage === pageNum ? 'active' : ''}`}
-              onClick={() => setCurrentPage(pageNum)}
-            >
-              {pageNum}
-            </button>
-          ))}
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+            (pageNum) => (
+              <button
+                key={pageNum}
+                className={`page-btn ${
+                  currentPage === pageNum ? 'active' : ''
+                }`}
+                onClick={() => setCurrentPage(pageNum)}
+              >
+                {pageNum}
+              </button>
+            )
+          )}
           <button
-            onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+            onClick={() =>
+              setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+            }
             disabled={currentPage === totalPages}
             className="page-btn"
           >
@@ -141,7 +152,7 @@ function MyFreeComments() {
         </div>
       </div>
     </>
-  );
+  )
 }
 
-export default MyFreeComments;
+export default MyFreeComments

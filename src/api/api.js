@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { notificationSSE } from '../services/notificationSSE'
 
 // 1) BASE_URL 안전 기본값
 const BASE_URL = process.env.REACT_APP_API_URL || '/api'
@@ -38,11 +39,20 @@ const reissueAccessToken = async () => {
     localStorage.setItem('accessToken', accessToken)
     localStorage.setItem('refreshToken', newRefreshToken)
 
+    // ★ 여기서 SSE에 새 토큰 알려주기
+    try {
+      notificationSSE.restartWithToken(accessToken)
+    } catch (e) {
+      console.warn('notificationSSE restart failed', e)
+    }
+
     return accessToken
   } catch (error) {
-    // 리프레시 실패는 즉시 세션 정리
     localStorage.clear()
-    // hard redirect로 상태 초기화
+    // SSE 닫기 (안전)
+    try {
+      notificationSSE.stop()
+    } catch (_) {}
     window.location.href = '/login'
     throw error
   }

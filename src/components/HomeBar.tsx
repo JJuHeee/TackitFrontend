@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
+import NotificationBell from './notify/NotificationBell' // ✅ 알림 벨 UI 컴포넌트만 유지
 
 const HomeBar: React.FC = () => {
   const navigate = useNavigate()
@@ -15,7 +16,6 @@ const HomeBar: React.FC = () => {
 
   return (
     <header className="relative flex items-center justify-center bg-white h-14">
-      {/* ✅ width 1100px, padding 없음 */}
       <div className="w-[1100px] flex items-center justify-between mx-auto">
         {/* 좌측: 로고 + 메뉴 */}
         <div className="flex items-center gap-6">
@@ -41,14 +41,10 @@ const HomeBar: React.FC = () => {
           </nav>
         </div>
 
-        {/* 우측: 알림 + 마이페이지 */}
+        {/* ✅ 우측: 알림 + 마이페이지 */}
         <div className="items-center hidden md:flex">
-          <button
-            aria-label="알림"
-            className="p-2 rounded-lg hover:bg-gray-50 text-[var(--label-normal)]"
-          >
-            <img src="/assets/icons/bell.svg" alt="알림" className="w-5 h-5" />
-          </button>
+          {/* 기존 벨 버튼 대신 알림 컴포넌트만 남김 */}
+          <NotificationBell />
           <button
             aria-label="마이페이지로 이동"
             onClick={() => navigate('/mypage')}
@@ -58,12 +54,7 @@ const HomeBar: React.FC = () => {
 
         {/* 모바일: 알림 + 원 + 햄버거 */}
         <div className="flex items-center gap-3 md:hidden">
-          <button
-            aria-label="알림"
-            className="p-2 rounded-lg hover:bg-gray-50 text-[var(--label-normal)]"
-          >
-            <img src="/assets/icons/bell.svg" alt="알림" className="w-5 h-5" />
-          </button>
+          <NotificationBell /> {/* 모바일에서도 동일하게 사용 */}
           <button
             aria-label="마이페이지로 이동"
             onClick={() => navigate('/mypage')}
@@ -99,7 +90,6 @@ const HomeBar: React.FC = () => {
               >
                 선배가 알려줘요
               </NavLink>
-
               <NavLink
                 to="/qna"
                 className={linkClass}

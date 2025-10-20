@@ -1,5 +1,6 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
+import { notificationSSE } from './services/notificationSSE'
 import LoginPage from './pages/Login/LoginPage'
 import SignupPage from './pages/Signup/SignupPage'
 import FreePostList from './pages/FreePost/FreePostList'
@@ -27,6 +28,11 @@ import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
 function App(): JSX.Element {
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken') || ''
+    notificationSSE.start(token)
+    return () => notificationSSE.stop()
+  }, [])
   return (
     <Router>
       <Routes>

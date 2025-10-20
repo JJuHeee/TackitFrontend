@@ -1,61 +1,60 @@
-import React, { useState } from 'react';
-import HomeBar from '../../components/HomeBar';
-import './EditForm.css';
-import { FaEye, FaEyeSlash } from 'react-icons/fa';
-import { toast } from 'react-toastify';
-import api from '../../api/api';
-import { useNavigate } from 'react-router-dom';
-
+import React, { useState } from 'react'
+import HomeBar from '../../components/HomeBar'
+import './EditForm.css'
+import { FaEye, FaEyeSlash } from 'react-icons/fa'
+import { toast } from 'react-toastify'
+import api from '../../api/api'
+import { useNavigate } from 'react-router-dom'
 
 const EditPasswordPage = () => {
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [passwordError, setPasswordError] = useState('');
-  const [submitError, setSubmitError] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [passwordError, setPasswordError] = useState('')
+  const [submitError, setSubmitError] = useState('')
 
-  const [currentPwVisible, setCurrentPwVisible] = useState(false);
-  const [newPwVisible, setNewPwVisible] = useState(false);
-  const [confirmPwVisible, setConfirmPwVisible] = useState(false);
-  const navigate = useNavigate();
+  const [currentPwVisible, setCurrentPwVisible] = useState(false)
+  const [newPwVisible, setNewPwVisible] = useState(false)
+  const [confirmPwVisible, setConfirmPwVisible] = useState(false)
+  const navigate = useNavigate()
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    e.preventDefault()
 
     if (!currentPassword) {
-      setSubmitError('현재 비밀번호를 입력해주세요.');
-      return;
+      setSubmitError('현재 비밀번호를 입력해주세요.')
+      return
     }
 
     if (newPassword && confirmPassword && newPassword !== confirmPassword) {
-      setPasswordError('새 비밀번호가 일치하지 않습니다.');
-      setSubmitError('');
-      return;
+      setPasswordError('새 비밀번호가 일치하지 않습니다.')
+      setSubmitError('')
+      return
     }
 
-    setPasswordError('');
-    setSubmitError('');
+    setPasswordError('')
+    setSubmitError('')
 
     try {
       const payload = {
         currentPassword,
         newPassword,
-      };
+      }
 
-      const { data } = await api.patch('/api/members/password', payload);
+      const { data } = await api.patch('/api/members/password', payload)
 
       if (data.changed) {
-        setSubmitError('');
-        toast.success(data.message);
-        navigate('/mypage'); 
+        setSubmitError('')
+        toast.success(data.message)
+        navigate('/mypage')
       } else {
-        setSubmitError('비밀번호가 변경되지 않았습니다.');
+        setSubmitError('비밀번호가 변경되지 않았습니다.')
       }
     } catch (err) {
-      setSubmitError('현재 비밀번호와 일치하지 않습니다.');
-      console.error(err);
+      setSubmitError('현재 비밀번호와 일치하지 않습니다.')
+      console.error(err)
     }
-  };
+  }
 
   return (
     <>
@@ -166,8 +165,12 @@ const EditPasswordPage = () => {
           </div>
 
           {/* 오류 메시지 */}
-          {passwordError && <div className="nickname-message error">{passwordError}</div>}
-          {submitError && <div className="nickname-message error">{submitError}</div>}
+          {passwordError && (
+            <div className="nickname-message error">{passwordError}</div>
+          )}
+          {submitError && (
+            <div className="nickname-message error">{submitError}</div>
+          )}
 
           <button type="submit" className="edit-submit-btn">
             비밀번호 변경하기
@@ -175,7 +178,7 @@ const EditPasswordPage = () => {
         </form>
       </div>
     </>
-  );
-};
+  )
+}
 
-export default EditPasswordPage;
+export default EditPasswordPage
