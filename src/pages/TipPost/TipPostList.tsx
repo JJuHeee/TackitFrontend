@@ -8,6 +8,8 @@ import Footer from '../../components/layouts/Footer'
 import TagChips from '../../components/TagChips'
 import Pagination from '../../components/Pagination'
 import PostCard from '../../components/posts/PostCard'
+import { stripHtml } from '../../utils/stripHtml'
+import { hydrateCoverToken } from '../../utils/coverToken'
 
 type Post = {
   postId: number
@@ -17,11 +19,12 @@ type Post = {
   tags: string[]
   type?: 'Free' | 'Qna' | 'Tip'
   createdAt: string
+  imageUrl?: string | null
 }
 
 type ListResp = {
   page: number // 0-base
-  content: Post[]
+  content: Post[] | any[]
   size: number
   totalElements: number
   totalPages: number
@@ -39,6 +42,7 @@ const fallbackResponse: ListResp = {
       tags: ['일상', '산책', '추천'],
       createdAt: '2025-05-26T00:49:09.773772',
       type: 'Tip',
+      imageUrl: null,
     },
     {
       postId: 1,
@@ -49,12 +53,36 @@ const fallbackResponse: ListResp = {
       tags: ['스터디', '프론트엔드', 'React', '모집'],
       createdAt: '2025-05-26T00:47:58.054746',
       type: 'Tip',
+      imageUrl:
+        'https://tackit.s3.ap-northeast-2.amazonaws.com/sample-image.jpg',
     },
   ],
   size: 5,
   totalElements: 2,
   totalPages: 1,
 }
+
+const mapAllToPost = (p: any): Post => ({
+  postId: p.postId ?? p.id,
+  writer: p.writer ?? '',
+  title: p.title ?? '',
+  content: p.content ?? '',
+  tags: Array.isArray(p.tags) ? p.tags : [],
+  createdAt: p.createdAt ?? '',
+  type: p.type ?? 'Tip',
+  imageUrl: p.imageUrl ?? null,
+})
+
+const mapByTagToPost = (p: any): Post => ({
+  postId: p.postId ?? p.id,
+  writer: p.writer ?? '',
+  title: p.title ?? '',
+  content: p.content ?? '',
+  tags: Array.isArray(p.tags) ? p.tags : [],
+  createdAt: p.createdAt ?? '',
+  type: p.type ?? 'Tip',
+  imageUrl: p.imageUrl ?? null,
+})
 
 export default function TipPostList() {
   const navigate = useNavigate()
@@ -71,7 +99,6 @@ export default function TipPostList() {
     const fetchPosts = async () => {
       try {
         const isAll = tagId === 0 || tagId === null
-        // 전체: /api/tip-posts, 태그별: /api/tip-tags/{tagId}/posts
         const url = isAll ? `/api/tip-posts` : `/api/tip-tags/${tagId}/posts`
 
         const res = await api.get<ListResp>(url, {
@@ -83,22 +110,22 @@ export default function TipPostList() {
         })
 
         const data = res.data
-        const content: Post[] = (
-          Array.isArray(data?.content) ? data.content : []
-        ).map((p: any) => ({
-          postId: p.postId ?? p.id, // 서버가 id로 줄 수도 있어 보정
-          writer: p.writer ?? '',
-          title: p.title ?? '',
-          content: p.content ?? '',
-          tags: Array.isArray(p.tags) ? p.tags : [],
-          type: p.type ?? 'Tip',
-          createdAt: p.createdAt ?? '',
-        }))
+        const contentArr = Array.isArray(data?.content) ? data.content : []
 
-        setPosts(content)
+        // Free와 동일하게 'postId' 존재 여부로 매핑 분기
+        const normalized: Post[] = contentArr.map((item: any) =>
+          'postId' in item ? mapByTagToPost(item) : mapAllToPost(item)
+        )
+
+        setPosts(normalized)
         setTotalPages(Math.max(1, Number(data?.totalPages ?? 1)))
       } catch {
-        setPosts(fallbackResponse.content)
+        // fallback
+        setPosts(
+          (fallbackResponse.content as any[]).map((p) =>
+            'postId' in p ? mapByTagToPost(p) : mapAllToPost(p)
+          )
+        )
         setTotalPages(Math.max(1, fallbackResponse.totalPages))
       }
     }
@@ -116,6 +143,7 @@ export default function TipPostList() {
               <img src="/banners/tip-banner.svg" alt="선임자의 TIP 배너" />
             </div>
 
+            {/* 태그칩 + 글쓰기 버튼 */}
             <div className="tippost-topbar">
               <div className="tippost-tags">
                 <TagChips
@@ -145,6 +173,7 @@ export default function TipPostList() {
               </button>
             </div>
 
+            {/* 리스트 */}
             <div className="tippost-list">
               {posts.length === 0 ? (
                 <div className="flex flex-col items-center py-20 no-result">
@@ -163,10 +192,13 @@ export default function TipPostList() {
                     key={post.postId ?? `${post.title}-${post.createdAt}`}
                     id={post.postId}
                     title={post.title}
-                    content={post.content}
+                    content={stripHtml(
+                      hydrateCoverToken(post.content, post.imageUrl ?? null)
+                    )}
                     writer={post.writer}
                     createdAt={post.createdAt}
                     tags={post.tags}
+                    imageUrl={post.imageUrl ?? null}
                     onClick={() => {
                       if (post.postId != null) navigate(`/tip/${post.postId}`)
                       else toast.error('잘못된 게시글 ID입니다.')

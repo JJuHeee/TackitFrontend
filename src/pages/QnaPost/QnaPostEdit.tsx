@@ -1,3 +1,4 @@
+// src/pages/qna/QnaPostEdit.tsx
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import HomeBar from '../../components/HomeBar'
@@ -5,12 +6,11 @@ import api from '../../api/api'
 import 'react-toastify/dist/ReactToastify.css'
 import Button from '../../components/ui/Button'
 import clsx from 'clsx'
-import './FreePostWrite.css'
+import './QnaPostWrite.css'
 import RichTextEditor, {
-  RichTextEditorHandle,
+  type RichTextEditorHandle,
 } from '../../components/editor/RichTextEditor'
 import { toastSuccess, toastWarn, toastError } from '../../utils/toast'
-import { PostUpdateReq, PostCreateRes } from '../../types/post'
 import {
   hydrateCoverToken,
   replaceFirstDataUrlImgWithToken,
@@ -18,8 +18,26 @@ import {
 
 type Tag = { id: number; tagName: string }
 
-function FreePostEdit() {
-  const { id } = useParams<{ id: string }>()
+// QnA 상세 응답(예시)용 타입
+type QnaPostDetail = {
+  postId: number
+  writer: string
+  title: string
+  content: string
+  tags: string[] // 태그명 배열
+  createdAt: string
+  imageUrl?: string | null
+}
+
+type QnaUpdateReq = {
+  title: string
+  content: string
+  tagIds: number[]
+  removeImage: boolean
+}
+
+function QnaPostEdit() {
+  const { postId } = useParams<{ postId: string }>()
   const navigate = useNavigate()
 
   const [title, setTitle] = useState('')
@@ -49,14 +67,13 @@ function FreePostEdit() {
     [title, content]
   )
 
-  // 태그/게시글 불러오기
   useEffect(() => {
-    if (!id) return
+    if (!postId) return
     const fetchAll = async () => {
       setLoading(true)
       try {
         // 1) 태그 목록
-        const tagRes = await api.get('/api/free_tags')
+        const tagRes = await api.get('/api/qna-tags/list')
         const tagNormalized: Tag[] = (tagRes.data ?? []).map((t: any) => ({
           id: Number(t.id),
           tagName: String(t.tagName ?? t.name ?? ''),
@@ -64,8 +81,9 @@ function FreePostEdit() {
         setTagList(tagNormalized)
 
         // 2) 게시글 상세
-        const postRes = await api.get<PostCreateRes>(`/api/free-posts/${id}`)
+        const postRes = await api.get<QnaPostDetail>(`/api/qna-post/${postId}`)
         const p = postRes.data
+
         setTitle(p.title ?? '')
         setContent(
           hydrateCoverToken(String(p.content ?? ''), p.imageUrl ?? null)
@@ -83,7 +101,7 @@ function FreePostEdit() {
       }
     }
     fetchAll()
-  }, [id])
+  }, [postId])
 
   const handleTagToggle = (tid: number | string) => {
     const numId = Number(tid)
@@ -105,7 +123,7 @@ function FreePostEdit() {
 
   const handleSave: React.FormEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault()
-    if (!id) return
+    if (!postId) return
     if (!isReadyToSubmit) {
       toastWarn('제목과 내용을 입력해 주세요.')
       return
@@ -113,9 +131,10 @@ function FreePostEdit() {
 
     try {
       setSaving(true)
+
       const contentForServer = replaceFirstDataUrlImgWithToken(content)
 
-      const reqPayload: PostUpdateReq = {
+      const reqPayload: QnaUpdateReq = {
         title: title.trim(),
         content: contentForServer,
         tagIds: selectedTagIds,
@@ -123,19 +142,18 @@ function FreePostEdit() {
       }
 
       const form = new FormData()
-
       form.append(
-        'req',
+        'request',
         new Blob([JSON.stringify(reqPayload)], { type: 'application/json' })
       )
       if (pickedImage) {
         form.append('image', pickedImage)
       }
 
-      await api.put(`/api/free-posts/${id}`, form)
+      await api.put(`/api/qna-post/${postId}`, form)
 
       toastSuccess('게시글이 수정되었습니다.')
-      navigate(`/free/${id}`)
+      navigate(`/qna/${postId}`)
     } catch (err: any) {
       const msg = err?.response?.data?.message || '게시글 수정에 실패했습니다.'
       toastError(msg)
@@ -144,13 +162,16 @@ function FreePostEdit() {
     }
   }
 
-  const handleCancel = () => navigate(`/free/${id}`)
+  const handleCancel = () => navigate(`/qna/${postId}`)
 
   return (
     <>
       <HomeBar />
       <div className="freepost-write-container max-w-[1200px] pt-2">
-        <h1 className="mb-5 font-bold text-title-1 text-label-normal">
+        <h1
+          className="mb-5 font-bold cursor-pointer text-title-1 text-label-normal"
+          onClick={() => navigate('/qna')}
+        >
           글 수정
         </h1>
 
@@ -169,7 +190,7 @@ function FreePostEdit() {
           />
 
           {/* 분류(태그) */}
-          <p className="mt-4 write-label">
+          <p className="mt-4 text-label-normal text-body-1sb">
             분류 <span className="text-system-red">*</span>
           </p>
           <div className="flex flex-wrap gap-2">
@@ -196,7 +217,7 @@ function FreePostEdit() {
             })}
           </div>
 
-          {/* 내용(본문): 업로드는 제출 시 한 번에 */}
+          {/* 내용 */}
           <p className="mt-6 text-label-normal text-body-1sb">
             내용 <span className="text-system-red">*</span>
           </p>
@@ -204,12 +225,12 @@ function FreePostEdit() {
             ref={editorRef}
             value={content}
             onChange={setContent}
-            placeholder="자유롭게 생각이나 이야기를 나눠주세요."
+            placeholder="궁금한 점을 자유롭게 질문해 주세요."
             minHeight={300}
             onPickImageFile={handlePickImageFile}
           />
 
-          {/* 하단 버튼 */}
+          {/* 하단 버튼 영역 */}
           <div className="flex justify-center mb-4">
             <Button
               type="submit"
@@ -231,4 +252,4 @@ function FreePostEdit() {
   )
 }
 
-export default FreePostEdit
+export default QnaPostEdit

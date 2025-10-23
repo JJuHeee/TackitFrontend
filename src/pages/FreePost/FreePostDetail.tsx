@@ -285,10 +285,9 @@ function FreePostDetail() {
 
       if (message === '게시글을 스크랩하였습니다.') {
         setIsScrapped(true)
-        toastSuccess('찜 되었습니다.')
+        toastSuccess('게시물이 스크랩되었습니다.')
       } else if (message === '게시글 스크랩을 취소하였습니다.') {
         setIsScrapped(false)
-        toastInfo('찜이 취소되었습니다.')
       } else {
         toastInfo(message || '처리되었습니다.')
       }

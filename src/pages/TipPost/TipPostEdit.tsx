@@ -1,67 +1,101 @@
-import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
-import './TipPostWrite.css'
+// src/pages/tip/TipPostEdit.tsx
+import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
 import HomeBar from '../../components/HomeBar'
 import api from '../../api/api'
+import 'react-toastify/dist/ReactToastify.css'
 import Button from '../../components/ui/Button'
 import clsx from 'clsx'
-import 'react-toastify/dist/ReactToastify.css'
+import './TipPostWrite.css'
 import RichTextEditor, {
   type RichTextEditorHandle,
 } from '../../components/editor/RichTextEditor'
 import { toastSuccess, toastWarn, toastError } from '../../utils/toast'
-import { PostCreateReq, PostCreateRes } from '../../types/post'
-import { replaceFirstDataUrlImgWithToken } from '../../utils/coverToken'
+import {
+  hydrateCoverToken,
+  replaceFirstDataUrlImgWithToken,
+} from '../../utils/coverToken'
 
 type Tag = { id: number; tagName: string }
 
-function TipPostWrite() {
+function TipPostEdit() {
+  const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const editorRef = useRef<RichTextEditorHandle | null>(null)
+
   const [title, setTitle] = useState('')
-  const [content, setContent] = useState('') // HTML
+  const [content, setContent] = useState('')
   const [selectedTagIds, setSelectedTagIds] = useState<number[]>([])
   const [tagList, setTagList] = useState<Tag[]>([])
-  const [loadingTags, setLoadingTags] = useState(false)
-  const [submitting, setSubmitting] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [saving, setSaving] = useState(false)
   const [pickedImage, setPickedImage] = useState<File | null>(null)
   const [pickedPreviewUrl, setPickedPreviewUrl] = useState<string | null>(null)
+  const [removeImage] = useState<boolean>(false)
 
-  useEffect(() => {
-    return () => {
-      if (pickedPreviewUrl && pickedPreviewUrl.startsWith('blob:')) {
-        URL.revokeObjectURL(pickedPreviewUrl)
-      }
-    }
-  }, [pickedPreviewUrl])
+  const editorRef = useRef<RichTextEditorHandle | null>(null)
 
-  // 태그 조회
+  const hasMeaningfulContent = (html: string) => {
+    if (!html) return false
+    const text = html
+      .replace(/<img[^>]*>/gi, '')
+      .replace(/<[^>]*>/g, '')
+      .replace(/&nbsp;/g, ' ')
+      .trim()
+    return text.length > 0
+  }
+
+  const isReadyToSubmit = useMemo(
+    () => title.trim().length > 0 && hasMeaningfulContent(content),
+    [title, content]
+  )
+
+  // 태그 / 게시글 불러오기
   useEffect(() => {
-    const fetchTags = async () => {
-      setLoadingTags(true)
+    if (!id) return
+    const fetchAll = async () => {
+      setLoading(true)
       try {
-        // ✅ 실제 백엔드 엔드포인트 확인
-        const res = await api.get('/api/tip-tags/list')
-        const normalized = (res.data ?? []).map((t: any) => ({
+        // 1) TIP 태그 목록
+        const tagRes = await api.get('/api/tip-tags/list')
+        const tagNormalized: Tag[] = (tagRes.data ?? []).map((t: any) => ({
           id: Number(t.id),
           tagName: String(t.tagName ?? t.name ?? ''),
         }))
-        setTagList(normalized)
-      } catch {
-        // 실패 시 더미
-        setTagList([
-          { id: 2, tagName: '태그2' },
-          { id: 3, tagName: '태그3' },
-        ])
+        setTagList(tagNormalized)
+
+        // 2) TIP 게시글 상세
+        const postRes = await api.get(`/api/tip-posts/${id}`)
+        const p = postRes.data as {
+          id: number
+          writer: string
+          title: string
+          content: string
+          tags: string[]
+          createdAt: string
+          imageUrl?: string | null
+        }
+
+        setTitle(p.title ?? '')
+        setContent(
+          hydrateCoverToken(String(p.content ?? ''), p.imageUrl ?? null)
+        )
+
+        // 태그명 → 태그ID 매핑
+        const matched = tagNormalized.filter((t) =>
+          (p.tags ?? []).includes(t.tagName)
+        )
+        setSelectedTagIds(matched.map((t) => t.id))
+      } catch (e) {
+        toastError('게시글 또는 태그 정보를 불러오지 못했습니다.')
       } finally {
-        setLoadingTags(false)
+        setLoading(false)
       }
     }
-    fetchTags()
-  }, [])
+    fetchAll()
+  }, [id])
 
-  const handleTagToggle = (id: number | string) => {
-    const numId = Number(id)
+  const handleTagToggle = (tid: number | string) => {
+    const numId = Number(tid)
     setSelectedTagIds((prev) =>
       prev.includes(numId) ? prev.filter((v) => v !== numId) : [...prev, numId]
     )
@@ -78,83 +112,72 @@ function TipPostWrite() {
     [pickedPreviewUrl]
   )
 
-  // 본문 유효성
-  const hasMeaningfulContent = (html: string) => {
-    if (!html) return false
-    const text = html
-      .replace(/<img[^>]*>/gi, '')
-      .replace(/<[^>]*>/g, '')
-      .replace(/&nbsp;/g, ' ')
-      .trim()
-    return text.length > 0
-  }
-
-  const isReadyToSubmit = useMemo(
-    () => title.trim().length > 0 && hasMeaningfulContent(content),
-    [title, content]
-  )
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSave: React.FormEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault()
-    if (submitting || loadingTags) return
-
+    if (!id) return
     if (!isReadyToSubmit) {
       toastWarn('제목과 내용을 입력해 주세요.')
       return
     }
 
-    setSubmitting(true)
     try {
+      setSaving(true)
       const contentForServer = replaceFirstDataUrlImgWithToken(content)
 
-      const payload: PostCreateReq = {
+      const dto = {
         title: title.trim(),
         content: contentForServer,
         tagIds: selectedTagIds,
+        removeImage,
       }
 
       const form = new FormData()
+      form.append(
+        'dto',
+        new Blob([JSON.stringify(dto)], { type: 'application/json' })
+      )
       if (pickedImage) {
         form.append('image', pickedImage)
       }
-      form.append(
-        'dto',
-        new Blob([JSON.stringify(payload)], { type: 'application/json' })
-      )
 
-      const { data } = await api.post<PostCreateRes>('/api/tip-posts', form)
-      navigate(`/tip/${data.id}`, { state: { post: data } })
+      await api.put(`/api/tip-posts/${id}`, form)
+
+      toastSuccess('게시글이 수정되었습니다.')
+      navigate(`/tip/${id}`)
     } catch (err: any) {
-      const msg = err?.response?.data?.message || '글 작성에 실패했습니다.'
+      const msg = err?.response?.data?.message || '게시글 수정에 실패했습니다.'
       toastError(msg)
     } finally {
-      setSubmitting(false)
+      setSaving(false)
     }
   }
+
+  const handleCancel = () => navigate(`/tip/${id}`)
 
   return (
     <>
       <HomeBar />
-      <div className="tippost-write-container max-w-[1200px] pt-2">
+      <div className="freepost-write-container max-w-[1200px] pt-2">
         <h1 className="mb-5 font-bold text-title-1 text-label-normal">
-          글쓰기
+          글 수정
         </h1>
 
-        <form className="write-form" onSubmit={handleSubmit}>
+        <form className="write-form" onSubmit={handleSave}>
           {/* 제목 */}
-          <p className="write-label">
+          <p className="mt-4 text-label-normal text-body-1sb">
             제목 <span className="text-system-red">*</span>
           </p>
           <input
             type="text"
-            className="w-full px-4 py-3 bg-white border outline-none write-title-input border-line-normal rounded-xl text-label-normal text-body-1"
             placeholder="제목을 입력해 주세요."
             value={title}
             onChange={(e) => setTitle(e.target.value)}
+            className="w-full px-4 py-3 bg-white border outline-none border-line-normal rounded-xl text-label-normal text-body-1"
+            disabled={loading}
           />
 
           {/* 분류(태그) */}
-          <p className="mt-4 write-label">
+          <p className="mt-4 text-label-normal text-body-1sb">
             분류 <span className="text-system-red">*</span>
           </p>
           <div className="flex flex-wrap gap-2">
@@ -173,6 +196,7 @@ function TipPostWrite() {
                       ? '!border-line-active text-label-primary bg-background-blue'
                       : 'border-line-normal text-label-normal'
                   )}
+                  disabled={loading}
                 >
                   #{tag.tagName}
                 </Button>
@@ -180,34 +204,32 @@ function TipPostWrite() {
             })}
           </div>
 
-          {/* 본문 */}
-          <p className="mt-4 write-label">
+          <p className="mt-6 text-label-normal text-body-1sb">
             내용 <span className="text-system-red">*</span>
           </p>
           <RichTextEditor
             ref={editorRef}
             value={content}
             onChange={setContent}
-            placeholder="후배가 더 빨리 적응할 수 있도록 경험을 나눠주세요."
+            placeholder="신입사원에게 도움이 될 회사 생활 팁이나 조언을 작성해 주세요."
             minHeight={300}
-            variant="post"
             onPickImageFile={handlePickImageFile}
           />
 
-          {/* 등록 버튼 */}
+          {/* 하단 버튼 */}
           <div className="flex justify-center mb-4">
             <Button
               type="submit"
               variant="primary"
               size="m"
-              disabled={submitting || loadingTags || !isReadyToSubmit}
+              disabled={saving || loading || !isReadyToSubmit}
               className={clsx(
                 'w-[120px] h-11',
-                (!isReadyToSubmit || submitting || loadingTags) &&
+                (!isReadyToSubmit || saving || loading) &&
                   'opacity-50 cursor-not-allowed'
               )}
             >
-              {submitting ? '등록 중…' : '등록'}
+              {saving ? '저장 중…' : '저장'}
             </Button>
           </div>
         </form>
@@ -216,4 +238,4 @@ function TipPostWrite() {
   )
 }
 
-export default TipPostWrite
+export default TipPostEdit

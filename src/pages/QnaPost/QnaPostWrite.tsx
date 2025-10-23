@@ -1,5 +1,4 @@
-// src/pages/qna/QnaPostWrite.tsx
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './QnaPostWrite.css'
 import HomeBar from '../../components/HomeBar'
@@ -7,19 +6,33 @@ import api from '../../api/api'
 import Button from '../../components/ui/Button'
 import clsx from 'clsx'
 import 'react-toastify/dist/ReactToastify.css'
-import RichTextEditor from '../../components/editor/RichTextEditor'
+import RichTextEditor, {
+  type RichTextEditorHandle,
+} from '../../components/editor/RichTextEditor'
 import { toastSuccess, toastWarn, toastError } from '../../utils/toast'
 import { PostCreateReq, PostCreateRes } from '../../types/post'
+import { replaceFirstDataUrlImgWithToken } from '../../utils/coverToken'
+
+type Tag = { id: number; tagName: string }
 
 function QnaPostWrite() {
   const navigate = useNavigate()
+  const editorRef = useRef<RichTextEditorHandle | null>(null)
 
   const [title, setTitle] = useState('')
-  const [content, setContent] = useState('')
+  const [content, setContent] = useState('') // HTML
   const [selectedTagIds, setSelectedTagIds] = useState<number[]>([])
-  const [tagList, setTagList] = useState<{ id: number; tagName: string }[]>([])
+  const [tagList, setTagList] = useState<Tag[]>([])
   const [loadingTags, setLoadingTags] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [pickedImage, setPickedImage] = useState<File | null>(null)
+  const [pickedPreviewUrl, setPickedPreviewUrl] = useState<string | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (pickedPreviewUrl) URL.revokeObjectURL(pickedPreviewUrl)
+    }
+  }, [pickedPreviewUrl])
 
   useEffect(() => {
     const fetchTags = async () => {
@@ -32,6 +45,7 @@ function QnaPostWrite() {
         }))
         setTagList(normalized)
       } catch {
+        // 실패 시 더미
         setTagList([
           { id: 2, tagName: '태그2' },
           { id: 3, tagName: '태그3' },
@@ -46,14 +60,25 @@ function QnaPostWrite() {
   const handleTagToggle = (id: number | string) => {
     const numId = Number(id)
     setSelectedTagIds((prev) =>
-      prev.includes(numId) ? prev.filter((x) => x !== numId) : [...prev, numId]
+      prev.includes(numId) ? prev.filter((v) => v !== numId) : [...prev, numId]
     )
   }
 
+  const handlePickImageFile = useCallback(
+    (file: File, previewUrl: string) => {
+      if (pickedPreviewUrl && pickedPreviewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(pickedPreviewUrl)
+      }
+      setPickedImage(file)
+      setPickedPreviewUrl(previewUrl)
+    },
+    [pickedPreviewUrl]
+  )
+
   const hasMeaningfulContent = (html: string) => {
     if (!html) return false
-    if (/<img|<video|<iframe/i.test(html)) return true
     const text = html
+      .replace(/<img[^>]*>/gi, '')
       .replace(/<[^>]*>/g, '')
       .replace(/&nbsp;/g, ' ')
       .trim()
@@ -65,12 +90,9 @@ function QnaPostWrite() {
     [title, content]
   )
 
-  // 전송 직전 모든 <img> 제거 (QnA는 이미지 별도 관리 X)
-  const stripImages = (html: string) => html.replace(/<img[^>]*>/gi, '')
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    if (submitting) return
+    if (submitting || loadingTags) return
 
     if (!isReadyToSubmit) {
       toastWarn('제목과 내용을 입력해 주세요.')
@@ -79,26 +101,29 @@ function QnaPostWrite() {
 
     setSubmitting(true)
     try {
+      const contentForServer = replaceFirstDataUrlImgWithToken(content)
+
       const payload: PostCreateReq = {
         title: title.trim(),
-        content: stripImages(content), // 👈 <img> 제거된 본문 전송
+        content: contentForServer,
         tagIds: selectedTagIds,
       }
 
       const form = new FormData()
+      if (pickedImage) {
+        form.append('image', pickedImage) // key: image
+      }
       form.append(
-        'dto',
-        new Blob([JSON.stringify(payload)], { type: 'application/json' })
+        'request', // key: request
+        new Blob([JSON.stringify(payload)], { type: 'application/json' }) // content-type: application/json
       )
 
-      // QnA는 대표 이미지/파일 업로드가 없으므로 image append 없음
       const { data } = await api.post<PostCreateRes>(
         '/api/qna-post/create',
         form
       )
-
-      toastSuccess('작성이 완료되었습니다.')
-      navigate(`/qna/${data.id}`, { state: { post: data } })
+      const newId = (data as any)?.id ?? (data as any)?.postId
+      navigate(`/qna/${newId}`, { state: { post: data } })
     } catch (err: any) {
       const msg = err?.response?.data?.message || '글 작성에 실패했습니다.'
       toastError(msg)
@@ -117,24 +142,24 @@ function QnaPostWrite() {
 
         <form className="write-form" onSubmit={handleSubmit}>
           {/* 제목 */}
-          <p className="write-label">
+          <p className="mt-4 text-label-normal text-body-1sb">
             제목 <span className="text-system-red">*</span>
           </p>
           <input
             type="text"
-            placeholder="글 제목은 내용을 대표할 수 있도록 간결하게 작성해 주세요."
+            placeholder="제목을 입력해 주세요."
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             className="w-full px-4 py-3 bg-white border outline-none border-line-normal rounded-xl text-label-normal text-body-1"
           />
 
-          {/* 분류(태그) */}
-          <p className="mt-4 write-label">
+          {/* 태그 선택 */}
+          <p className="mt-4 text-label-normal text-body-1sb">
             분류 <span className="text-system-red">*</span>
           </p>
           <div className="flex flex-wrap gap-2">
             {tagList.map((tag) => {
-              const selected = selectedTagIds.includes(Number(tag.id))
+              const selected = selectedTagIds.includes(tag.id)
               return (
                 <Button
                   key={tag.id}
@@ -156,15 +181,17 @@ function QnaPostWrite() {
           </div>
 
           {/* 내용 */}
-          <p className="mt-4 write-label">
+          <p className="mt-4 text-label-normal text-body-1sb">
             내용 <span className="text-system-red">*</span>
           </p>
           <RichTextEditor
+            ref={editorRef}
             value={content}
             onChange={setContent}
             placeholder="궁금한 점을 자유롭게 질문해 주세요."
             minHeight={300}
-            // ❌ uploadImage 제거 (에디터의 이미지 버튼로 넣어도 제출 시 stripImages로 제거됨)
+            variant="post"
+            onPickImageFile={handlePickImageFile}
           />
 
           {/* 등록 버튼 */}

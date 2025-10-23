@@ -1,33 +1,25 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import './QnaPostDetail.css'
 import HomeBar from '../../components/HomeBar'
 import api from '../../api/api'
 import useFetchUserInfo from '../../hooks/useFetchUserInfo'
-import { toast } from 'react-toastify'
+import { sanitizeHtml } from '../../utils/sanitize'
+import { hydrateCoverToken } from '../../utils/coverToken'
+import CommentList from '../../components/comments/CommentList'
+import CommentEditor from '../../components/comments/CommentEditor'
+import type { CommentModel } from '../../components/comments/CommentItem'
+import ReportModal from '../../components/modals/ReportModal'
+import type { ReportPayload } from '../../components/modals/ReportModal'
+import {
+  toastSuccess,
+  toastWarn,
+  toastError,
+  toastInfo,
+} from '../../utils/toast'
+import PostHeader from '../../components/posts/PostHeader'
 
-/** 서버에서 리스트로 내려오는 QnA 아이템 타입 */
-type QnaListItem = {
-  postId: number
-  title: string
-  content: string
-  createdAt: string
-  tags: string[]
-  type?: 'QnA' | 'Free' | 'Tip'
-  imageUrl?: string | null
-  writer?: string | null
-}
-
-/** 페이지네이션 응답 타입 */
-type QnaListResponse = {
-  page: number
-  content: QnaListItem[]
-  size: number
-  totalElements: number
-  totalPages: number
-}
-
-/** 상세 화면에서 사용할 정규화된 Post 타입 */
+/** 상세 화면에서 사용할 정규화된 Post 타입 (Free와 동일 포맷) */
 type Post = {
   id: number
   writer: string
@@ -36,54 +28,78 @@ type Post = {
   tags: string[]
   createdAt: string
   imageUrl: string | null
-  type: 'QnA' | 'Free' | 'Tip'
 }
 
-type CommentItem = {
-  id: number
-  writer: string
-  content: string
-  createdAt: string
+/** 서버 응답이 단일/배열/페이지네이션 등 다양한 형태일 때 첫 아이템 안전 추출 */
+function pickFirst<T = any>(raw: any): T | null {
+  if (!raw) return null
+  if (Array.isArray(raw?.content)) return (raw.content[0] ?? null) as T | null
+  if (Array.isArray(raw)) return (raw[0] ?? null) as T | null
+  return (raw as T) ?? null
+}
+
+function normalizeComments(raw: any): CommentModel[] {
+  const data = Array.isArray(raw?.content)
+    ? raw.content
+    : Array.isArray(raw)
+    ? raw
+    : raw
+    ? [raw]
+    : []
+
+  return data
+    .map((c: any) => ({
+      id: Number(c.id),
+      writer: String(c.writer ?? c.author ?? '(알 수 없음)'),
+      content: String(c.content ?? ''),
+      createdAt: String(
+        c.createdAt ?? c.created_at ?? new Date().toISOString()
+      ),
+    }))
+    .filter((c: CommentModel) => Number.isFinite(c.id))
 }
 
 function QnaPostDetail() {
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null)
   const { postId } = useParams<{ postId: string }>()
   const navigate = useNavigate()
-
   const postIdNumber = Number(postId)
+
   const [post, setPost] = useState<Post | null>(null)
-  const [comments, setComments] = useState<CommentItem[]>([])
+  const [loading, setLoading] = useState(true)
+
+  const [comments, setComments] = useState<CommentModel[]>([])
   const [comment, setComment] = useState('')
   const [editCommentId, setEditCommentId] = useState<number | null>(null)
   const [isScrapped, setIsScrapped] = useState(false)
-  const [showReportModal, setShowReportModal] = useState(false)
-  const [reportReason, setReportReason] = useState('')
+
+  const [showPostReportModal, setShowPostReportModal] = useState(false)
+  const [showCommentReportModal, setShowCommentReportModal] = useState(false)
+  const [reportingCommentId, setReportingCommentId] = useState<number | null>(
+    null
+  )
 
   const { userInfo } = useFetchUserInfo()
 
-  // 게시글 불러오기: 페이지네이션 응답 → 첫 아이템 매핑
+  // 게시글 로딩 (QnA 응답 → Free 포맷으로 정규화: postId → id 등)
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        const res = await api.get<QnaListResponse>(`/api/qna-post/${postId}`)
-        const item = Array.isArray(res.data?.content)
-          ? res.data.content[0]
-          : null
+        setLoading(true)
+        const res = await api.get(`/api/qna-post/${postId}`)
+        const item = pickFirst<any>(res?.data)
         if (!item) {
-          toast.error('게시글을 찾지 못했습니다.')
+          toastError('게시글을 찾지 못했습니다.')
           setPost(null)
           return
         }
         const normalized: Post = {
-          id: item.postId,
-          writer: item.writer ?? '(알 수 없음)',
-          title: item.title,
-          content: item.content ?? '',
+          id: Number(item.postId ?? postIdNumber ?? 0),
+          writer: String(item.writer ?? '(알 수 없음)'),
+          title: String(item.title ?? ''),
+          content: String(item.content ?? ''),
           tags: Array.isArray(item.tags) ? item.tags : [],
-          createdAt: item.createdAt,
+          createdAt: String(item.createdAt ?? new Date().toISOString()),
           imageUrl: item.imageUrl ?? null,
-          type: (item.type as Post['type']) ?? 'QnA',
         }
         setPost(normalized)
       } catch {
@@ -96,19 +112,20 @@ function QnaPostDetail() {
           tags: ['태그1', '태그3', '태그2'],
           createdAt: '2025-05-13T19:34:53.52603',
           imageUrl: null,
-          type: 'QnA',
         })
+      } finally {
+        setLoading(false)
       }
     }
     if (postId) fetchPost()
   }, [postId, postIdNumber])
 
-  // 댓글 불러오기
+  // 댓글 로딩
   useEffect(() => {
     const fetchComments = async () => {
       try {
-        const res = await api.get<CommentItem[]>(`/api/qna-comment/${postId}`)
-        setComments(res.data)
+        const res = await api.get(`/api/qna-comment/${postId}`)
+        setComments(normalizeComments(res.data))
       } catch {
         setComments([
           {
@@ -129,131 +146,150 @@ function QnaPostDetail() {
     if (postId) fetchComments()
   }, [postId])
 
+  // 댓글 인라인 수정 컨트롤
+  const handleBeginEditComment = (targetId: number) =>
+    setEditCommentId(targetId)
+  const handleCancelEditComment = () => setEditCommentId(null)
+
+  const handleSaveEditComment = async ({
+    id,
+    content,
+  }: {
+    id: number
+    content: string
+  }) => {
+    const trimmed = String(content ?? '').trim()
+    if (!trimmed) return toastWarn('댓글을 입력해주세요.')
+    if (trimmed.length > 250)
+      return toastWarn('댓글은 최대 250자까지 작성할 수 있어요.')
+
+    try {
+      const res = await api.patch(`/api/qna-comment/${id}`, {
+        content: trimmed,
+      })
+      setComments((prev) => prev.map((c) => (c.id === id ? res.data : c)))
+      toastSuccess('댓글이 수정되었습니다.')
+      setEditCommentId(null)
+    } catch {
+      toastError('댓글 수정에 실패했습니다.')
+    }
+  }
+
   // 댓글 삭제
   const handleDeleteComment = async (commentId: number) => {
     try {
       await api.delete(`/api/qna-comment/${commentId}`)
       setComments((prev) => prev.filter((c) => c.id !== commentId))
-      toast.success('댓글이 삭제되었습니다.')
+      toastSuccess('댓글이 삭제되었습니다.')
     } catch {
-      toast.error('댓글 삭제에 실패했습니다.')
+      toastError('댓글 삭제에 실패했습니다.')
     }
   }
 
-  const handleReportComment = async (commentId: number) => {
-    const confirmed = window.confirm('정말 이 댓글을 신고하시겠습니까?')
-    if (!confirmed) return
+  // 댓글 신고: 모달 열기
+  const handleReportCommentOpen = (commentId: number) => {
+    setReportingCommentId(commentId)
+    setShowCommentReportModal(true)
+  }
+
+  // 댓글 신고 제출
+  const handleSubmitCommentReport = async (p: ReportPayload) => {
+    if (p.targetType !== 'COMMENT') return
     try {
-      await api.post(`/api/qna-comment/${commentId}/report`)
-      toast.success('댓글을 신고하였습니다.')
-    } catch (err) {
-      console.error('댓글 신고 실패:', err)
-      toast.error('이미 삭제된 댓글입니다.')
+      await api.post('/reports/create', {
+        targetId: p.targetId,
+        targetType: p.targetType, // 'COMMENT'
+        reason: p.reason,
+      })
+      await api.post(`/api/qna-comment/${p.targetId}/report`)
+      toastSuccess('신고처리가 완료되었습니다.')
+      setShowCommentReportModal(false)
+      setReportingCommentId(null)
+    } catch {
+      toastError('댓글 신고 처리에 실패했습니다.')
     }
-  }
-
-  const handleEditComment = (c: CommentItem) => {
-    setComment(c.content)
-    setEditCommentId(c.id)
-    textareaRef.current?.focus()
   }
 
   const handleCommentSubmit = async () => {
     const trimmed = comment.trim()
-    if (!trimmed) {
-      alert('댓글을 입력해주세요.')
-      return
-    }
-    if (trimmed.length > 250) {
-      alert('댓글은 최대 250자까지 작성할 수 있어요.')
-      return
-    }
+    if (!trimmed) return toastWarn('댓글을 입력해주세요.')
+    if (trimmed.length > 250)
+      return toastWarn('댓글은 최대 250자까지 작성할 수 있어요.')
 
     try {
-      if (editCommentId) {
-        const res = await api.patch<CommentItem>(
-          `/api/qna-comment/${editCommentId}`,
-          {
-            content: trimmed,
-          }
-        )
-        setComments((prev) =>
-          prev.map((c) => (c.id === editCommentId ? res.data : c))
-        )
-        toast.success('댓글이 수정되었습니다.')
-      } else {
-        const res = await api.post<CommentItem>('/api/qna-comment/create', {
-          qnaPostId: postIdNumber,
-          content: trimmed,
-        })
-        setComments((prev) => [res.data, ...prev])
-        toast.success('댓글이 등록되었습니다.')
-      }
-
+      const res = await api.post('/api/qna-comment/create', {
+        qnaPostId: postIdNumber,
+        content: trimmed,
+      })
+      setComments((prev) => [...prev, res.data])
       setComment('')
-      setEditCommentId(null)
-      if (textareaRef.current) textareaRef.current.style.height = 'auto'
+      toastSuccess('댓글이 등록되었습니다.')
     } catch {
-      toast.error('댓글 처리에 실패했습니다.')
+      toastError('댓글 등록에 실패했습니다.')
     }
   }
 
+  // 게시글 삭제
   const handleDeletePost = async () => {
     const confirmed = window.confirm('이 글을 삭제하시겠습니까?')
     if (!confirmed) return
     try {
       await api.delete(`/api/qna-post/${postId}`)
-      toast.success('게시글이 삭제되었습니다.')
+      toastSuccess('게시글이 삭제되었습니다.')
       navigate('/qna')
     } catch {
-      toast.error('게시글 삭제에 실패했습니다.')
+      toastError('게시글 삭제에 실패했습니다.')
     }
   }
 
-  const handleReportPost = async () => {
-    if (!reportReason) {
-      alert('신고 사유를 선택해주세요.')
-      return
-    }
+  // 게시글 신고 제출
+  const handleSubmitPostReport = async (p: ReportPayload) => {
+    if (p.targetType !== 'POST') return
     try {
-      await api.post(`/reports/create`, {
-        targetId: postIdNumber,
-        targetType: 'POST',
-        reason: reportReason,
+      await api.post('/reports/create', {
+        targetId: p.targetId,
+        targetType: p.targetType, // 'POST'
+        reason: p.reason,
       })
-      const res = await api.post<{ message?: string } | string>(
-        `/api/qna-post/${postId}/report`
-      )
+      const res = await api.post(`/api/qna-post/${postId}/report`)
       const message =
         typeof res.data === 'string' ? res.data : res.data?.message
 
       if (message === '게시글을 신고하였습니다.') {
-        toast.success('게시글이 신고되었습니다.')
-        setShowReportModal(false)
-        setReportReason('')
+        toastSuccess('신고처리가 완료되었습니다.')
       } else if (message === '이미 신고한 게시글입니다.') {
-        toast.info('이미 신고한 게시글입니다.')
+        toastInfo('이미 신고한 게시글입니다.')
       } else {
-        toast.info(message || '신고가 접수되었습니다.')
+        toastInfo(message || '신고가 접수되었습니다.')
       }
-    } catch (err) {
-      console.error('게시글 신고 실패:', err)
-      toast.error('신고 처리에 실패했습니다.')
+      setShowPostReportModal(false)
+    } catch {
+      toastError('신고 처리에 실패했습니다.')
     }
   }
 
+  // 찜 토글
   const handleScrapToggle = async () => {
     try {
-      const res = await api.post<{ scrapped?: boolean }>(
-        `/api/qna-post/${postId}/scrap`
-      )
-      const scrapped = !!res.data?.scrapped
-      setIsScrapped(scrapped)
-      toast[scrapped ? 'success' : 'info'](
-        scrapped ? '찜 되었습니다.' : '찜이 취소되었습니다.'
-      )
+      const res = await api.post(`/api/qna-post/${postId}/scrap`)
+      const data = res.data ?? {}
+      if (typeof data?.scrapped === 'boolean') {
+        setIsScrapped(data.scrapped)
+        toastSuccess(data.scrapped ? '찜 되었습니다.' : '찜이 취소되었습니다.')
+        return
+      }
+      const message =
+        typeof data === 'string' ? data : (data?.message as string | undefined)
+      if (message === '게시글을 스크랩하였습니다.') {
+        setIsScrapped(true)
+        toastSuccess('게시물이 스크랩되었습니다.')
+      } else if (message === '게시글 스크랩을 취소하였습니다.') {
+        setIsScrapped(false)
+      } else {
+        toastInfo(message || '처리되었습니다.')
+      }
     } catch {
-      toast.error('찜 처리에 실패했습니다.')
+      toastError('찜 처리에 실패했습니다.')
     }
   }
 
@@ -263,194 +299,110 @@ function QnaPostDetail() {
     post.writer === userInfo.nickname
   )
 
+  if (loading) {
+    return (
+      <>
+        <HomeBar />
+        <div className="qnapost-detail-container">
+          <h1 className="board-title">질문 게시판</h1>
+          <div className="qnapost-box">불러오는 중...</div>
+        </div>
+      </>
+    )
+  }
+
   return (
     <>
       <HomeBar />
       <div className="qnapost-detail-container">
-        <h1 className="board-title" onClick={() => navigate('/qna')}>
-          질문 게시판
-        </h1>
+        <img
+          src="/assets/icons/arrow-left.svg"
+          alt="뒤로가기"
+          onClick={() => navigate('/qna')}
+          className="w-6 h-6 transition cursor-pointer hover:opacity-70"
+        />
 
-        <div className="qnapost-box">
-          {post && (
-            <>
-              <div className="qnapost-actions post-actions">
-                {isAuthor ? (
-                  <>
-                    <button onClick={() => navigate(`/qna/edit/${postId}`)}>
-                      수정하기
-                    </button>
-                    <button onClick={handleDeletePost}>삭제하기</button>
-                  </>
-                ) : (
-                  userInfo && (
-                    <button onClick={() => setShowReportModal(true)}>
-                      신고하기
-                    </button>
-                  )
-                )}
-              </div>
+        {post && (
+          <PostHeader
+            title={post.title}
+            writer={post.writer}
+            createdAt={post.createdAt}
+            isBookmarked={isScrapped}
+            onToggleBookmark={handleScrapToggle}
+            isAuthor={isAuthor}
+            onEdit={() => navigate(`/qna/edit/${post.id}`)}
+            onDelete={handleDeletePost}
+            onReport={() => setShowPostReportModal(true)}
+          />
+        )}
 
-              <h1 className="detail-title">{post.title}</h1>
-
-              <div className="detail-meta">
-                <span className="nickname">
-                  {post.writer || '(알 수 없음)'}
-                </span>
-                <span>
-                  {post.createdAt
-                    ? new Date(post.createdAt).toLocaleString('ko-KR')
-                    : '-'}
-                </span>
-                <span className="tags">
-                  {Array.isArray(post.tags) && post.tags.length > 0
-                    ? post.tags.map((t) => `#${t}`).join(' ')
-                    : ''}
-                </span>
-              </div>
-
-              {/* 첨부 이미지 */}
-              {post.imageUrl ? (
-                <div className="detail-image">
-                  <img
-                    src={post.imageUrl}
-                    alt="게시글 이미지"
-                    style={{
-                      maxWidth: '100%',
-                      borderRadius: 8,
-                      margin: '16px 0',
-                    }}
-                    onError={(e) => {
-                      const target = e.currentTarget as HTMLImageElement
-                      target.style.display = 'none'
-                    }}
-                  />
-                </div>
-              ) : null}
-
-              <div className="detail-content">
-                {String(post.content || '')
-                  .split('\n')
-                  .map((line, i) => (
-                    <React.Fragment key={i}>
-                      {line}
-                      <br />
-                    </React.Fragment>
-                  ))}
-              </div>
-
-              <button className="bookmark-button" onClick={handleScrapToggle}>
-                {isScrapped ? '찜 취소' : '찜'}
-              </button>
-            </>
-          )}
-        </div>
-
-        <div className="comment-list">
-          <h3 className="comment-title">댓글 {comments.length}개</h3>
-          {comments.map((c) => (
-            <div key={c.id} className="comment-item">
-              <div
-                className="comment-meta"
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                }}
-              >
-                <div>
-                  <strong>{c.writer || '(알 수 없음)'}</strong> ·{' '}
-                  <span>
-                    {c.createdAt
-                      ? new Date(c.createdAt).toLocaleString('ko-KR')
-                      : '-'}
-                  </span>
-                </div>
-                <div className="qnapost-actions">
-                  {userInfo?.nickname === c.writer && editCommentId !== c.id ? (
-                    <>
-                      <span
-                        className="comment-action"
-                        onClick={() => handleEditComment(c)}
-                      >
-                        수정하기
-                      </span>
-                      <span
-                        className="comment-action"
-                        onClick={() => handleDeleteComment(c.id)}
-                      >
-                        삭제하기
-                      </span>
-                    </>
-                  ) : null}
-                  {userInfo?.nickname !== c.writer ? (
-                    <span
-                      className="comment-action"
-                      onClick={() => handleReportComment(c.id)}
-                    >
-                      신고하기
-                    </span>
-                  ) : null}
-                </div>
-              </div>
-              <p className="comment-text" style={{ whiteSpace: 'pre-line' }}>
-                {c.content}
-              </p>
-            </div>
-          ))}
-        </div>
-
-        {/* 선배만 답변 가능 조건 유지 */}
-        {userInfo?.yearsOfService !== undefined &&
-          userInfo.yearsOfService >= 2 && (
-            <div className="comment-wrapper">
-              <div className="textarea-wrapper">
-                <textarea
-                  ref={textareaRef}
-                  value={comment}
-                  onChange={(e) => setComment(e.target.value)}
-                  placeholder={
-                    editCommentId
-                      ? '댓글을 수정하세요.'
-                      : '질문에 대한 답변을 작성해주세요.'
-                  }
-                  className="floating-textarea"
+        <div className="mt-12">
+          <div className="qnapost-box">
+            {post && (
+              <div className="prose detail-content max-w-none">
+                <div
+                  dangerouslySetInnerHTML={{
+                    __html: sanitizeHtml(
+                      hydrateCoverToken(
+                        String(post.content ?? ''),
+                        post.imageUrl
+                      )
+                    ),
+                  }}
                 />
-                <div className="button-float-layer">
-                  <button
-                    className="floating-button"
-                    onClick={handleCommentSubmit}
-                  >
-                    {editCommentId ? '수정 완료' : '답글 등록'}
-                  </button>
-                </div>
               </div>
-            </div>
-          )}
-      </div>
+            )}
+          </div>
 
-      {showReportModal && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <h3>신고 사유를 선택해주세요.</h3>
-            <select
-              value={reportReason}
-              onChange={(e) => setReportReason(e.target.value)}
-            >
-              <option value="">신고 사유를 선택해주세요</option>
-              <option value="ADVERTISEMENT">광고 및 홍보성 게시물</option>
-              <option value="DUPLICATE">중복 또는 도배성 게시물</option>
-              <option value="FALSE_INFO">허위 정보 또는 사실 왜곡</option>
-              <option value="IRRELEVANT">게시판 주제와 관련 없는 내용</option>
-              <option value="ETC">기타</option>
-            </select>
+          <div className="flow-root pb-0 mt-0">
+            {post && (
+              <CommentList
+                comments={comments}
+                currentUserNickname={userInfo?.nickname}
+                editCommentId={editCommentId}
+                onBeginEdit={handleBeginEditComment}
+                onCancelEdit={handleCancelEditComment}
+                onEdit={handleSaveEditComment}
+                onDelete={handleDeleteComment}
+                onReport={handleReportCommentOpen}
+              />
+            )}
 
-            <div className="modal-buttons">
-              <button onClick={handleReportPost}>확인</button>
-              <button onClick={() => setShowReportModal(false)}>취소</button>
-            </div>
+            {!editCommentId && (
+              <CommentEditor
+                value={comment}
+                onChange={setComment}
+                onSubmit={handleCommentSubmit}
+                isEditing={false}
+              />
+            )}
           </div>
         </div>
+      </div>
+
+      {/* 게시글 신고 모달 */}
+      {showPostReportModal && (
+        <ReportModal
+          isOpen={showPostReportModal}
+          targetId={postIdNumber}
+          targetType="POST"
+          onClose={() => setShowPostReportModal(false)}
+          onSubmit={handleSubmitPostReport}
+        />
+      )}
+
+      {/* 댓글 신고 모달 */}
+      {showCommentReportModal && reportingCommentId && (
+        <ReportModal
+          isOpen={showCommentReportModal}
+          targetId={reportingCommentId}
+          targetType="COMMENT"
+          onClose={() => {
+            setShowCommentReportModal(false)
+            setReportingCommentId(null)
+          }}
+          onSubmit={handleSubmitCommentReport}
+        />
       )}
     </>
   )
