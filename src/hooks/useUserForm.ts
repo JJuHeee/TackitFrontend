@@ -18,7 +18,13 @@ export function useUserForm(initialRole = '') {
     () => !!email && !/^\S+@\S+\.\S+$/.test(email),
     [email]
   )
-  const pwInvalid = useMemo(() => !!password && password.length < 8, [password])
+  const passwordRegex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_\-+=\[{\]};:'",.<>/?\\|`~]).{8,}$/
+
+  const pwInvalid = useMemo(
+    () => !!password && !passwordRegex.test(password),
+    [password]
+  )
   const confirmInvalid = useMemo(
     () => !!confirmPassword && confirmPassword !== password,
     [confirmPassword, password]

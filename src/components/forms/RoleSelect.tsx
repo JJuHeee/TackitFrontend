@@ -24,7 +24,7 @@ export default function RoleSelect({
   renderHelper,
   renderIcon,
   className = '',
-  descriptionText = '선택한 역할에 따라 작성 가능한 게시판이 다르며, 필요시 설정에서 역할을 변경할 수 있습니다.',
+  descriptionText = '선택한 역할에 따라 작성 가능한 게시판이 달라요. 매년 1월 1일, 신입은 자동으로 선배로 전환됩니다.',
 }: Props) {
   const helper = React.useMemo(() => {
     if (!value) return null

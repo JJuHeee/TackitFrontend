@@ -116,9 +116,12 @@ export default function SignupPage() {
                 visible={passwordVisible}
                 onToggle={() => setPasswordVisible((v) => !v)}
                 autoComplete="new-password"
-                minLength={8}
                 invalid={pwInvalid}
-                message={pwInvalid ? '8자 이상으로 작성해 주세요.' : undefined}
+                message={
+                  pwInvalid
+                    ? '대문자와 소문자, 특수문자를 포함해 8자 이상으로 입력해 주세요.'
+                    : undefined
+                }
               />
 
               {/* 비밀번호 확인 */}

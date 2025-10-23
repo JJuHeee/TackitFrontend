@@ -196,15 +196,7 @@ export default function EditInfoPage() {
                   invalid={orgInvalid}
                 />
 
-                {/* 역할 */}
-                <RoleSelect
-                  className="mb-4"
-                  value={(role as Role) || ''}
-                  onChange={(next) => setRole(next)}
-                  showLabel
-                  descriptionText="선택한 역할에 따라 작성 가능한 게시판이 달라요"
-                />
-
+                {/* 완료 버튼 */}
                 {/* 완료 버튼 */}
                 <Button
                   type="submit"
@@ -215,6 +207,11 @@ export default function EditInfoPage() {
                 >
                   완료
                 </Button>
+
+                {/* 안내 문구 */}
+                <p className="mt-4 text-center text-body2-regular text-label-neutral">
+                  *역할을 잘못 설정했다면 tackit 고객센터로 연락해주세요.
+                </p>
               </form>
             </div>
           </div>

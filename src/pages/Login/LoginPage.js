@@ -97,12 +97,12 @@ export default function LoginPage() {
       <div className="px-4">
         <AuthCard className="absolute left-[530px] top-[150px] w-[440px] min-h-[400px]">
           {/* 로고 영역 */}
-          <div className="flex items-center justify-center mb-6">
-            <img src="/logo.png" alt="Tackit" className="h-14" />
+          <div className="flex items-center justify-center mb-10 mt-[12px]">
+            <img src="/logo.svg" alt="Tackit" className="h-[48px]" />
           </div>
 
           {/* 로그인 폼 */}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-[12px]">
             {/* 이메일 */}
             <div>
               <label
@@ -119,7 +119,9 @@ export default function LoginPage() {
                   setError('')
                 }}
                 required
-                className="w-full px-3 py-3 text-sm border rounded-lg outline-none border-line-default focus:border-line-active"
+                className="w-full px-3 py-3 text-sm border outline-none 
+                 border-line-normal focus:border-line-active 
+                 placeholder:text-label-assistive rounded-[12px]"
               />
             </div>
 
@@ -137,7 +139,9 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full px-3 py-3 pr-10 text-sm border rounded-lg outline-none border-line-default focus:border-line-active"
+                  className="w-full px-3 py-3 pr-10 text-sm border outline-none 
+                   border-line-normal focus:border-line-active 
+                   placeholder:text-label-assistive rounded-[12px]"
                 />
                 {password.length > 0 && (
                   <button
@@ -155,10 +159,10 @@ export default function LoginPage() {
             {/* 에러 메시지 */}
             {error && <p className="text-sm leading-5 text-red-500">{error}</p>}
 
-            <div className="mt-2 text-right">
+            <div className="mt-1 text-right">
               <Link
                 to="/password"
-                className="text-xs text-label-neutral hover:text-label-primary"
+                className="text-body2-regular text-label-neutral hover:text-label-primary"
               >
                 비밀번호 찾기
               </Link>
