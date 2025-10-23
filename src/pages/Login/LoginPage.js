@@ -1,3 +1,4 @@
+// src/pages/auth/LoginPage.jsx
 import React, { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { FaEye, FaEyeSlash } from 'react-icons/fa'
@@ -7,12 +8,13 @@ import { AuthCard } from '../../components/ui/AuthCard'
 import { Button } from '../../components/ui/Button'
 
 export default function LoginPage() {
-  const [loginId, setLoginId] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPw, setShowPw] = useState(false)
   const [error, setError] = useState('')
   const navigate = useNavigate()
 
+  // 세션 만료 알림(회원가입 페이지 로직과 동일)
   useEffect(() => {
     const hasAccessToken = !!localStorage.getItem('accessToken')
     if (!hasAccessToken) return
@@ -35,39 +37,34 @@ export default function LoginPage() {
     return () => clearTimeout(id)
   }, [])
 
-  const isValid = loginId.trim() && password.trim()
+  const isValid = email.trim() && password.trim()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
-    const isEmail = /\S+@\S+\.\S+/.test(loginId)
 
-    // 1) 이메일 인증/중복 체크 (이메일 형식일 때만)
-    if (isEmail) {
-      try {
-        await api.get(`/auth/check-email-auth?email=${loginId}`)
-      } catch (checkError) {
-        const status = checkError.response?.status
-        const message = checkError.response?.data
-        if (status === 409 && message === '탈퇴 이력이 있는 이메일입니다.') {
-          setError('탈퇴한 이메일입니다. 다른 이메일로 회원가입해주세요.')
-          return
-        }
-        if (status === 409 && message === '이미 가입된 이메일입니다.') {
-          // 이미 가입 → 로그인 시도 계속
-        } else {
-          setError('이메일 확인이 완료되지 않았습니다. 다시 시도해 주세요.')
-          return
-        }
+    // 1) 이메일 인증/중복 체크
+    try {
+      await api.get(`/auth/check-email-auth?email=${email}`)
+      // 200이면 통과
+    } catch (checkError) {
+      const status = checkError.response?.status
+      const message = checkError.response?.data
+      if (status === 409 && message === '탈퇴 이력이 있는 이메일입니다.') {
+        setError('탈퇴한 이메일입니다. 다른 이메일로 회원가입해주세요.')
+        return
       }
-    } // ✅ if (isEmail) 블록 닫기
+      if (status === 409 && message === '이미 가입된 이메일입니다.') {
+        // 이미 가입 → 로그인 시도 계속
+      } else {
+        setError('이메일 확인이 완료되지 않았습니다. 다시 시도해 주세요.')
+        return
+      }
+    }
 
     // 2) 로그인
     try {
-      const body = isEmail
-        ? { email: loginId, password }
-        : { username: loginId, password } // 관리자 아이디 로그인
-      const res = await api.post('/auth/sign-in', body)
+      const res = await api.post('/auth/sign-in', { email, password })
       const {
         accessToken,
         refreshToken,
@@ -93,29 +90,32 @@ export default function LoginPage() {
   }
 
   return (
-    <AuthLayout icons={['/assets/auth/auth-icon.svg']} iconOffset={80}>
+    <AuthLayout
+      icons={['/assets/auth/auth-icon.svg']} // 하단 스트립 1장
+      iconOffset={80} // 스트립 위 간격
+    >
       <div className="px-4">
         <AuthCard className="absolute left-[530px] top-[150px] w-[440px] min-h-[400px]">
+          {/* 로고 영역 */}
           <div className="flex items-center justify-center mb-6">
-            <img src="/logo.svg" alt="Tackit" className="h-10" />
+            <img src="/logo.png" alt="Tackit" className="h-14" />
           </div>
 
+          {/* 로그인 폼 */}
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* 이메일 */}
             <div>
               <label
-                htmlFor="loginId"
+                htmlFor="email"
                 className="block mb-1 text-sm font-medium text-label-secondary"
-              >
-                이메일
-              </label>
+              ></label>
               <input
-                id="loginId"
+                id="email"
                 type="text"
                 placeholder="이메일을 입력해 주세요."
-                /* (관리자는 아이디 입력 가능) */
-                value={loginId}
+                value={email}
                 onChange={(e) => {
-                  setLoginId(e.target.value)
+                  setEmail(e.target.value)
                   setError('')
                 }}
                 required
@@ -128,9 +128,7 @@ export default function LoginPage() {
               <label
                 htmlFor="password"
                 className="block mb-1 text-sm font-medium text-label-secondary"
-              >
-                비밀번호
-              </label>
+              ></label>
               <div className="relative">
                 <input
                   id="password"
@@ -159,13 +157,14 @@ export default function LoginPage() {
 
             <div className="mt-2 text-right">
               <Link
-                to="/find-password"
+                to="/password"
                 className="text-xs text-label-neutral hover:text-label-primary"
               >
                 비밀번호 찾기
               </Link>
             </div>
 
+            {/* 로그인 버튼 */}
             <Button
               type="submit"
               variant="primary"
@@ -177,6 +176,7 @@ export default function LoginPage() {
             </Button>
           </form>
 
+          {/* 하단 회원가입 */}
           <div className="mt-5 text-sm text-center">
             아직 tackit 회원이 아닌가요?{' '}
             <Link to="/signup" className="font-medium text-label-primary">
@@ -185,6 +185,7 @@ export default function LoginPage() {
           </div>
         </AuthCard>
 
+        {/* 스트립과 겹침 방지용 여백 (iconOffset만큼) */}
         <div style={{ height: 80 }} />
       </div>
     </AuthLayout>
