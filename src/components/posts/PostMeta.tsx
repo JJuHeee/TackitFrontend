@@ -7,7 +7,7 @@ type PostMetaProps = {
   createdAt?: string
   tags?: string[]
   className?: string
-  hideWriter?: boolean // ✅ 추가
+  hideWriter?: boolean
 }
 
 export default function PostMeta({
@@ -15,33 +15,25 @@ export default function PostMeta({
   createdAt,
   tags,
   className,
-  hideWriter = false, // ✅ 기본값 false
+  hideWriter = false,
 }: PostMetaProps) {
   const hasTags = tags && tags.length > 0
 
-  // 태그 없을 때: PostAuthorMeta 단독 사용
-  if (!hasTags) {
-    return (
-      <PostAuthorMeta
-        writer={hideWriter ? '' : writer} // ✅ 숨길 때 빈 문자열 전달
-        createdAt={createdAt}
-        className="justify-end"
-      />
-    )
-  }
-
-  // 태그 있을 때: TagBadgeList + PostAuthorMeta
   return (
     <div
       className={`post-meta flex items-center justify-between text-caption text-label-neutral ${
         className ?? ''
       }`}
     >
-      <TagBadgeList tags={tags} className="flex flex-wrap" gapPx={6} />
-      <PostAuthorMeta
-        writer={hideWriter ? '' : writer} // ✅ 숨길 때 빈 문자열 전달
-        createdAt={createdAt}
-      />
+      {/* 태그 영역 (없으면 비워둠) */}
+      {hasTags ? (
+        <TagBadgeList tags={tags} className="flex flex-wrap" gapPx={6} />
+      ) : (
+        <div /> // flex 정렬 유지용 빈 div
+      )}
+
+      {/* 작성자/날짜 영역 */}
+      <PostAuthorMeta writer={hideWriter ? '' : writer} createdAt={createdAt} />
     </div>
   )
 }

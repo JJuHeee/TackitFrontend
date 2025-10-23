@@ -27,7 +27,11 @@ export default function PostAuthorMeta({
       className={`post-author-meta flex items-center gap-2 ${className ?? ''}`}
     >
       {/* 프로필 원 */}
-      <div className="w-6 h-6 rounded-full bg-[#d9d9d9]" />
+      <img
+        src="/icons/mypage-icon.svg"
+        alt="마이페이지"
+        className="object-cover w-6 h-6 rounded-full"
+      />
 
       {/* 닉네임 | 날짜 */}
       <div className="flex items-center gap-2">

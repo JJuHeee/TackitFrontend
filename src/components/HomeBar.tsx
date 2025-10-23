@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
-import NotificationBell from './notify/NotificationBell' // ✅ 알림 벨 UI 컴포넌트만 유지
+import NotificationBell from './notify/NotificationBell'
 
 const HomeBar: React.FC = () => {
   const navigate = useNavigate()
@@ -8,7 +8,7 @@ const HomeBar: React.FC = () => {
 
   const linkClass = ({ isActive }: { isActive: boolean }): string =>
     [
-      'px-2 py-2 text-sm md:text-base font-medium transition-colors',
+      'mx-3 px-0 py-2 text-sm md:text-base font-medium transition-colors', // 좌우 12px 마진, 패딩 0
       isActive
         ? 'text-[var(--label-normal)]'
         : 'text-[var(--label-assistive)] hover:text-[var(--label-normal)]',
@@ -18,14 +18,16 @@ const HomeBar: React.FC = () => {
     <header className="relative flex items-center justify-center bg-white h-14">
       <div className="w-[1100px] flex items-center justify-between mx-auto">
         {/* 좌측: 로고 + 메뉴 */}
-        <div className="flex items-center gap-6">
+        <div className="flex items-center">
           <img
-            src="/logo.png"
+            src="/logo.svg"
             alt="Tackit"
-            className="h-8 cursor-pointer md:h-10"
+            className="w-[120px] h-10 cursor-pointer mr-10" /* 120×40, 로고→메뉴 40px */
             onClick={() => navigate('/main')}
           />
-          <nav className="items-center hidden gap-6 md:flex">
+          <nav className="items-center hidden md:flex">
+            {' '}
+            {/* gap 대신 각 링크에 mx-3 */}
             <NavLink to="/main" className={linkClass} end>
               홈
             </NavLink>
@@ -41,20 +43,25 @@ const HomeBar: React.FC = () => {
           </nav>
         </div>
 
-        {/* ✅ 우측: 알림 + 마이페이지 */}
-        <div className="items-center hidden md:flex">
-          {/* 기존 벨 버튼 대신 알림 컴포넌트만 남김 */}
+        {/* ✅ 우측: 알림 + 마이페이지 (오른쪽 끝 여백 170px) */}
+        <div className="items-center hidden md:flex ">
           <NotificationBell />
           <button
             aria-label="마이페이지로 이동"
             onClick={() => navigate('/mypage')}
-            className="ml-6 w-8 h-8 rounded-full bg-[#d9d9d9] hover:ring-2 hover:ring-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
-          />
+            className="ml-4 focus:outline-none"
+          >
+            <img
+              src="/icons/mypage-icon.svg"
+              alt="마이페이지"
+              className="object-cover w-8 h-8 transition-opacity hover:opacity-80"
+            />
+          </button>
         </div>
 
         {/* 모바일: 알림 + 원 + 햄버거 */}
         <div className="flex items-center gap-3 md:hidden">
-          <NotificationBell /> {/* 모바일에서도 동일하게 사용 */}
+          <NotificationBell />
           <button
             aria-label="마이페이지로 이동"
             onClick={() => navigate('/mypage')}

@@ -51,8 +51,11 @@ export default function CommentEditor({
         className="flex items-center gap-3 mb-20 comment-collapsed"
         onClick={() => setIsActive(true)}
       >
-        {/* ✅ 아바타 색상 변경 */}
-        <div className="w-9 h-9 rounded-full bg-[#D9D9D9]" />
+        <img
+          src="/icons/mypage-icon.svg"
+          alt="마이페이지"
+          className="object-cover rounded-full w-9 h-9"
+        />
 
         <div
           className="
@@ -76,8 +79,11 @@ export default function CommentEditor({
   // ② 펼침 상태
   return (
     <div className="flex gap-3 mb-20 comment-expanded" ref={rootRef}>
-      {/* 아바타: 36x36, 원형, #D9D9D9 */}
-      <div className="w-9 h-9 rounded-full bg-[#D9D9D9]" />
+      <img
+        src="/icons/mypage-icon.svg"
+        alt="마이페이지"
+        className="object-cover rounded-full w-9 h-9"
+      />
 
       {/* 에디터 박스: 라운드 12px, 흰 배경 */}
       <div className="flex-1 overflow-hidden bg-white editor-box rounded-xl">

@@ -97,7 +97,7 @@ export default function LoginPage() {
       <div className="px-4">
         <AuthCard className="absolute left-[530px] top-[150px] w-[440px] min-h-[400px]">
           <div className="flex items-center justify-center mb-6">
-            <img src="/logo.png" alt="Tackit" className="h-14" />
+            <img src="/logo.svg" alt="Tackit" className="h-10" />
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
