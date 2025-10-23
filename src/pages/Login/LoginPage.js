@@ -159,11 +159,7 @@ export default function LoginPage() {
 
             <div className="mt-2 text-right">
               <Link
-<<<<<<< HEAD
                 to="/find-password"
-=======
-                to="/forgot-password"
->>>>>>> main
                 className="text-xs text-label-neutral hover:text-label-primary"
               >
                 비밀번호 찾기
