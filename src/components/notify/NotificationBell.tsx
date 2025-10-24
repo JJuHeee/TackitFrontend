@@ -30,8 +30,9 @@ export default function NotificationBell() {
 
         {unreadCount > 0 && (
           <span
-            className="absolute top-[2px] right-[2px] w-[5.33px] h-[5.33px] 
-                       rounded-full bg-[var(--color-label-primary)]"
+            className="absolute z-10 pointer-events-none
+                   -top-[2px] -right-[2px] w-[6px] h-[6px] rounded-full
+                   bg-label-primary"
           />
         )}
 

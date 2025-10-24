@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom'
 import './QnaPostDetail.css'
 import HomeBar from '../../components/HomeBar'
 import api from '../../api/api'
-import useFetchUserInfo from '../../hooks/useFetchUserInfo'
 import { sanitizeHtml } from '../../utils/sanitize'
 import { hydrateCoverToken } from '../../utils/coverToken'
 import CommentList from '../../components/comments/CommentList'
@@ -18,6 +17,7 @@ import {
   toastInfo,
 } from '../../utils/toast'
 import PostHeader from '../../components/posts/PostHeader'
+import MyInfo from '../MyPage/MyInfo'
 
 /** 상세 화면에서 사용할 정규화된 Post 타입 (Free와 동일 포맷) */
 type Post = {
@@ -77,8 +77,6 @@ function QnaPostDetail() {
   const [reportingCommentId, setReportingCommentId] = useState<number | null>(
     null
   )
-
-  const { userInfo } = useFetchUserInfo()
 
   // 게시글 로딩 (QnA 응답 → Free 포맷으로 정규화: postId → id 등)
   useEffect(() => {
@@ -293,118 +291,132 @@ function QnaPostDetail() {
     }
   }
 
-  const isAuthor = !!(
-    userInfo?.nickname &&
-    post &&
-    post.writer === userInfo.nickname
-  )
-
-  if (loading) {
-    return (
-      <>
-        <HomeBar />
-        <div className="qnapost-detail-container">
-          <h1 className="board-title">질문 게시판</h1>
-          <div className="qnapost-box">불러오는 중...</div>
-        </div>
-      </>
-    )
-  }
-
   return (
-    <>
-      <HomeBar />
-      <div className="qnapost-detail-container">
-        <img
-          src="/assets/icons/arrow-left.svg"
-          alt="뒤로가기"
-          onClick={() => navigate('/qna')}
-          className="w-6 h-6 transition cursor-pointer hover:opacity-70"
-        />
+    <MyInfo>
+      {(myInfo, myInfoLoading) => {
+        const isNewbie = String(myInfo?.role ?? '').toUpperCase() === 'NEWBIE'
+        const isAuthor = !!(
+          myInfo?.nickname &&
+          post &&
+          post.writer === myInfo.nickname
+        )
 
-        {post && (
-          <PostHeader
-            title={post.title}
-            writer={post.writer}
-            createdAt={post.createdAt}
-            isBookmarked={isScrapped}
-            onToggleBookmark={handleScrapToggle}
-            isAuthor={isAuthor}
-            onEdit={() => navigate(`/qna/edit/${post.id}`)}
-            onDelete={handleDeletePost}
-            onReport={() => setShowPostReportModal(true)}
-          />
-        )}
-
-        <div className="mt-12">
-          <div className="qnapost-box">
-            {post && (
-              <div className="prose detail-content max-w-none">
-                <div
-                  dangerouslySetInnerHTML={{
-                    __html: sanitizeHtml(
-                      hydrateCoverToken(
-                        String(post.content ?? ''),
-                        post.imageUrl
-                      )
-                    ),
-                  }}
-                />
+        if (loading || myInfoLoading) {
+          return (
+            <>
+              <HomeBar />
+              <div className="qnapost-detail-container">
+                <h1 className="board-title">질문 게시판</h1>
+                <div className="qnapost-box">불러오는 중...</div>
               </div>
-            )}
-          </div>
+            </>
+          )
+        }
 
-          <div className="flow-root pb-0 mt-0">
-            {post && (
-              <CommentList
-                comments={comments}
-                currentUserNickname={userInfo?.nickname}
-                editCommentId={editCommentId}
-                onBeginEdit={handleBeginEditComment}
-                onCancelEdit={handleCancelEditComment}
-                onEdit={handleSaveEditComment}
-                onDelete={handleDeleteComment}
-                onReport={handleReportCommentOpen}
+        return (
+          <>
+            <HomeBar />
+            <div className="qnapost-detail-container">
+              <img
+                src="/assets/icons/arrow-left.svg"
+                alt="뒤로가기"
+                onClick={() => navigate('/qna')}
+                className="w-6 h-6 transition cursor-pointer hover:opacity-70"
+              />
+
+              {post && (
+                <PostHeader
+                  title={post.title}
+                  writer={post.writer}
+                  createdAt={post.createdAt}
+                  isBookmarked={isScrapped}
+                  onToggleBookmark={handleScrapToggle}
+                  isAuthor={isAuthor}
+                  onEdit={() => navigate(`/qna/edit/${post.id}`)}
+                  onDelete={handleDeletePost}
+                  onReport={() => setShowPostReportModal(true)}
+                />
+              )}
+
+              <div className="mt-12">
+                <div className="qnapost-box">
+                  {post && (
+                    <div className="prose detail-content max-w-none">
+                      <div
+                        dangerouslySetInnerHTML={{
+                          __html: sanitizeHtml(
+                            hydrateCoverToken(
+                              String(post.content ?? ''),
+                              post.imageUrl
+                            )
+                          ),
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div className="flow-root pb-0 mt-0">
+                  {post && (
+                    <CommentList
+                      comments={comments}
+                      currentUserNickname={myInfo?.nickname}
+                      editCommentId={editCommentId}
+                      onBeginEdit={handleBeginEditComment}
+                      onCancelEdit={handleCancelEditComment}
+                      onEdit={handleSaveEditComment}
+                      onDelete={handleDeleteComment}
+                      onReport={handleReportCommentOpen}
+                    />
+                  )}
+
+                  {/* ✅ NEWBIE이면 입력창 숨김 */}
+                  {!editCommentId && !isNewbie && (
+                    <CommentEditor
+                      value={comment}
+                      onChange={setComment}
+                      onSubmit={() => {
+                        if (isNewbie) {
+                          toastWarn('신입은 댓글 작성이 제한됩니다.')
+                          return
+                        }
+                        handleCommentSubmit()
+                      }}
+                      isEditing={false}
+                    />
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* 게시글 신고 모달 */}
+            {showPostReportModal && (
+              <ReportModal
+                isOpen={showPostReportModal}
+                targetId={postIdNumber}
+                targetType="POST"
+                onClose={() => setShowPostReportModal(false)}
+                onSubmit={handleSubmitPostReport}
               />
             )}
 
-            {!editCommentId && (
-              <CommentEditor
-                value={comment}
-                onChange={setComment}
-                onSubmit={handleCommentSubmit}
-                isEditing={false}
+            {/* 댓글 신고 모달 */}
+            {showCommentReportModal && reportingCommentId && (
+              <ReportModal
+                isOpen={showCommentReportModal}
+                targetId={reportingCommentId}
+                targetType="COMMENT"
+                onClose={() => {
+                  setShowCommentReportModal(false)
+                  setReportingCommentId(null)
+                }}
+                onSubmit={handleSubmitCommentReport}
               />
             )}
-          </div>
-        </div>
-      </div>
-
-      {/* 게시글 신고 모달 */}
-      {showPostReportModal && (
-        <ReportModal
-          isOpen={showPostReportModal}
-          targetId={postIdNumber}
-          targetType="POST"
-          onClose={() => setShowPostReportModal(false)}
-          onSubmit={handleSubmitPostReport}
-        />
-      )}
-
-      {/* 댓글 신고 모달 */}
-      {showCommentReportModal && reportingCommentId && (
-        <ReportModal
-          isOpen={showCommentReportModal}
-          targetId={reportingCommentId}
-          targetType="COMMENT"
-          onClose={() => {
-            setShowCommentReportModal(false)
-            setReportingCommentId(null)
-          }}
-          onSubmit={handleSubmitCommentReport}
-        />
-      )}
-    </>
+          </>
+        )
+      }}
+    </MyInfo>
   )
 }
 

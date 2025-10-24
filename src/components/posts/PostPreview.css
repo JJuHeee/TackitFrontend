@@ -1,5 +1,8 @@
 .post-card-content {
   line-height: 1.5;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: pre-wrap;
 }
 
 .post-card-content.clamped {

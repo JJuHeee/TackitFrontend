@@ -17,8 +17,6 @@ import TipPostWrite from './pages/TipPost/TipPostWrite'
 import TipPostEdit from './pages/TipPost/TipPostEdit'
 import MainPage from './pages/Main/MainPage'
 import MyPage from './pages/MyPage/MyPage'
-import EditPasswordPage from './pages/MyPage/EditPasswordPage'
-import EditNicknamePage from './pages/MyPage/EditNicknamePage'
 import EditInfoPage from './pages/MyPage/EditInfoPage'
 import MyPostList from './pages/MyPage/MyPostList'
 import MyCommentList from './pages/MyPage/MyCommentList'
@@ -53,8 +51,6 @@ function App(): JSX.Element {
         <Route path="/tip/write" element={<TipPostWrite />} />
         <Route path="/tip/edit/:id" element={<TipPostEdit />} />
         <Route path="/mypage" element={<MyPage />} />
-        <Route path="/mypage/edit-password" element={<EditPasswordPage />} />
-        <Route path="/mypage/edit-nickname" element={<EditNicknamePage />} />
         <Route path="/mypage/posts" element={<MyPostList />} />
         <Route path="/mypage/comments" element={<MyCommentList />} />
         <Route path="/mypage/bookmarked" element={<Bookmarked />} />

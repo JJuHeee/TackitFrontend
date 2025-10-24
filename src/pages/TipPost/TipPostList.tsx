@@ -10,6 +10,7 @@ import Pagination from '../../components/Pagination'
 import PostCard from '../../components/posts/PostCard'
 import { stripHtml } from '../../utils/stripHtml'
 import { hydrateCoverToken } from '../../utils/coverToken'
+import MyInfo from '../MyPage/MyInfo'
 
 type Post = {
   postId: number
@@ -133,96 +134,100 @@ export default function TipPostList() {
   }, [currentPage, tagId])
 
   return (
-    <>
-      <div className="flex flex-col min-h-screen">
-        <HomeBar />
-        <main className="flex-1">
-          <div className="tippost-container">
-            {/* 배너 */}
-            <div className="tippost-banner">
-              <img src="/banners/tip-banner.svg" alt="선임자의 TIP 배너" />
-            </div>
-
-            {/* 태그칩 + 글쓰기 버튼 */}
-            <div className="tippost-topbar">
-              <div className="tippost-tags">
-                <TagChips
-                  endpoint="/api/tip-tags/list"
-                  mode="single"
-                  value={tagId}
-                  onChange={(v) => {
-                    setTagId(v as number | null)
-                    setCurrentPage(1)
-                  }}
-                  includeAllItem
-                  gapPx={10}
-                  fallbackTags={[
-                    { id: 1, name: '업무팁' },
-                    { id: 2, name: '협업' },
-                    { id: 3, name: '툴' },
-                    { id: 4, name: '커리어' },
-                  ]}
-                />
+    <MyInfo>
+      {(myInfo, loading) => (
+        <div className="flex flex-col min-h-screen">
+          <HomeBar />
+          <main className="flex-1">
+            <div className="tippost-container">
+              {/* 배너 */}
+              <div className="tippost-banner">
+                <img src="/banners/tip-banner.svg" alt="선임자의 TIP 배너" />
               </div>
 
-              <button
-                className="write-button"
-                onClick={() => navigate('/tip/write')}
-              >
-                + 글쓰기
-              </button>
-            </div>
-
-            {/* 리스트 */}
-            <div className="tippost-list">
-              {posts.length === 0 ? (
-                <div className="flex flex-col items-center py-20 no-result">
-                  <img
-                    src="/icons/empty.svg"
-                    alt="아직 작성한 글이 없어요!"
-                    className="w-20 h-20 mb-4"
-                  />
-                  <p className="text-body-1sb text-label-normal">
-                    아직 작성한 글이 없어요!
-                  </p>
-                </div>
-              ) : (
-                posts.map((post) => (
-                  <PostCard
-                    key={post.postId ?? `${post.title}-${post.createdAt}`}
-                    id={post.postId}
-                    title={post.title}
-                    content={stripHtml(
-                      hydrateCoverToken(post.content, post.imageUrl ?? null)
-                    )}
-                    writer={post.writer}
-                    createdAt={post.createdAt}
-                    tags={post.tags}
-                    imageUrl={post.imageUrl ?? null}
-                    onClick={() => {
-                      if (post.postId != null) navigate(`/tip/${post.postId}`)
-                      else toast.error('잘못된 게시글 ID입니다.')
+              {/* 태그칩 + 글쓰기 버튼 */}
+              <div className="tippost-topbar">
+                <div className="tippost-tags">
+                  <TagChips
+                    endpoint="/api/tip-tags/list"
+                    mode="single"
+                    value={tagId}
+                    onChange={(v) => {
+                      setTagId(v as number | null)
+                      setCurrentPage(1)
                     }}
+                    includeAllItem
+                    gapPx={10}
+                    fallbackTags={[
+                      { id: 1, name: '업무팁' },
+                      { id: 2, name: '협업' },
+                      { id: 3, name: '툴' },
+                      { id: 4, name: '커리어' },
+                    ]}
                   />
-                ))
-              )}
-            </div>
+                </div>
 
-            {/* 페이지네이션 (1-base) */}
-            <div className="flex justify-center mt-6">
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={(p) => {
-                  setCurrentPage(p)
-                  window.scrollTo({ top: 0, behavior: 'smooth' })
-                }}
-              />
+                {!loading && myInfo?.role === 'SENIOR' && (
+                  <button
+                    className="write-button"
+                    onClick={() => navigate('/tip/write')}
+                  >
+                    + 글쓰기
+                  </button>
+                )}
+              </div>
+
+              {/* 리스트 */}
+              <div className="tippost-list">
+                {posts.length === 0 ? (
+                  <div className="flex flex-col items-center py-20 no-result">
+                    <img
+                      src="/icons/empty.svg"
+                      alt="아직 작성한 글이 없어요!"
+                      className="w-20 h-20 mb-4"
+                    />
+                    <p className="text-body-1sb text-label-normal">
+                      아직 작성한 글이 없어요!
+                    </p>
+                  </div>
+                ) : (
+                  posts.map((post) => (
+                    <PostCard
+                      key={post.postId ?? `${post.title}-${post.createdAt}`}
+                      id={post.postId}
+                      title={post.title}
+                      content={stripHtml(
+                        hydrateCoverToken(post.content, post.imageUrl ?? null)
+                      )}
+                      writer={post.writer}
+                      createdAt={post.createdAt}
+                      tags={post.tags}
+                      imageUrl={post.imageUrl ?? null}
+                      onClick={() => {
+                        if (post.postId != null) navigate(`/tip/${post.postId}`)
+                        else toast.error('잘못된 게시글 ID입니다.')
+                      }}
+                    />
+                  ))
+                )}
+              </div>
+
+              {/* 페이지네이션 (1-base) */}
+              <div className="flex justify-center mt-6">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={(p) => {
+                    setCurrentPage(p)
+                    window.scrollTo({ top: 0, behavior: 'smooth' })
+                  }}
+                />
+              </div>
             </div>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    </>
+          </main>
+          <Footer />
+        </div>
+      )}
+    </MyInfo>
   )
 }

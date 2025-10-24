@@ -11,6 +11,7 @@ import Pagination from '../../components/Pagination'
 import PostCard from '../../components/posts/PostCard'
 import { stripHtml } from '../../utils/stripHtml'
 import { hydrateCoverToken } from '../../utils/coverToken'
+import MyInfo from '../MyPage/MyInfo'
 
 type Post = {
   postId: number
@@ -132,97 +133,99 @@ function QnaPostList() {
   }, [currentPage, tagId])
 
   return (
-    <>
-      <div className="flex flex-col min-h-screen">
-        <HomeBar />
-        <main className="flex-1">
-          <div className="qnapost-container">
-            {/* 배너 */}
-            <div className="qnapost-banner">
-              <img src="/banners/qna-banner.svg" alt="질문게시판 배너" />
-            </div>
-
-            {/* 태그칩 + 글쓰기 버튼 */}
-            <div className="qnapost-topbar">
-              <div className="qnapost-tags">
-                <TagChips
-                  endpoint="/api/qna-tags/list"
-                  mode="single"
-                  value={tagId}
-                  onChange={(v) => {
-                    setTagId(v as number | null)
-                    setCurrentPage(1)
-                  }}
-                  includeAllItem
-                  gapPx={10}
-                  fallbackTags={[
-                    { id: 1, name: '리액트' },
-                    { id: 2, name: '백엔드' },
-                    { id: 3, name: '배포' },
-                    { id: 4, name: 'CS' },
-                  ]}
-                />
+    <MyInfo>
+      {(myInfo, loading) => (
+        <div className="flex flex-col min-h-screen">
+          <HomeBar />
+          <main className="flex-1">
+            <div className="qnapost-container">
+              {/* 배너 */}
+              <div className="qnapost-banner">
+                <img src="/banners/qna-banner.svg" alt="질문게시판 배너" />
               </div>
 
-              <button
-                className="write-button"
-                onClick={() => navigate('/qna/write')}
-              >
-                + 글쓰기
-              </button>
-            </div>
-
-            {/* 리스트 */}
-            <div className="qnapost-list">
-              {posts.length === 0 ? (
-                <div className="flex flex-col items-center py-20 no-result">
-                  <img
-                    src="/icons/empty.svg"
-                    alt="아직 작성한 글이 없어요!"
-                    className="w-20 h-20 mb-4"
-                  />
-                  <p className="text-body-1sb text-label-normal">
-                    아직 작성한 글이 없어요!
-                  </p>
-                </div>
-              ) : (
-                posts.map((post) => (
-                  <PostCard
-                    key={post.postId ?? `${post.title}-${post.createdAt}`}
-                    id={post.postId}
-                    title={post.title}
-                    content={stripHtml(
-                      hydrateCoverToken(post.content, post.imageUrl ?? null)
-                    )}
-                    writer={post.writer}
-                    createdAt={post.createdAt}
-                    tags={post.tags}
-                    imageUrl={post.imageUrl ?? null}
-                    onClick={() => {
-                      if (post.postId != null) navigate(`/qna/${post.postId}`)
-                      else toast.error('잘못된 게시글 ID입니다.')
+              {/* 태그칩 + 글쓰기 버튼 */}
+              <div className="qnapost-topbar">
+                <div className="qnapost-tags">
+                  <TagChips
+                    endpoint="/api/qna-tags/list"
+                    mode="single"
+                    value={tagId}
+                    onChange={(v) => {
+                      setTagId(v as number | null)
+                      setCurrentPage(1)
                     }}
+                    includeAllItem
+                    gapPx={10}
+                    fallbackTags={[
+                      { id: 1, name: '리액트' },
+                      { id: 2, name: '백엔드' },
+                      { id: 3, name: '배포' },
+                      { id: 4, name: 'CS' },
+                    ]}
                   />
-                ))
-              )}
-            </div>
+                </div>
 
-            {/* 페이지네이션 */}
-            <div className="flex justify-center mt-6">
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={(p) => {
-                  setCurrentPage(p)
-                  window.scrollTo({ top: 0, behavior: 'smooth' })
-                }}
-              />
+                <button
+                  className="write-button"
+                  onClick={() => navigate('/qna/write')}
+                >
+                  + 글쓰기
+                </button>
+              </div>
+
+              {/* 리스트 */}
+              <div className="qnapost-list">
+                {posts.length === 0 ? (
+                  <div className="flex flex-col items-center py-20 no-result">
+                    <img
+                      src="/icons/empty.svg"
+                      alt="아직 작성한 글이 없어요!"
+                      className="w-20 h-20 mb-4"
+                    />
+                    <p className="text-body-1sb text-label-normal">
+                      아직 작성한 글이 없어요!
+                    </p>
+                  </div>
+                ) : (
+                  posts.map((post) => (
+                    <PostCard
+                      key={post.postId ?? `${post.title}-${post.createdAt}`}
+                      id={post.postId}
+                      title={post.title}
+                      content={stripHtml(
+                        hydrateCoverToken(post.content, post.imageUrl ?? null)
+                      )}
+                      writer={post.writer}
+                      createdAt={post.createdAt}
+                      tags={post.tags}
+                      imageUrl={post.imageUrl ?? null}
+                      onClick={() => {
+                        if (post.postId != null) navigate(`/qna/${post.postId}`)
+                        else toast.error('잘못된 게시글 ID입니다.')
+                      }}
+                    />
+                  ))
+                )}
+              </div>
+
+              {/* 페이지네이션 */}
+              <div className="flex justify-center mt-6">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={(p) => {
+                    setCurrentPage(p)
+                    window.scrollTo({ top: 0, behavior: 'smooth' })
+                  }}
+                />
+              </div>
             </div>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    </>
+          </main>
+          <Footer />
+        </div>
+      )}
+    </MyInfo>
   )
 }
 
