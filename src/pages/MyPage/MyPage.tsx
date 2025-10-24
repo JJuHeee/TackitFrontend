@@ -99,13 +99,29 @@ export default function MyPageHome() {
                   <div className="w-full rounded-[12px] border border-line-normal">
                     <div className="flex items-center justify-between p-[24px]">
                       <div className="flex items-center">
-                        <img
-                          src="/icons/profile.svg"
-                          alt="프로필 아이콘"
-                          className="h-[80px] w-[80px] cursor-pointer hover:opacity-80 transition"
-                          onClick={() => navigate('/mypage/edit-info')}
-                        />
+                        <div className="relative w-[80px] h-[80px]">
+                          {/* 프로필 아이콘 */}
+                          <img
+                            src="/icons/mypage-icon.svg"
+                            alt="프로필 아이콘"
+                            className="w-full h-full rounded-full bg-[#f5f5f5] cursor-pointer hover:opacity-80 transition"
+                            onClick={() => navigate('/mypage/edit-info')}
+                          />
+
+                          {/* 수정 아이콘 (오른쪽 아래 겹침) */}
+                          <div
+                            className="absolute bottom-0 right-0 w-[32px] h-[32px] flex items-center justify-center cursor-pointer"
+                            onClick={() => navigate('/mypage/edit-info')}
+                          >
+                            <img
+                              src="/icons/edit.svg"
+                              alt="수정"
+                              className="w-[32px] h-[32px]"
+                            />
+                          </div>
+                        </div>
                         <div className="ml-[24px]">
+                          {/* 닉네임 */}
                           <div className="text-title-2b text-label-normal">
                             {loading ? (
                               <span className="inline-block h-[22px] w-[120px] animate-pulse rounded bg-gray-200" />
@@ -113,6 +129,27 @@ export default function MyPageHome() {
                               me?.nickname ?? '사용자'
                             )}
                           </div>
+
+                          {/* ✅ 닉네임 아래 소속 + 이메일 표시 */}
+                          {!loading && (
+                            <div className="mt-[8px] flex items-center">
+                              {/* 소속 */}
+                              <span className="text-body1-regular text-label-neutral mr-[16px]">
+                                {me?.organization ?? '-'}
+                              </span>
+
+                              {/* 구분선 | */}
+                              <span
+                                className="inline-block w-px h-[16px] bg-[var(--line-normal)] mr-[16px]"
+                                aria-hidden="true"
+                              />
+
+                              {/* 이메일 */}
+                              <span className="text-body1-regular text-label-neutral">
+                                {me?.email ?? '-'}
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </div>
 

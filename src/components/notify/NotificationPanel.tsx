@@ -56,7 +56,7 @@ export default function NotificationPanel({
       {!hasItems ? (
         <div className="flex flex-col items-center justify-center py-16 text-center text-[var(--label-assistive)]">
           <img
-            src="/icons/icon-empty-bell.svg"
+            src="/icons/empty.svg"
             alt="empty"
             className="w-12 h-12 mb-3 opacity-70"
           />

@@ -2,13 +2,13 @@
 import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import api from '../../api/api'
-import { toastSuccess, toastWarn, toastError } from '../../utils/toast' // ✅ 수정됨
+import { toastSuccess, toastWarn, toastError } from '../../utils/toast'
 import { Button } from '../../components/ui/Button'
 import AuthLayout from '../../components/layouts/AuthLayout'
 import { AuthCard } from '../../components/ui/AuthCard'
 import TextField from '../../components/forms/TextField'
 import RoleSelect, { type Role } from '../../components/forms/RoleSelect'
-import { useUserForm } from '../../hooks/useUserForm' // 경로에 맞게 조정
+import { useUserForm } from '../../hooks/useUserForm'
 
 export default function SignupPage() {
   // 비밀번호 눈토글만 로컬 상태로
