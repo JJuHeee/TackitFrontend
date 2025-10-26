@@ -22,6 +22,7 @@ export default function Chip({
       disabled={disabled}
       onClick={onClick}
       className={[
+        'relative z-[20]',
         'inline-flex items-center justify-center',
         'h-10 min-w-[66px] px-3 py-2 rounded-lg',
         'whitespace-nowrap select-none transition',
