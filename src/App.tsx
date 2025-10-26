@@ -22,6 +22,8 @@ import MyPostList from './pages/MyPage/MyPostList'
 import MyCommentList from './pages/MyPage/MyCommentList'
 import Bookmarked from './pages/MyPage/Bookmarked'
 import AdminDashboardPage from './pages/AdminPage/AdminDashboardPage'
+import AdminUsersPage from './pages/AdminPage/AdminUsersPage'
+import AdminReportsPage from './pages/AdminPage/AdminReportsPage'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
@@ -31,6 +33,7 @@ function App(): JSX.Element {
     notificationSSE.start(token)
     return () => notificationSSE.stop()
   }, [])
+
   return (
     <Router>
       <Routes>
@@ -38,6 +41,7 @@ function App(): JSX.Element {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/main" element={<MainPage />} />
+        {/* 게시판 */}
         <Route path="/free" element={<FreePostList />} />
         <Route path="/free/:id" element={<FreePostDetail />} />
         <Route path="/free/write" element={<FreePostWrite />} />
@@ -50,12 +54,16 @@ function App(): JSX.Element {
         <Route path="/tip/:id" element={<TipPostDetail />} />
         <Route path="/tip/write" element={<TipPostWrite />} />
         <Route path="/tip/edit/:id" element={<TipPostEdit />} />
+        {/* 마이페이지 */}
         <Route path="/mypage" element={<MyPage />} />
         <Route path="/mypage/posts" element={<MyPostList />} />
         <Route path="/mypage/comments" element={<MyCommentList />} />
         <Route path="/mypage/bookmarked" element={<Bookmarked />} />
-        <Route path="/admin" element={<AdminDashboardPage />} />
         <Route path="/mypage/edit-info" element={<EditInfoPage />} />
+        {/* 관리자 페이지 */}
+        <Route path="/admin" element={<AdminDashboardPage />} />
+        <Route path="/admin/users" element={<AdminUsersPage />} />{' '}
+        <Route path="/admin/reports" element={<AdminReportsPage />} />{' '}
       </Routes>
 
       <ToastContainer

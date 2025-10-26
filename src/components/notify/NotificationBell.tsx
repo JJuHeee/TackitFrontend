@@ -26,19 +26,20 @@ export default function NotificationBell() {
         aria-label="알림"
         title={isOffline ? '오프라인: 캐시된 알림을 표시 중' : '알림'}
       >
-        <img src="/assets/icons/bell.svg" alt="알림" className="w-5 h-5" />
+        <img src="/icons/bell.svg" alt="알림" className="w-5 h-5" />
 
         {unreadCount > 0 && (
           <span
             className="absolute z-10 pointer-events-none
-                   -top-[2px] -right-[2px] w-[6px] h-[6px] rounded-full
-                   bg-label-primary"
+                 top-[2px] right-[2px] w-[8px] h-[8px] rounded-full
+                 bg-[var(--color-primary-500)]"
           />
         )}
 
         {isOffline && (
           <span
-            className="absolute -bottom-0.5 -right-0.5 w-[8px] h-[8px] rounded-full bg-[var(--warning)]"
+            className="absolute bottom-[2px] right-[2px] w-[8px] h-[8px] rounded-full
+                 bg-[var(--warning)]"
             aria-hidden
           />
         )}
