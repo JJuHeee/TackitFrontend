@@ -196,7 +196,7 @@ function QnaPostDetail() {
     try {
       await api.post('/reports/create', {
         targetId: p.targetId,
-        targetType: p.targetType, // 'COMMENT'
+        targetType: 'QNA_COMMENT', // 'COMMENT'
         reason: p.reason,
       })
       await api.post(`/api/qna-comment/${p.targetId}/report`)
@@ -246,7 +246,7 @@ function QnaPostDetail() {
     try {
       await api.post('/reports/create', {
         targetId: p.targetId,
-        targetType: p.targetType, // 'POST'
+        targetType: 'QNA_POST', // 'POST'
         reason: p.reason,
       })
       const res = await api.post(`/api/qna-post/${postId}/report`)

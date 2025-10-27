@@ -97,6 +97,7 @@
   --label-disable: var(--color-gray-200);
   --label-primary: var(--color-primary-500);
   --label-inverse: var(--common-white);
+  --label-danger: var(--system-red);
 
   --line-normal: var(--color-gray-200);
   --line-focus: var(--color-gray-500);
@@ -106,6 +107,7 @@
   --background-blue: var(--color-primary-50);
   --background-neutral: var(--color-gray-50);
   --background-active: var(--color-gray-500);
+  --background-red: rgba(255, 66, 66, 0.1);
 
   --system-positive: var(--system-green);
   --system-warning: var(--system-yellow);

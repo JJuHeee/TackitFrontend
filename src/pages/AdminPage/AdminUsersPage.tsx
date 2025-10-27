@@ -39,6 +39,7 @@ export default function UserManagementPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [loading, setLoading] = useState(true)
+
   const role = localStorage.getItem('role')
   const filterToId = filter === '전체' ? 0 : filter === '사용중' ? 1 : 2
 
@@ -53,8 +54,8 @@ export default function UserManagementPage() {
           res.data?.length ? res.data : usersFromApi
         ) as RawUser[]
         setUsers(normalize(payload))
-      } catch (e) {
-        setUsers(normalize(usersFromApi as RawUser[])) // 폴백
+      } catch {
+        setUsers(normalize(usersFromApi as RawUser[]))
       } finally {
         setLoading(false)
       }
@@ -128,15 +129,23 @@ export default function UserManagementPage() {
         </div>
 
         {/* 표 카드 */}
-        <div className="bg-white w-[1086px] rounded-2xl pt-[40px] pb-[16px] px-[24px]">
+        <div className="bg-white w-[1086px] rounded-2xl overflow-hidden pt-[40px] pb-[16px] px-[24px]">
           <div className="overflow-hidden bg-white rounded-xl">
-            <table className="w-full border-collapse text-[15px]">
-              <thead className="bg-[var(--background-neutral)] h-[52px] text-left text-[var(--label-neutral)] text-body-2">
+            <table className="w-full table-fixed border-collapse text-[15px]">
+              <thead className="bg-[var(--background-neutral)] text-left text-[var(--label-neutral)]">
                 <tr>
-                  <th className="pl-[32px] w-[25%]">닉네임</th>
-                  <th className="w-[35%]">이메일</th>
-                  <th className="w-[20%]">상태</th>
-                  <th className="w-[20%] pr-[32px] text-left">가입 일자</th>
+                  <th className="pl-[32px] w-[25%] py-[14px] align-middle whitespace-nowrap leading-[22px] text-body-2">
+                    닉네임
+                  </th>
+                  <th className="w-[35%] py-[14px] align-middle whitespace-nowrap leading-[22px] text-body-2">
+                    이메일
+                  </th>
+                  <th className="w-[20%] py-[14px] align-middle whitespace-nowrap leading-[22px] text-body-2">
+                    상태
+                  </th>
+                  <th className="w-[20%] pr-[32px] py-[14px] text-left align-middle whitespace-nowrap leading-[22px] text-body-2">
+                    가입 일자
+                  </th>
                 </tr>
               </thead>
 
@@ -144,13 +153,15 @@ export default function UserManagementPage() {
                 {pageUsers.map((u) => (
                   <tr
                     key={u.id}
-                    className="border-t border-[var(--line-normal)] h-[52px] text-body-1"
+                    className="border-t border-[var(--line-normal)] text-body-1"
                   >
-                    <td className="pl-[32px] text-[var(--label-normal)]">
+                    <td className="pl-[32px] py-[14px] align-middle text-[var(--label-normal)]">
                       {u.nickname}
                     </td>
-                    <td className="text-[var(--label-normal)]">{u.email}</td>
-                    <td>
+                    <td className="py-[14px] align-middle text-[var(--label-normal)]">
+                      {u.email}
+                    </td>
+                    <td className="py-[14px] align-middle">
                       {u.status === '사용중' ? (
                         <span className="inline-flex items-center justify-center px-[10px] py-[4px] rounded-md bg-[var(--background-blue)] text-[var(--label-primary)] text-body-2">
                           사용중
@@ -161,7 +172,7 @@ export default function UserManagementPage() {
                         </span>
                       )}
                     </td>
-                    <td className="pr-[32px] text-[var(--label-normal)] text-body-1">
+                    <td className="pr-[32px] py-[14px] align-middle text-[var(--label-normal)] text-body-1">
                       <div className="flex flex-col items-start justify-center h-full">
                         <span>{u.joinedAt}</span>
                       </div>

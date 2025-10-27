@@ -115,7 +115,7 @@ function TipPostDetail() {
       }
       await api.post(`/reports/create`, {
         targetId: Number(id),
-        targetType: 'POST',
+        targetType: 'TIP_POST',
         reason: reasonToUse,
       })
       const res = await api.post<{ message?: string } | string>(

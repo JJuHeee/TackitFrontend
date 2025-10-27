@@ -241,7 +241,7 @@ function FreePostDetail() {
     try {
       await api.post(`/reports/create`, {
         targetId: p.targetId,
-        targetType: p.targetType, // 'POST'
+        targetType: 'FREE_POST', // 'POST'
         reason: p.reason,
       })
       const res = await api.post(`/free-posts/${id}/report`)
@@ -264,7 +264,7 @@ function FreePostDetail() {
     try {
       await api.post(`/reports/create`, {
         targetId: p.targetId,
-        targetType: p.targetType, // 'COMMENT'
+        targetType: 'FREE_COMMENT', // 'COMMENT'
         reason: p.reason,
       })
       await api.post(`free-comments/${p.targetId}/report`)

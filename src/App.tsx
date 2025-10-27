@@ -23,7 +23,8 @@ import MyCommentList from './pages/MyPage/MyCommentList'
 import Bookmarked from './pages/MyPage/Bookmarked'
 import AdminDashboardPage from './pages/AdminPage/AdminDashboardPage'
 import AdminUsersPage from './pages/AdminPage/AdminUsersPage'
-import AdminReportsPage from './pages/AdminPage/AdminReportsPage'
+import AdminReportsPage from './pages/AdminPage/ReportListPage'
+import ReportReasonDetailPage from './pages/AdminPage/ReportDetailPage'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
@@ -64,6 +65,10 @@ function App(): JSX.Element {
         <Route path="/admin" element={<AdminDashboardPage />} />
         <Route path="/admin/users" element={<AdminUsersPage />} />{' '}
         <Route path="/admin/reports" element={<AdminReportsPage />} />{' '}
+        <Route
+          path="/admin/reports/:targetId"
+          element={<ReportReasonDetailPage />}
+        />
       </Routes>
 
       <ToastContainer
