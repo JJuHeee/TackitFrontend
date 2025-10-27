@@ -136,14 +136,6 @@ export default function AdminReportStatusPage() {
       setLoading(true)
       try {
         const token = localStorage.getItem('accessToken')
-
-        const statusParam =
-          filter === '전체'
-            ? 'ALL'
-            : filter === '신고 접수'
-            ? 'RECEIVED'
-            : 'DISABLED'
-
         const res = await api.get<{
           page: number
           content: RawReport[]
@@ -152,26 +144,35 @@ export default function AdminReportStatusPage() {
           totalPages: number
         }>('/api/admin/dashboard/reports', {
           headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-          params: {
-            page: page - 1, // 서버는 0-base
-            size: PAGE_SIZE,
-            status: statusParam, // 서버가 미지원이면 제거
-          },
+          params: { page: page - 1, size: PAGE_SIZE, status: 'ALL' }, // 전체 요청
         })
 
-        const src = res?.data?.content?.length ? res.data.content : fallback
-        if (mounted) {
-          setItems(src.map(toView)) // ✅ 서버가 내려준 '해당 페이지' 데이터 그대로 사용
-          setTotalPages(
-            res?.data?.totalPages ??
-              Math.max(Math.ceil(src.length / PAGE_SIZE), 1)
-          )
+        let src: RawReport[] = Array.isArray(res?.data?.content)
+          ? res.data.content
+          : []
+
+        if (filter === '신고 접수') {
+          src = src.filter((r) => r.status === 'ACTIVE')
+        } else if (filter === '비활성화') {
+          src = src.filter((r) => r.status === 'DISABLED')
         }
-      } catch {
-        const src = fallback
+
         if (mounted) {
           setItems(src.map(toView))
-          setTotalPages(Math.max(Math.ceil(src.length / PAGE_SIZE), 1))
+          setTotalPages(res?.data?.totalPages ?? 1)
+        }
+      } catch {
+        let src: RawReport[] = fallback
+
+        if (filter === '신고 접수') {
+          src = src.filter((r) => r.status === 'ACTIVE')
+        } else if (filter === '비활성화') {
+          src = src.filter((r) => r.status === 'DISABLED')
+        }
+
+        if (mounted) {
+          setItems(src.map(toView))
+          setTotalPages(1)
         }
       } finally {
         if (mounted) setLoading(false)
