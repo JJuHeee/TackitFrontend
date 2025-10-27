@@ -6,6 +6,7 @@ import Footer from '../../components/layouts/Footer'
 import api from '../../api/api'
 import PostRowCompact from '../../components/posts/PostRowCompact'
 import './MainPage.css'
+import PopularPostsSection from './PopularPostsSection'
 import {
   fallbackQnaPosts,
   fallbackFreePosts,
@@ -120,7 +121,9 @@ export default function MainPage() {
             <h2 className="text-title-1 text-label-normal">
               이번주 인기 게시물
             </h2>
-            {/* TODO: 카드/차트 자리 */}
+            <div className="mt-[24px]">
+              <PopularPostsSection />
+            </div>
           </section>
 
           {/* 선배가 알려줘요 (TIP) */}
@@ -179,8 +182,6 @@ function SectionList({
         </Link>
       </div>
 
-      {/* 리스트: PostRowCompact 사용 (섹션 외곽선 없음) */}
-      {/* 리스트: PostRowCompact 사용 (섹션 외곽선 없음) */}
       <div className="overflow-hidden rounded-xl">
         {items.length === 0 ? (
           <EmptyRow />
@@ -200,7 +201,7 @@ function SectionList({
                 createdAt={p.createdAt}
                 tags={p.tags}
                 imageUrl={p.imageUrl ?? null}
-                previewLines={1} // ✅ 미리보기 1줄
+                previewLines={1}
                 showTags
                 showDate
                 density="comfortable"
