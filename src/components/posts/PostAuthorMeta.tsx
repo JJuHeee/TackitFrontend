@@ -1,4 +1,3 @@
-// components/posts/PostAuthorMeta.tsx
 import React from 'react'
 
 type PostAuthorMetaProps = {
@@ -35,11 +34,9 @@ export default function PostAuthorMeta({
 
       {/* 닉네임 | 날짜 */}
       <div className="flex items-center gap-2">
-        <span className="text-body1-semibold text-label-normal">
-          {writer || ''}
-        </span>
+        <span className="text-body-1sb text-label-normal">{writer || ''}</span>
         <span className="text-label-assistive">|</span>
-        <span className="text-body2-regular text-label-neutral">
+        <span className="text-body-2 text-label-neutral">
           {formatDate(createdAt)}
         </span>
       </div>

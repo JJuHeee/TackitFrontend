@@ -12,6 +12,7 @@ type RowStatus = 'ACTIVE' | 'DISABLED' | string
 
 type RawReport = {
   reportId: number
+  targetId: number
   targetType: TargetType
   title: string
   status: RowStatus
@@ -23,6 +24,7 @@ type RawReport = {
 // 뷰 모델
 type ViewReport = {
   reportId: number
+  targetId: number
   targetType: TargetType
   boardLabel: '자유게시판' | '질문게시판' | '선임자의 TIP' | string
   title: string
@@ -54,6 +56,7 @@ function toView(r: RawReport): ViewReport {
 
   return {
     reportId: r.reportId,
+    targetId: r.targetId,
     targetType: r.targetType,
     boardLabel: boardLabelOf(r.targetType),
     title: r.title,
@@ -67,6 +70,7 @@ function toView(r: RawReport): ViewReport {
 const fallback: RawReport[] = [
   {
     reportId: 1,
+    targetId: 1,
     targetType: 'TIP_POST',
     title: '팁 제목',
     status: 'ACTIVE',
@@ -75,6 +79,7 @@ const fallback: RawReport[] = [
   },
   {
     reportId: 2,
+    targetId: 2,
     targetType: 'FREE_POST',
     title: '[비활성화] 광고성 글로 신고된 게시글 예시',
     status: 'DISABLED',
@@ -242,8 +247,7 @@ export default function AdminReportStatusPage() {
 
                   {!loading &&
                     items.map((r, i) => {
-                      // 상세 이동 경로: targetId가 있어야 정확. 없으면 아이콘 비활성화
-                      const detailHref = undefined // r.targetId ? `/admin/reports/${r.targetId}` : undefined
+                      const detailHref = `/admin/reports/${r.targetId}`
                       return (
                         <tr
                           key={r.reportId}
