@@ -1,14 +1,16 @@
 // src/pages/Main/MainPage.tsx
 import React, { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import HomeBar from '../../components/HomeBar'
 import Footer from '../../components/layouts/Footer'
 import api from '../../api/api'
 import PostRowCompact from '../../components/posts/PostRowCompact'
 import './MainPage.css'
 import PopularPostsSection from './PopularPostsSection'
+import OnboardingModal from '../../components/modals/OnboardingModal'
 
-// ---------- 공통 타입 ----------
+const ONBOARD_KEY = 'onboard.seen.v1'
+
 type PostId = number
 type BaseItem = {
   id: PostId
@@ -23,7 +25,6 @@ type PageResponse<T> = {
   content: T[]
 }
 
-// ---------- 응답 정규화 ----------
 const toTip = (x: any): BaseItem => ({
   id: x.id,
   title: x.title,
@@ -34,7 +35,7 @@ const toTip = (x: any): BaseItem => ({
   imageUrl: x.imageUrl ?? null,
 })
 const toQna = (x: any): BaseItem => ({
-  id: x.postId, // ✅ QnA는 postId
+  id: x.postId,
   title: x.title,
   content: x.content ?? '',
   writer: x.writer ?? '',
@@ -52,7 +53,6 @@ const toFree = (x: any): BaseItem => ({
   imageUrl: x.imageUrl ?? null,
 })
 
-// ---------- 순수 fetch ----------
 async function fetchPosts(
   url: string,
   mapFn: (x: any) => BaseItem
@@ -61,7 +61,7 @@ async function fetchPosts(
     const { data } = await api.get<PageResponse<any>>(url)
     return (data?.content ?? []).map(mapFn)
   } catch {
-    return [] // 에러 시 빈 배열 → EmptyRow 노출
+    return []
   }
 }
 
@@ -69,6 +69,8 @@ export default function MainPage() {
   const [tips, setTips] = useState<BaseItem[]>([])
   const [qnas, setQnas] = useState<BaseItem[]>([])
   const [frees, setFrees] = useState<BaseItem[]>([])
+  const { state } = useLocation() as { state?: { showOnboarding?: boolean } }
+  const [openOnboarding, setOpenOnboarding] = useState(false)
 
   useEffect(() => {
     // TIP 최신 3개
@@ -88,6 +90,20 @@ export default function MainPage() {
       toFree
     ).then(setFrees)
   }, [])
+
+  useEffect(() => {
+    const seen = localStorage.getItem(ONBOARD_KEY)
+    if (!seen) {
+      setOpenOnboarding(true)
+    }
+  }, [])
+
+  const dismiss = (dontShowAgain: boolean) => {
+    if (dontShowAgain) {
+      localStorage.setItem(ONBOARD_KEY, '1')
+    }
+    setOpenOnboarding(false)
+  }
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -130,6 +146,8 @@ export default function MainPage() {
       </main>
 
       <Footer />
+
+      {openOnboarding && <OnboardingModal onClose={dismiss} />}
     </div>
   )
 }
@@ -148,7 +166,6 @@ function SectionList({
 }) {
   return (
     <section className="mb-[60px]">
-      {/* 헤더: title1-bold / label-normal + 오른쪽 전체보기(body2-regular / label-neutral) */}
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-title-1 text-label-normal">{title}</h3>
         <Link
