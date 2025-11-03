@@ -7,11 +7,6 @@ import api from '../../api/api'
 import PostRowCompact from '../../components/posts/PostRowCompact'
 import './MainPage.css'
 import PopularPostsSection from './PopularPostsSection'
-import {
-  fallbackQnaPosts,
-  fallbackFreePosts,
-  fallbackTipPosts,
-} from '../../data/fallbackPosts'
 
 // ---------- 공통 타입 ----------
 type PostId = number
@@ -25,11 +20,7 @@ type BaseItem = {
   imageUrl?: string | null
 }
 type PageResponse<T> = {
-  page?: number
   content: T[]
-  size?: number
-  totalElements?: number
-  totalPages?: number
 }
 
 // ---------- 응답 정규화 ----------
@@ -61,20 +52,17 @@ const toFree = (x: any): BaseItem => ({
   imageUrl: x.imageUrl ?? null,
 })
 
-// ---------- 공통 fetch + fallback ----------
-async function fetchWithFallback(
+// ---------- 순수 fetch ----------
+async function fetchPosts(
   url: string,
-  mapFn: (x: any) => BaseItem,
-  fallback: { content: any[] }
-) {
+  mapFn: (x: any) => BaseItem
+): Promise<BaseItem[]> {
   try {
     const { data } = await api.get<PageResponse<any>>(url)
-    const arr = (data?.content ?? []).map(mapFn)
-    if (arr.length) return arr
+    return (data?.content ?? []).map(mapFn)
   } catch {
-    // ignore
+    return [] // 에러 시 빈 배열 → EmptyRow 노출
   }
-  return (fallback.content ?? []).map(mapFn)
 }
 
 export default function MainPage() {
@@ -84,24 +72,20 @@ export default function MainPage() {
 
   useEffect(() => {
     // TIP 최신 3개
-    fetchWithFallback(
-      '/api/tip-posts?page=0&size=3&sort=createdAt,desc',
-      toTip,
-      fallbackTipPosts
-    ).then(setTips)
+    fetchPosts('/api/tip-posts?page=0&size=3&sort=createdAt,desc', toTip).then(
+      setTips
+    )
 
     // QNA 최신 3개
-    fetchWithFallback(
+    fetchPosts(
       '/api/qna-post/list?page=0&size=3&sort=createdAt,desc',
-      toQna,
-      fallbackQnaPosts
+      toQna
     ).then(setQnas)
 
     // FREE 최신 3개
-    fetchWithFallback(
+    fetchPosts(
       '/api/free-posts?page=0&size=3&sort=createdAt,desc',
-      toFree,
-      fallbackFreePosts
+      toFree
     ).then(setFrees)
   }, [])
 
@@ -116,15 +100,8 @@ export default function MainPage() {
             <img src="/banners/home-banner.svg" alt="홈 배너" />
           </div>
 
-          {/* 이번주 인기 게시물(헤더만, 공간 비워둠) */}
-          <section className="mb-[60px]">
-            <h2 className="text-title-1 text-label-normal">
-              이번주 인기 게시물
-            </h2>
-            <div className="mt-[24px]">
-              <PopularPostsSection />
-            </div>
-          </section>
+          {/* 인기 게시물: 섹션/헤더를 PopularPostsSection 내부로 이동 */}
+          <PopularPostsSection />
 
           {/* 선배가 알려줘요 (TIP) */}
           <SectionList
@@ -217,6 +194,15 @@ function SectionList({
 
 function EmptyRow() {
   return (
-    <div className="py-16 text-center text-body-2">아직 게시글이 없어요.</div>
+    <div className="flex flex-col items-center justify-center min-h-[228px] py-10 bg-white rounded-xl">
+      <img
+        src="/icons/empty.svg"
+        alt="아직 게시글이 없어요!"
+        className="w-20 h-20 mb-4"
+      />
+      <p className="text-body-1sb text-label-normal">
+        아직 작성한 글이 없어요!
+      </p>
+    </div>
   )
 }

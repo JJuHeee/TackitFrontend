@@ -111,14 +111,14 @@ function FreePostList() {
       <div className="flex flex-col min-h-screen">
         <HomeBar />
         <main className="flex-1">
-          <div className="post-container">
-            <div className="post-banner">
+          <div className="freepost-container">
+            <div className="freepost-banner">
               <img src="/banners/free-banner.svg" alt="자유게시판 배너" />
             </div>
 
             {/* 태그칩 + 글쓰기 버튼 */}
-            <div className="post-topbar">
-              <div className="post-tags">
+            <div className="freepost-topbar">
+              <div className="freepost-tags">
                 <TagChips
                   endpoint="/api/free_tags"
                   mode="single"
@@ -147,7 +147,7 @@ function FreePostList() {
             </div>
 
             {/* 리스트 */}
-            <div className="post-list">
+            <div className="freepost-list">
               {posts.length === 0 ? (
                 <div className="flex flex-col items-center py-20 no-result">
                   <img

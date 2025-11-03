@@ -38,7 +38,7 @@ const HomeBar: React.FC = () => {
               신입이 질문해요
             </NavLink>
             <NavLink to="/free" className={linkClass}>
-              자유롭게 얘기해요
+              다같이 얘기해요
             </NavLink>
           </nav>
         </div>

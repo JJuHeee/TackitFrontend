@@ -27,6 +27,14 @@ const Footer: React.FC = () => {
             href="#"
             className="text-body-1sb text-label-normal hover:underline"
           >
+            자주 묻는 질문
+          </a>
+          <span className="text-line-normal">|</span>
+          {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+          <a
+            href="#"
+            className="text-body-1sb text-label-normal hover:underline"
+          >
             이용약관
           </a>
           <span className="text-line-normal">|</span>
