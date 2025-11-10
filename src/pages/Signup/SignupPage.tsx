@@ -14,7 +14,7 @@ export default function SignupPage() {
   // 비밀번호 눈토글만 로컬 상태로
   const [passwordVisible, setPasswordVisible] = useState(false)
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false)
-  const currentYear = new Date().getFullYear()
+
   const yearOptions = useMemo(() => {
     const startYear = 2015
     const endYear = new Date().getFullYear()
@@ -23,6 +23,7 @@ export default function SignupPage() {
       (_, i) => endYear - i
     )
   }, [])
+
   const [joinedYear, setJoinedYear] = useState<number | ''>('')
   const joinedYearInvalid =
     joinedYear === '' || !yearOptions.includes(Number(joinedYear))
@@ -49,10 +50,8 @@ export default function SignupPage() {
     setRole,
 
     // 유효성/메시지
-    emailInvalid,
     pwInvalid,
     confirmInvalid,
-    nickInvalid,
     orgInvalid,
     emailHasError,
     emailMessage,
@@ -197,6 +196,7 @@ export default function SignupPage() {
                 message={orgInvalid ? '소속을 입력해 주세요.' : undefined}
               />
 
+              {/* 입사년도 */}
               <TextField
                 id="joinedYear"
                 label="입사년도"
@@ -207,7 +207,7 @@ export default function SignupPage() {
                   const v = e.target.value
                   setJoinedYear(v === '' ? '' : Number(v))
                 }}
-                rightIconSrc="/icons/calendar.svg" // public/icons/calendar.svg 사용
+                rightIconSrc="/icons/calendar.svg" // public/icons/calendar.svg
                 dropdownOptions={yearOptions} // [올해, 올해-1, ...]
                 invalid={showJoinedYearError}
                 message={joinedYearMessage}
