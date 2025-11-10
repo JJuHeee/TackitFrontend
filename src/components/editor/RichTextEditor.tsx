@@ -74,36 +74,6 @@ function InternalEditor(
     focus: () => quillRef.current?.focus(),
   }))
 
-  // 에디터에 있는 "첫 번째 이미지"를 새 URL로 교체
-  const replaceFirstImageWith = (quill: any, newUrl: string) => {
-    const imgEl = quill.root.querySelector('img')
-    if (!imgEl) {
-      const range = quill.getSelection(true) || {
-        index: quill.getLength(),
-        length: 0,
-      }
-      quill.insertEmbed(range.index, 'image', newUrl, 'user')
-      quill.setSelection(range.index + 1, 0, 'user')
-      return
-    }
-    const blot = Quill.find(imgEl)
-    const index = quill.getIndex(blot)
-    quill.deleteText(index, 1, 'user') // embed 길이는 1
-    quill.insertEmbed(index, 'image', newUrl, 'user')
-    quill.setSelection(index + 1, 0, 'user')
-  }
-
-  const insertAtCursor = (url: string) => {
-    const quill = quillRef.current?.getEditor()
-    if (!quill) return
-    const range = quill.getSelection(true) || {
-      index: quill.getLength(),
-      length: 0,
-    }
-    quill.insertEmbed(range.index, 'image', url, 'user')
-    quill.setSelection(range.index + 1, 0, 'user')
-  }
-
   // 이미지 버튼 → 파일 선택
   const pickImage = useCallback(() => {
     if (variant === 'comment') return

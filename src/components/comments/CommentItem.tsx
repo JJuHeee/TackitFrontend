@@ -1,7 +1,6 @@
 // src/components/comments/CommentItem.tsx
 import React, { useEffect, useState } from 'react'
 import PostAuthorMeta from '../posts/PostAuthorMeta'
-import { stripHtml } from '../../utils/stripHtml'
 import DOMPurify from 'dompurify'
 import CommentEditor from './CommentEditor'
 

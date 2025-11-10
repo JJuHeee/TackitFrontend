@@ -18,11 +18,11 @@ export function useUserForm(initialRole = '') {
     () => !!email && !/^\S+@\S+\.\S+$/.test(email),
     [email]
   )
-  const passwordRegex =
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_\-+=\[{\]};:'",.<>/?\\|`~]).{8,}$/
+  const PASSWORD_REGEX =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_\-+={[\]};:'",.<>/?\\|`~]).{8,}$/
 
   const pwInvalid = useMemo(
-    () => !!password && !passwordRegex.test(password),
+    () => !!password && !PASSWORD_REGEX.test(password),
     [password]
   )
   const confirmInvalid = useMemo(

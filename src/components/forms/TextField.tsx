@@ -138,6 +138,7 @@ export default function TextField({
     (showToggle && value) || showCount || hasDropdownIcon
   const rightPadClass = hasRightAdornment ? 'pr-14' : 'pr-11'
   const count = typeof value === 'string' ? value.length : 0
+  const listboxId = id ? `${id}-listbox` : undefined
 
   // ✅ border 클래스 (항상 border 보이게)
   const borderClasses = invalid
@@ -160,7 +161,6 @@ export default function TextField({
         </label>
       )}
       <div className="relative">
-        {/* 입력창 */}
         <input
           id={id}
           type={inputType}
@@ -178,8 +178,6 @@ export default function TextField({
           readOnly={readOnly}
           aria-invalid={invalid || undefined}
           aria-describedby={describedBy}
-          aria-haspopup={hasDropdownIcon ? 'listbox' : undefined}
-          aria-expanded={hasDropdownIcon ? open : undefined}
           className={[
             'w-full h-12 px-[14px] rounded-xl transition outline-none',
             passwordSizeClasses,
@@ -190,8 +188,6 @@ export default function TextField({
             rightPadClass,
             isPasswordMasked ? 'password-mask' : '',
           ].join(' ')}
-          // 인풋 자체 클릭으로도 드롭을 열고 싶다면 아래 주석 해제
-          // onClick={() => hasDropdownIcon && setOpen(v => !v)}
         />
 
         {/* 비밀번호 눈 아이콘 */}
@@ -212,6 +208,9 @@ export default function TextField({
             type="button"
             onClick={() => setOpen((v) => !v)}
             aria-label="옵션 열기"
+            aria-haspopup="listbox"
+            aria-expanded={open}
+            aria-controls={listboxId}
             className="absolute flex items-center justify-center w-5 h-5 -translate-y-1/2 right-3 top-1/2"
           >
             <img
@@ -237,6 +236,7 @@ export default function TextField({
             role="listbox"
             tabIndex={-1}
             ref={listRef}
+            id={listboxId}
             onKeyDown={onListKeyDown}
             className="absolute right-0 z-20 mt-2 overflow-auto bg-white divide-y shadow-lg w-[75px] max-h-64 rounded-xl divide-line-normal"
           >
