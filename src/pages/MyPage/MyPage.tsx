@@ -1,8 +1,7 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import HomeBar from '../../components/HomeBar'
 import MyInfo from './MyInfo'
-import clsx from 'clsx'
 import Modal from '../../components/modals/Modal'
 import api from '../../api/api'
 import { toastSuccess, toastError } from '../../utils/toast'
@@ -19,6 +18,7 @@ export default function MyPageHome() {
   const navigate = useNavigate()
   const [logoutOpen, setLogoutOpen] = React.useState(false)
   const [withdrawOpen, setWithdrawOpen] = React.useState(false)
+
   const handleConfirmLogout = () => {
     setLogoutOpen(false)
 
@@ -53,7 +53,7 @@ export default function MyPageHome() {
         {},
         { headers: { Authorization: `Bearer ${accessToken}` } }
       )
-      toastSuccess(response.data.message || '탈퇴가 완료되었습니다.')
+      toastSuccess(response.data?.message || '탈퇴가 완료되었습니다.')
 
       try {
         notificationSSE.stop()
@@ -70,7 +70,7 @@ export default function MyPageHome() {
 
       setWithdrawOpen(false)
       navigate('/login')
-    } catch (err) {
+    } catch {
       toastError('탈퇴 처리 중 오류가 발생했습니다.')
     }
   }
@@ -118,6 +118,7 @@ export default function MyPageHome() {
                             />
                           </div>
                         </div>
+
                         <div className="ml-[24px]">
                           {/* 닉네임 + 역할 뱃지 */}
                           <div className="flex items-center gap-[8px] text-title-2b text-label-normal">
@@ -144,21 +145,16 @@ export default function MyPageHome() {
                             )}
                           </div>
 
-                          {/* ✅ 닉네임 아래 소속 + 이메일 표시 */}
+                          {/* 닉네임 아래 소속 + 이메일 */}
                           {!loading && (
                             <div className="mt-[8px] flex items-center">
-                              {/* 소속 */}
                               <span className="text-body1-regular text-label-neutral mr-[16px]">
                                 {me?.organization ?? '-'}
                               </span>
-
-                              {/* 구분선 | */}
                               <span
                                 className="inline-block w-px h-[16px] bg-[var(--line-normal)] mr-[16px]"
                                 aria-hidden="true"
                               />
-
-                              {/* 이메일 */}
                               <span className="text-body1-regular text-label-neutral">
                                 {me?.email ?? '-'}
                               </span>

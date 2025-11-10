@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../../api/api'
 import { toastSuccess, toastError, toastWarn } from '../../utils/toast'
@@ -63,7 +63,7 @@ function EditInfoForm({ myInfo }: { myInfo: MyInfoData }) {
     }
   }
 
-  // 버튼 활성화 조건(회원가입 전용 isFormValid 대신, 프로필용 로직)
+  // 버튼 활성화 조건(회원정보 수정 전용)
   const hasPw = password.trim().length > 0
   const pwPolicyOk = !hasPw || passwordRegex.test(password)
   const hasChange = hasPw || nickname !== myInfo.nickname
@@ -169,9 +169,6 @@ function EditInfoForm({ myInfo }: { myInfo: MyInfoData }) {
 
 export default function EditInfoPage() {
   const navigate = useNavigate()
-  const [passwordVisible, setPasswordVisible] = useState(false)
-  const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false)
-  const [userLoaded, setUserLoaded] = useState(false)
 
   return (
     <>
@@ -185,37 +182,33 @@ export default function EditInfoPage() {
               className="no-underline cursor-pointer text-title1-bold text-label-assistive hover:text-label-normal"
               style={{ textDecoration: 'none' }}
             >
-              {' '}
-              마이페이지{' '}
-            </span>{' '}
+              마이페이지
+            </span>
             <img
               src="/assets/icons/chevron-right.svg"
               alt=">"
-              className="w-5.5 h-5.5 text-label-assistive"
-            />{' '}
+              className="w-[22px] h-[22px] text-label-assistive"
+            />
             <span
               onClick={() => navigate('/mypage')}
               className="no-underline cursor-pointer text-title1-bold text-label-assistive hover:text-label-normal"
               style={{ textDecoration: 'none' }}
             >
-              {' '}
-              프로필{' '}
-            </span>{' '}
+              프로필
+            </span>
             <img
               src="/assets/icons/chevron-right.svg"
               alt=">"
-              className="w-5.5 h-5.5 text-label-assistive"
-            />{' '}
+              className="w-[22px] h-[22px] text-label-assistive"
+            />
             <span className="text-title1-bold text-label-normal">
-              {' '}
-              프로필 편집{' '}
-            </span>{' '}
+              프로필 편집
+            </span>
           </div>
 
           <div className="relative flex flex-col items-center min-h-screen">
             <div className="mt-6 w-[440px] px-5 pt-8 pb-[60px] max-[560px]:static max-[560px]:w-full max-[560px]:mt-8">
               {/* 프로필 이미지 */}
-
               <div className="flex justify-center mb-6">
                 {/* 프로필 아이콘 + 수정 아이콘을 감싸는 래퍼 */}
                 <div className="relative w-[100px] h-[100px]">
@@ -224,13 +217,12 @@ export default function EditInfoPage() {
                     src="/icons/mypage-icon.svg"
                     alt="프로필 아이콘"
                     className="w-full h-full rounded-full bg-[#f5f5f5] cursor-pointer hover:opacity-80 transition"
-                    onClick={() => {}}
+                    onClick={() => navigate('/mypage/edit-info')}
                   />
-
                   {/* 수정 아이콘 (오른쪽 아래 겹침) */}
                   <div
                     className="absolute bottom-0 right-0 w-[32px] h-[32px] flex items-center justify-center cursor-pointer"
-                    onClick={() => {}}
+                    onClick={() => navigate('/mypage/edit-info')}
                   >
                     <img
                       src="/icons/edit.svg"
@@ -264,5 +256,28 @@ export default function EditInfoPage() {
         </div>
       </main>
     </>
+  )
+}
+
+function ActivityItem({
+  icon,
+  label,
+  onClick,
+}: {
+  icon: string
+  label: string
+  onClick?: () => void
+}) {
+  return (
+    <div
+      className="flex h-full w-full flex-col items-start justify-start px-[24px] py-[24px] cursor-pointer hover:bg-background-neutral transition-colors"
+      onClick={onClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => e.key === 'Enter' && onClick?.()}
+    >
+      <img src={icon} alt={label} className="w-[28px] h-[28px] mb-[12px]" />
+      <span className="text-title-2b text-label-normal">{label}</span>
+    </div>
   )
 }

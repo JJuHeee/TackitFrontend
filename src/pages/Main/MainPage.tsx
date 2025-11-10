@@ -1,4 +1,3 @@
-// src/pages/Main/MainPage.tsx
 import React, { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import HomeBar from '../../components/HomeBar'
@@ -34,6 +33,7 @@ const toTip = (x: any): BaseItem => ({
   tags: x.tags ?? [],
   imageUrl: x.imageUrl ?? null,
 })
+
 const toQna = (x: any): BaseItem => ({
   id: x.postId,
   title: x.title,
@@ -43,6 +43,7 @@ const toQna = (x: any): BaseItem => ({
   tags: x.tags ?? [],
   imageUrl: x.imageUrl ?? null,
 })
+
 const toFree = (x: any): BaseItem => ({
   id: x.id,
   title: x.title,
@@ -92,11 +93,16 @@ export default function MainPage() {
   }, [])
 
   useEffect(() => {
+    // 최초 방문 시 온보딩 노출
     const seen = localStorage.getItem(ONBOARD_KEY)
     if (!seen) {
       setOpenOnboarding(true)
     }
-  }, [])
+    // 특정 라우팅에서 강제 노출하고 싶다면:
+    if (state?.showOnboarding) {
+      setOpenOnboarding(true)
+    }
+  }, [state?.showOnboarding])
 
   const dismiss = (dontShowAgain: boolean) => {
     if (dontShowAgain) {
@@ -113,14 +119,15 @@ export default function MainPage() {
 
       <main className="flex-1">
         <div className="home-container">
-          {/* 배너: 아래 여백 80 */}
+          {/* 배너: 아래 여백 112 */}
           <div className="home-banner !mb-[112px]">
             <img src="/banners/home-banner.svg" alt="홈 배너" />
           </div>
 
-          {/* 인기 게시물: 섹션/헤더를 PopularPostsSection 내부로 이동 */}
+          {/* 인기 게시물 */}
           <PopularPostsSection />
 
+          {/* 선배가 알려줘요 (TIP) */}
           <SectionList
             sectionTitle={
               <span className="flex items-center gap-2">
@@ -154,6 +161,7 @@ export default function MainPage() {
             items={qnas}
           />
 
+          {/* 자유게시판 (Free) */}
           <SectionList
             sectionTitle={
               <span className="flex items-center gap-2">
@@ -171,6 +179,7 @@ export default function MainPage() {
           />
         </div>
       </main>
+
       <MainFooter />
 
       {openOnboarding && <OnboardingModal onClose={dismiss} />}
@@ -184,7 +193,7 @@ function SectionList({
   moreTo,
   items,
 }: {
-  sectionTitle: string | React.ReactNode
+  sectionTitle: React.ReactNode
   moreText: string
   moreTo: string
   items: BaseItem[]
@@ -222,7 +231,7 @@ function SectionList({
                   writer={p.writer}
                   createdAt={p.createdAt}
                   tags={p.tags}
-                  imageUrl={p.imageUrl ?? null}
+                  imageUrl={p.imageUrl ?? undefined} // <- null 대신 undefined로 전달
                   previewLines={1}
                   showTags
                   showDate
