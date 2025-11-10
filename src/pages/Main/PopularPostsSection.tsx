@@ -1,5 +1,3 @@
-// src/components/home/PopularPostsSection.tsx
-
 import React, { useEffect, useState } from 'react'
 import PopularPostCard, {
   PopularPost,
@@ -67,12 +65,17 @@ export default function PopularPostsSection() {
     }
   }, [])
 
-  // ✅ 인기글 없으면 섹션 자체 미노출
-  if (!items.length) return null
-
   return (
     <section className="mb-[60px]">
-      <h2 className="text-title-1 text-label-normal">이번주 인기 게시물</h2>
+      <h2 className="flex items-center gap-2 text-title-1 text-label-normal">
+        <img
+          src="/icons/popular.svg"
+          alt="인기 게시물 아이콘"
+          className="ml-[24px] w-[40px] h-[40px]"
+        />
+        이번주 인기 게시글
+      </h2>
+
       <div className="mt-[24px] flex gap-[25px] flex-wrap">
         {items.map((post, i) => (
           <PopularPostCard

@@ -49,7 +49,6 @@ export default function PostRowCompact({
   borderColor = 'var(--line-normal)',
   onClick,
 
-  // ✅ 기본값은 “메인 피드” 친화적
   showReplyIcon = false,
   hideWriter = false,
   showTags = true,
@@ -80,7 +79,6 @@ export default function PostRowCompact({
         gap,
       }}
     >
-      {/* 상단: (아이콘) + 제목/미리보기 + 썸네일 */}
       <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
         {showReplyIcon && (
           <div style={{ color: 'var(--label-neutral)', marginTop: 4 }}>
@@ -97,7 +95,7 @@ export default function PostRowCompact({
             gap: 6,
           }}
         >
-          <h3 className="text-title-1 text-label-normal" style={{ margin: 0 }}>
+          <h3 className="text-title-2b text-label-normal" style={{ margin: 0 }}>
             {title ?? '(제목 없음)'}
           </h3>
           <PostPreview

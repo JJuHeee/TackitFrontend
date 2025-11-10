@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import HomeBar from '../../components/HomeBar'
-import Footer from '../../components/layouts/Footer'
+import MainFooter from '../../components/layouts/MainFooter'
 import api from '../../api/api'
 import PostRowCompact from '../../components/posts/PostRowCompact'
 import './MainPage.css'
@@ -106,22 +106,32 @@ export default function MainPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <HomeBar />
+    <div className="flex flex-col min-h-screen bg-background-blue">
+      <div className="mb-4">
+        <HomeBar />
+      </div>
 
       <main className="flex-1">
         <div className="home-container">
           {/* 배너: 아래 여백 80 */}
-          <div className="home-banner mb-[80px]">
+          <div className="home-banner !mb-[112px]">
             <img src="/banners/home-banner.svg" alt="홈 배너" />
           </div>
 
           {/* 인기 게시물: 섹션/헤더를 PopularPostsSection 내부로 이동 */}
           <PopularPostsSection />
 
-          {/* 선배가 알려줘요 (TIP) */}
           <SectionList
-            title="선배가 알려줘요"
+            sectionTitle={
+              <span className="flex items-center gap-2">
+                <img
+                  src="/icons/tip.svg"
+                  alt="tip게시판 아이콘"
+                  className="w-[40px] h-[40px]"
+                />
+                선배가 알려줘요
+              </span>
+            }
             moreText="전체보기 >"
             moreTo="/tip"
             items={tips}
@@ -129,81 +139,100 @@ export default function MainPage() {
 
           {/* 신입이 질문해요 (QnA) */}
           <SectionList
-            title="신입이 질문해요"
+            sectionTitle={
+              <span className="flex items-center gap-2">
+                <img
+                  src="/icons/qna.svg"
+                  alt="질문게시판 아이콘"
+                  className="w-[40px] h-[40px]"
+                />
+                신입이 질문해요
+              </span>
+            }
             moreText="전체보기 >"
             moreTo="/qna"
             items={qnas}
           />
 
-          {/* 자유롭게 얘기해요 (Free) */}
           <SectionList
-            title="자유롭게 얘기해요"
+            sectionTitle={
+              <span className="flex items-center gap-2">
+                <img
+                  src="/icons/free.svg"
+                  alt="자유게시판 아이콘"
+                  className="w-[40px] h-[40px]"
+                />
+                다같이 얘기해요
+              </span>
+            }
             moreText="전체보기 >"
             moreTo="/free"
             items={frees}
           />
         </div>
       </main>
-
-      <Footer />
+      <MainFooter />
 
       {openOnboarding && <OnboardingModal onClose={dismiss} />}
     </div>
   )
 }
 
-/** 공통 섹션: 헤더 + 최신 3개 리스트 */
 function SectionList({
-  title,
+  sectionTitle,
   moreText,
   moreTo,
   items,
 }: {
-  title: string
+  sectionTitle: string | React.ReactNode
   moreText: string
   moreTo: string
   items: BaseItem[]
 }) {
   return (
     <section className="mb-[60px]">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-title-1 text-label-normal">{title}</h3>
-        <Link
-          to={moreTo}
-          className="text-body-2 text-label-neutral hover:underline"
-        >
-          {moreText}
-        </Link>
-      </div>
+      <div className="overflow-hidden bg-white rounded-xl">
+        {/* 제목 + 더보기 버튼 */}
+        <div className="flex items-center justify-between px-6 pt-6 mb-4">
+          <h3 className="text-title-1 text-label-normal">{sectionTitle}</h3>
+          <Link
+            to={moreTo}
+            className="text-body-2 text-label-neutral hover:underline"
+          >
+            {moreText}
+          </Link>
+        </div>
 
-      <div className="overflow-hidden rounded-xl">
-        {items.length === 0 ? (
-          <EmptyRow />
-        ) : (
-          items.slice(0, 3).map((p) => (
-            <Link
-              key={p.id}
-              to={`${moreTo.replace(/\/$/, '')}/${p.id}`}
-              className="block"
-              style={{ textDecoration: 'none' }}
-            >
-              <PostRowCompact
-                id={p.id}
-                title={p.title}
-                content={p.content}
-                writer={p.writer}
-                createdAt={p.createdAt}
-                tags={p.tags}
-                imageUrl={p.imageUrl ?? null}
-                previewLines={1}
-                showTags
-                showDate
-                density="comfortable"
-                className="bg-white"
-              />
-            </Link>
-          ))
-        )}
+        {/* 게시글 리스트 */}
+        <div>
+          {items.length === 0 ? (
+            <EmptyRow />
+          ) : (
+            items.slice(0, 3).map((p) => (
+              <Link
+                key={p.id}
+                to={`${moreTo.replace(/\/$/, '')}/${p.id}`}
+                className="block"
+                style={{ textDecoration: 'none' }}
+              >
+                <PostRowCompact
+                  id={p.id}
+                  title={p.title}
+                  content={p.content}
+                  writer={p.writer}
+                  createdAt={p.createdAt}
+                  tags={p.tags}
+                  imageUrl={p.imageUrl ?? null}
+                  previewLines={1}
+                  showTags
+                  showDate
+                  density="comfortable"
+                  className="bg-white"
+                />
+              </Link>
+            ))
+          )}
+        </div>
       </div>
     </section>
   )
@@ -211,7 +240,7 @@ function SectionList({
 
 function EmptyRow() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[228px] py-10 bg-white rounded-xl">
+    <div className="flex flex-col items-center justify-center min-h-[228px] py-10 rounded-xl">
       <img
         src="/icons/empty.svg"
         alt="아직 게시글이 없어요!"

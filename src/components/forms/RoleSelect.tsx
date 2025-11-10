@@ -24,7 +24,7 @@ export default function RoleSelect({
   renderHelper,
   renderIcon,
   className = '',
-  descriptionText = '선택한 역할에 따라 작성 가능한 게시판이 달라요. 매년 1월 1일, 신입은 자동으로 선배로 전환됩니다.',
+  descriptionText = '올해 입사자의 경우 신입으로, 아닌 경우 선배로 선택해주세요! \n(올해 신입이라면 내년부터는 선배로 자동 전환돼요)',
 }: Props) {
   const helper = React.useMemo(() => {
     if (!value) return null
@@ -41,7 +41,7 @@ export default function RoleSelect({
           <label className="block mb-2 text-body-2sb text-label-normal">
             역할 <span className="text-system-red">*</span>
           </label>
-          <p className="mt-1.5 text-caption text-label-neutral">
+          <p className="mt-1.5 text-caption text-label-neutral whitespace-pre-line">
             {descriptionText}
           </p>
         </>

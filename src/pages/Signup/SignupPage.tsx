@@ -1,5 +1,5 @@
 // src/pages/auth/SignupPage.tsx
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import api from '../../api/api'
 import { toastSuccess, toastWarn, toastError } from '../../utils/toast'
@@ -14,10 +14,27 @@ export default function SignupPage() {
   // 비밀번호 눈토글만 로컬 상태로
   const [passwordVisible, setPasswordVisible] = useState(false)
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false)
+  const currentYear = new Date().getFullYear()
+  const yearOptions = useMemo(() => {
+    const startYear = 2015
+    const endYear = new Date().getFullYear()
+    return Array.from(
+      { length: endYear - startYear + 1 },
+      (_, i) => endYear - i
+    )
+  }, [])
+  const [joinedYear, setJoinedYear] = useState<number | ''>('')
+  const joinedYearInvalid =
+    joinedYear === '' || !yearOptions.includes(Number(joinedYear))
+  const [joinedYearTouched, setJoinedYearTouched] = useState(false)
+  const [triedSubmit, setTriedSubmit] = useState(false)
+  const showJoinedYearError =
+    (joinedYearTouched || triedSubmit) && joinedYearInvalid
+  const joinedYearMessage = showJoinedYearError
+    ? '입사연도를 선택해 주세요.'
+    : undefined
 
-  // 폼 상태/유효성/중복확인 로직은 훅으로 통합
   const {
-    // 상태
     email,
     password,
     confirmPassword,
@@ -52,17 +69,25 @@ export default function SignupPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setTriedSubmit(true)
 
     if (!role) {
       toastWarn('역할을 선택해 주세요.')
       return
     }
-    if (!isFormValid) {
+    if (!isFormValid || joinedYearInvalid) {
       toastError('입력값을 다시 확인해 주세요.')
       return
     }
 
-    const formData = { email, password, nickname, organization, role }
+    const formData = {
+      email,
+      password,
+      nickname,
+      organization,
+      role,
+      joinedYear: Number(joinedYear), // ✅ 입사년도 포함
+    }
 
     try {
       await api.post('/auth/sign-up', formData)
@@ -72,6 +97,8 @@ export default function SignupPage() {
       toastError('회원가입 중 문제가 발생했습니다.')
     }
   }
+
+  const submitDisabled = !isFormValid || !role || joinedYearInvalid
 
   return (
     <AuthLayout icons={['/assets/auth/auth-icon.svg']} iconOffset={80}>
@@ -170,6 +197,23 @@ export default function SignupPage() {
                 message={orgInvalid ? '소속을 입력해 주세요.' : undefined}
               />
 
+              <TextField
+                id="joinedYear"
+                label="입사년도"
+                required
+                value={joinedYear === '' ? '' : String(joinedYear)}
+                placeholder="입사연도를 선택해 주세요."
+                onChange={(e) => {
+                  const v = e.target.value
+                  setJoinedYear(v === '' ? '' : Number(v))
+                }}
+                rightIconSrc="/icons/calendar.svg" // public/icons/calendar.svg 사용
+                dropdownOptions={yearOptions} // [올해, 올해-1, ...]
+                invalid={showJoinedYearError}
+                message={joinedYearMessage}
+                onBlur={() => setJoinedYearTouched(true)}
+              />
+
               {/* 역할 */}
               <RoleSelect
                 className="mb-4"
@@ -184,7 +228,7 @@ export default function SignupPage() {
                 variant="primary"
                 size="m"
                 className="w-full mt-4"
-                disabled={!isFormValid}
+                disabled={submitDisabled}
               >
                 완료
               </Button>
