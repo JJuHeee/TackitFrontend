@@ -19,8 +19,6 @@ export default function MyPageHome() {
   const navigate = useNavigate()
   const [logoutOpen, setLogoutOpen] = React.useState(false)
   const [withdrawOpen, setWithdrawOpen] = React.useState(false)
-
-  /** ✅ 로그아웃 */
   const handleConfirmLogout = () => {
     setLogoutOpen(false)
 
@@ -121,12 +119,28 @@ export default function MyPageHome() {
                           </div>
                         </div>
                         <div className="ml-[24px]">
-                          {/* 닉네임 */}
-                          <div className="text-title-2b text-label-normal">
+                          {/* 닉네임 + 역할 뱃지 */}
+                          <div className="flex items-center gap-[8px] text-title-2b text-label-normal">
                             {loading ? (
                               <span className="inline-block h-[22px] w-[120px] animate-pulse rounded bg-gray-200" />
                             ) : (
-                              me?.nickname ?? '사용자'
+                              <>
+                                <span>{me?.nickname ?? '사용자'}</span>
+                                {me?.role === 'NEWBIE' && (
+                                  <img
+                                    src="/icons/신입.svg"
+                                    alt="신입 뱃지"
+                                    className="w-[24px] h-[24px]"
+                                  />
+                                )}
+                                {me?.role === 'SENIOR' && (
+                                  <img
+                                    src="/icons/선배.svg"
+                                    alt="선배 뱃지"
+                                    className="w-[24px] h-[24px]"
+                                  />
+                                )}
+                              </>
                             )}
                           </div>
 

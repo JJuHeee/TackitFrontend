@@ -8,6 +8,9 @@ type PostMetaProps = {
   tags?: string[]
   className?: string
   hideWriter?: boolean
+  role?: 'NEWBIE' | 'SENIOR'
+  joinedYear?: number
+  profileImageUrl?: string | null
 }
 
 export default function PostMeta({
@@ -16,6 +19,9 @@ export default function PostMeta({
   tags,
   className,
   hideWriter = false,
+  role,
+  joinedYear,
+  profileImageUrl,
 }: PostMetaProps) {
   const hasTags = tags && tags.length > 0
 
@@ -32,8 +38,14 @@ export default function PostMeta({
         <div /> // flex 정렬 유지용 빈 div
       )}
 
-      {/* 작성자/날짜 영역 */}
-      <PostAuthorMeta writer={hideWriter ? '' : writer} createdAt={createdAt} />
+      {/* 작성자/날짜/뱃지/년차 */}
+      <PostAuthorMeta
+        writer={hideWriter ? '' : writer}
+        createdAt={createdAt}
+        role={role}
+        joinedYear={joinedYear}
+        profileImageUrl={profileImageUrl}
+      />
     </div>
   )
 }
