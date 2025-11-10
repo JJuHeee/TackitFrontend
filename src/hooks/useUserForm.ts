@@ -14,12 +14,13 @@ export function useUserForm(initialRole = '') {
   const [emailServerError, setEmailServerError] = useState('')
   const [nickServerError, setNickServerError] = useState('')
 
+  const PASSWORD_REGEX =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_\-+={[\]};:'",.<>/?\\|`~]).{8,}$/
+
   const emailInvalid = useMemo(
     () => !!email && !/^\S+@\S+\.\S+$/.test(email),
     [email]
   )
-  const PASSWORD_REGEX =
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_\-+={[\]};:'",.<>/?\\|`~]).{8,}$/
 
   const pwInvalid = useMemo(
     () => !!password && !PASSWORD_REGEX.test(password),
