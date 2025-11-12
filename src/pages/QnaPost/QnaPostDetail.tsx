@@ -249,7 +249,7 @@ function QnaPostDetail() {
         targetType: 'QNA_POST', // 'POST'
         reason: p.reason,
       })
-      const res = await api.post(`/api/qna-post/${postId}/report`)
+      const res = await api.post(`/api/qna-posts/${postId}/report`)
       const message =
         typeof res.data === 'string' ? res.data : res.data?.message
 

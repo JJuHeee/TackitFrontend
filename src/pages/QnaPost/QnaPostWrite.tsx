@@ -118,10 +118,7 @@ function QnaPostWrite() {
         new Blob([JSON.stringify(payload)], { type: 'application/json' }) // content-type: application/json
       )
 
-      const { data } = await api.post<PostCreateRes>(
-        '/api/qna-post/create',
-        form
-      )
+      const { data } = await api.post<PostCreateRes>('/api/qna-posts', form)
       const newId = (data as any)?.id ?? (data as any)?.postId
       navigate(`/qna/${newId}`, { state: { post: data } })
     } catch (err: any) {

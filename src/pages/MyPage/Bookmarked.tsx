@@ -62,7 +62,7 @@ export default function Bookmarked() {
     () => [
       { id: 'tip', name: '선배가 알려줘요' },
       { id: 'qna', name: '신입이 질문해요' },
-      { id: 'free', name: '자유롭게 얘기해요' },
+      { id: 'free', name: '다같이 얘기해요' },
     ],
     []
   )

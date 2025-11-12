@@ -100,9 +100,7 @@ function QnaPostList() {
     const fetchPosts = async () => {
       try {
         const isAll = tagId === 0 || tagId === null
-        const url = isAll
-          ? `/api/qna-post/list`
-          : `/api/qna-tags/${tagId}/posts`
+        const url = isAll ? `/api/qna-posts` : `/api/qna-tags/${tagId}/posts`
 
         const res = await api.get<ListResp>(url, {
           params: {
