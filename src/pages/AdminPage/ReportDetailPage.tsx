@@ -204,9 +204,6 @@ export default function ReportReasonDetailPage() {
       ? 'bg-[var(--background-red)] text-[var(--label-danger)]'
       : 'bg-[var(--background-neutral)] text-[var(--label-normal)]'
 
-  const isComment =
-    !!data?.targetType && data.targetType.toUpperCase().includes('COMMENT')
-
   const handleActivate = async (): Promise<boolean> => {
     if (!data) return false
     try {
@@ -344,18 +341,6 @@ export default function ReportReasonDetailPage() {
   )
 }
 
-function InfoRow({ term, desc }: { term: string; desc: React.ReactNode }) {
-  return (
-    <div className="flex items-start gap-4">
-      <dt className="w-[56px] shrink-0 text-[var(--label-assistive)]">
-        {term}
-      </dt>
-      <span className="text-[var(--line-normal)]">|</span>
-      <dd className="flex-1 pl-1">{desc}</dd>
-    </div>
-  )
-}
-
 function humanizeTargetType(t: string) {
   const upper = t.toUpperCase()
   if (upper.includes('COMMENT')) return '댓글'
@@ -396,13 +381,6 @@ function formatKSTPretty(iso: string) {
   } catch {
     return iso
   }
-}
-
-function getPostDetailPath(postType: string, postId: number) {
-  if (postType === 'FREE') return `/free/${postId}`
-  if (postType === 'QNA') return `/qna/${postId}`
-  if (postType === 'TIP') return `/tip/${postId}`
-  return ''
 }
 
 function InfoLine({ term, desc }: { term: string; desc: React.ReactNode }) {

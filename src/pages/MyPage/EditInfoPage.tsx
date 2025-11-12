@@ -258,26 +258,3 @@ export default function EditInfoPage() {
     </>
   )
 }
-
-function ActivityItem({
-  icon,
-  label,
-  onClick,
-}: {
-  icon: string
-  label: string
-  onClick?: () => void
-}) {
-  return (
-    <div
-      className="flex h-full w-full flex-col items-start justify-start px-[24px] py-[24px] cursor-pointer hover:bg-background-neutral transition-colors"
-      onClick={onClick}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => e.key === 'Enter' && onClick?.()}
-    >
-      <img src={icon} alt={label} className="w-[28px] h-[28px] mb-[12px]" />
-      <span className="text-title-2b text-label-normal">{label}</span>
-    </div>
-  )
-}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useParams, useNavigate, useLocation } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import './FreePostDetail.css'
 import HomeBar from '../../components/HomeBar'
 import api from '../../api/api'
@@ -24,9 +24,6 @@ import PostHeader from '../../components/posts/PostHeader'
 function FreePostDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const location = useLocation()
-  const from = (location.state as any)?.from
-
   const postIdNumber = Number(id)
   const [post, setPost] = useState<{
     id: number

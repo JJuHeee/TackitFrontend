@@ -31,11 +31,8 @@ export default function SignupPage() {
     setOrganization,
     setRole,
 
-    // 유효성/메시지
-    emailInvalid,
     pwInvalid,
     confirmInvalid,
-    nickInvalid,
     orgInvalid,
     emailHasError,
     emailMessage,

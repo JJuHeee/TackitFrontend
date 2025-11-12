@@ -11,25 +11,6 @@ import type { ReportPayload } from '../../components/modals/ReportModal'
 import { sanitizeHtml } from '../../utils/sanitize'
 import { hydrateCoverToken } from '../../utils/coverToken'
 
-type TipListItem = {
-  id: number
-  writer: string
-  title: string
-  content: string
-  tags: string[]
-  type: 'Tip' | 'QnA' | 'Free'
-  createdAt: string
-  imageUrl?: string | null
-}
-
-type TipListResponse = {
-  page: number
-  content: TipListItem[]
-  size: number
-  totalElements: number
-  totalPages: number
-}
-
 type Post = {
   id: number
   writer: string

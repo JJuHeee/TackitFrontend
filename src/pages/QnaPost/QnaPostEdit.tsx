@@ -1,4 +1,3 @@
-// src/pages/qna/QnaPostEdit.tsx
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import HomeBar from '../../components/HomeBar'
@@ -161,8 +160,6 @@ function QnaPostEdit() {
       setSaving(false)
     }
   }
-
-  const handleCancel = () => navigate(`/qna/${postId}`)
 
   return (
     <>

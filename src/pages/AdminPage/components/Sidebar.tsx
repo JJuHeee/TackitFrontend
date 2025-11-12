@@ -47,11 +47,7 @@ export default function Sidebar() {
   )
 
   return (
-    <aside
-      className={asideClass}
-      aria-label="Admin sidebar"
-      role="complementary"
-    >
+    <aside className={asideClass} aria-label="Admin sidebar">
       {/* 로고 영역 */}
       <div className="mt-[14px] ml-[28px] flex items-center gap-[8px]">
         <img
@@ -74,7 +70,6 @@ export default function Sidebar() {
       {/* 네비게이션 메뉴 */}
       <nav
         className="mx-[20px] mb-[32px] mt-0 flex flex-col gap-[8px]"
-        role="navigation"
         aria-label="Admin sections"
       >
         {NAV_ITEMS.map((it) => (

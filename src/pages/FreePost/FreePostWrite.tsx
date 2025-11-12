@@ -9,7 +9,7 @@ import './FreePostWrite.css'
 import RichTextEditor, {
   RichTextEditorHandle,
 } from '../../components/editor/RichTextEditor'
-import { toastSuccess, toastWarn, toastError } from '../../utils/toast'
+import { toastWarn, toastError } from '../../utils/toast'
 import { PostCreateReq, PostCreateRes } from '../../types/post'
 import { replaceFirstDataUrlImgWithToken } from '../../utils/coverToken'
 

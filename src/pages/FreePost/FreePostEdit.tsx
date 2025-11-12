@@ -144,8 +144,6 @@ function FreePostEdit() {
     }
   }
 
-  const handleCancel = () => navigate(`/free/${id}`)
-
   return (
     <>
       <HomeBar />

@@ -20,9 +20,6 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 
-// --------------------------------------------
-// Small UI bits
-// --------------------------------------------
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
     <h2 className="ml-[36px] mb-[20px] text-[var(--label-normal)] font-bold text-[20px] leading-[24px]">
@@ -387,19 +384,11 @@ export default function AdminDashboardPage() {
     if (role === 'ADMIN') load()
   }, [role])
 
-  // 월별 시리즈 (백엔드 엔드포인트 미지정: 기존 로직 유지 + 월 제한 적용)
   const fetchSeries = React.useCallback(
     async (y: number) => {
-      const token = localStorage.getItem('accessToken')
-      const headers = token ? { Authorization: `Bearer ${token}` } : undefined
       const cap = capMonthsForYear(y)
 
       try {
-        // 만약 나중에 월별 API가 생기면 아래 주석을 교체해서 쓰면 됨:
-        // const r = await api.get(`/api/admin/dashboard/monthly-series?year=${y}`, { headers })
-        // const raw: Array<{ month: string; joined: number; mau: number }> = r.data
-
-        // 현재는 데모/목데이터 유지
         const demoMAU = [
           60, 80, 112, 120, 90, 112, 112, 116, 126, 130, 115, 115,
         ]
@@ -410,10 +399,8 @@ export default function AdminDashboardPage() {
           mau: m,
         }))
 
-        // 표시 월 수를 cap까지만 자르기 (올해는 10월까지만)
         setSeries(raw.slice(0, cap))
       } catch {
-        // 실패 시에도 동일한 데모 데이터 사용
         const demoMAU = [
           60, 80, 112, 120, 90, 112, 112, 116, 126, 130, 115, 115,
         ]

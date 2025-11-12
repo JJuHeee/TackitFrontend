@@ -152,8 +152,6 @@ function TipPostEdit() {
     }
   }
 
-  const handleCancel = () => navigate(`/tip/${id}`)
-
   return (
     <>
       <HomeBar />
