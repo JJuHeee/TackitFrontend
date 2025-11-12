@@ -45,7 +45,6 @@ export default function MyCommentList() {
   const postCache = useRef(new Map<string, PostSummary>())
   const keyOf = (t: string, id: number) => `${t}:${id}`
 
-  // ✅ fallback (서버 응답 실패 시 보여줄 더미 데이터)
   const fallbackData = useMemo(
     () => ({
       qna: {

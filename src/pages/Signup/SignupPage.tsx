@@ -1,7 +1,7 @@
 // src/pages/auth/SignupPage.tsx
-import React, { useMemo, useState } from 'react'
+import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-// import api from '../../api/api'  // ← 사용 안 하므로 제거
+import api from '../../api/api'
 import { toastSuccess, toastWarn, toastError } from '../../utils/toast'
 import { Button } from '../../components/ui/Button'
 import AuthLayout from '../../components/layouts/AuthLayout'
@@ -11,30 +11,13 @@ import RoleSelect, { type Role } from '../../components/forms/RoleSelect'
 import { useUserForm } from '../../hooks/useUserForm'
 
 export default function SignupPage() {
+  // 비밀번호 눈토글만 로컬 상태로
   const [passwordVisible, setPasswordVisible] = useState(false)
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false)
 
-  const yearOptions = useMemo(() => {
-    const startYear = 2015
-    const endYear = new Date().getFullYear()
-    return Array.from(
-      { length: endYear - startYear + 1 },
-      (_, i) => endYear - i
-    )
-  }, [])
-
-  const [joinedYear, setJoinedYear] = useState<number | ''>('')
-  const joinedYearInvalid =
-    joinedYear === '' || !yearOptions.includes(Number(joinedYear))
-  const [joinedYearTouched, setJoinedYearTouched] = useState(false)
-  const [triedSubmit, setTriedSubmit] = useState(false)
-  const showJoinedYearError =
-    (joinedYearTouched || triedSubmit) && joinedYearInvalid
-  const joinedYearMessage = showJoinedYearError
-    ? '입사연도를 선택해 주세요.'
-    : undefined
-
+  // 폼 상태/유효성/중복확인 로직은 훅으로 통합
   const {
+    // 상태
     email,
     password,
     confirmPassword,
@@ -47,45 +30,42 @@ export default function SignupPage() {
     setNickname,
     setOrganization,
     setRole,
+
+    // 유효성/메시지
+    emailInvalid,
     pwInvalid,
     confirmInvalid,
+    nickInvalid,
     orgInvalid,
     emailHasError,
     emailMessage,
     nickHasError,
     nickMessage,
     isFormValid,
+
+    // API
     checkEmailDuplicate,
     checkNicknameDuplicate,
-  } = useUserForm('')
+  } = useUserForm('') // 초기 역할 없음
 
   const navigate = useNavigate()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setTriedSubmit(true)
 
     if (!role) {
       toastWarn('역할을 선택해 주세요.')
       return
     }
-    if (!isFormValid || joinedYearInvalid) {
+    if (!isFormValid) {
       toastError('입력값을 다시 확인해 주세요.')
       return
     }
 
-    const formData = {
-      email,
-      password,
-      nickname,
-      organization,
-      role,
-      joinedYear: Number(joinedYear),
-    }
+    const formData = { email, password, nickname, organization, role }
 
     try {
-      // 회원가입 요청 (실제 호출부에서 api.post 사용)
-      // await api.post('/auth/sign-up', formData)
+      await api.post('/auth/sign-up', formData)
       toastSuccess('회원가입이 완료되었습니다.')
       navigate('/login')
     } catch {
@@ -93,15 +73,13 @@ export default function SignupPage() {
     }
   }
 
-  const submitDisabled = !isFormValid || !role || joinedYearInvalid
-
   return (
     <AuthLayout icons={['/assets/auth/auth-icon.svg']} iconOffset={80}>
       <div className="relative flex flex-col items-center min-h-screen">
         <div
-          className="absolute top-20 w-[440px] box-border px-5 pt-8 pb-[60px] mb-0
-                     max-w-none max-[560px]:static max-[560px]:w-full
-                     max-[560px]:max-w-[440px] max-[560px]:h-auto max-[560px]:mt-24"
+          className="absolute top-20 w-[440px] box-border px-5 pt-8 pb-[60px] mb-0 max-w-none
+                     max-[560px]:static max-[560px]:w-full max-[560px]:max-w-[440px]
+                     max-[560px]:h-auto max-[560px]:mt-24"
         >
           <AuthCard className="w-full max-w-[440px]">
             <h2 className="text-center text-[26px] font-extrabold mb-5">
@@ -109,6 +87,7 @@ export default function SignupPage() {
             </h2>
 
             <form onSubmit={handleSubmit}>
+              {/* 이메일 */}
               <TextField
                 id="email"
                 label="이메일"
@@ -124,6 +103,7 @@ export default function SignupPage() {
                 inputMode="email"
               />
 
+              {/* 비밀번호 */}
               <TextField
                 id="password"
                 label="비밀번호"
@@ -144,6 +124,7 @@ export default function SignupPage() {
                 }
               />
 
+              {/* 비밀번호 확인 */}
               <TextField
                 id="confirmPassword"
                 label="비밀번호 확인"
@@ -162,6 +143,7 @@ export default function SignupPage() {
                 }
               />
 
+              {/* 닉네임 */}
               <TextField
                 id="nickname"
                 label="닉네임"
@@ -176,6 +158,7 @@ export default function SignupPage() {
                 message={nickMessage}
               />
 
+              {/* 소속 */}
               <TextField
                 id="organization"
                 label="소속"
@@ -187,23 +170,7 @@ export default function SignupPage() {
                 message={orgInvalid ? '소속을 입력해 주세요.' : undefined}
               />
 
-              <TextField
-                id="joinedYear"
-                label="입사년도"
-                required
-                value={joinedYear === '' ? '' : String(joinedYear)}
-                placeholder="입사연도를 선택해 주세요."
-                onChange={(e) => {
-                  const v = e.target.value
-                  setJoinedYear(v === '' ? '' : Number(v))
-                }}
-                rightIconSrc="/icons/calendar.svg"
-                dropdownOptions={yearOptions} // number[] 사용
-                invalid={showJoinedYearError}
-                message={joinedYearMessage}
-                onBlur={() => setJoinedYearTouched(true)}
-              />
-
+              {/* 역할 */}
               <RoleSelect
                 className="mb-4"
                 value={(role as Role) || ''}
@@ -211,16 +178,18 @@ export default function SignupPage() {
                 showLabel
               />
 
+              {/* 제출 */}
               <Button
                 type="submit"
                 variant="primary"
                 size="m"
                 className="w-full mt-4"
-                disabled={submitDisabled}
+                disabled={!isFormValid}
               >
                 완료
               </Button>
 
+              {/* 하단 링크 */}
               <div className="mt-4 text-center text-body-2 text-label-neutral">
                 이미 가입된 계정이 있나요?{' '}
                 <Link

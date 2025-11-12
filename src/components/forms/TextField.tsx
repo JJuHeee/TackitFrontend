@@ -1,8 +1,6 @@
 import * as React from 'react'
 import { Eye, EyeOff } from 'lucide-react'
 
-type Option = string | number
-
 type Props = {
   id?: string
   label?: React.ReactNode
@@ -30,13 +28,6 @@ type Props = {
   pattern?: string
   disabled?: boolean
   readOnly?: boolean
-
-  /** 오른쪽 SVG 아이콘(예: /icons/calendar.svg)을 표시하고, 클릭 시 드롭다운 열기 */
-  rightIconSrc?: string
-  /** 드롭다운 옵션(존재하면 아이콘 버튼이 드롭다운 토글을 수행) */
-  dropdownOptions?: Option[]
-  /** 옵션 선택시 추가로 처리하고 싶을 때(선택 값 전달) */
-  onSelectOption?: (v: Option) => void
 }
 
 export default function TextField({
@@ -60,86 +51,18 @@ export default function TextField({
   inputMode,
   minLength,
   pattern,
-  disabled,
-  readOnly,
-
-  rightIconSrc,
-  dropdownOptions,
-  onSelectOption,
 }: Props) {
   // 비밀번호 보이기/가리기
   const inputType = showToggle ? (visible ? 'text' : 'password') : type
   const isPasswordMasked =
     inputType === 'password' || (type === 'password' && !visible)
 
-  // 드롭다운 상태
-  const [open, setOpen] = React.useState(false)
-  const wrapRef = React.useRef<HTMLDivElement | null>(null)
-  const listRef = React.useRef<HTMLUListElement | null>(null)
-
-  // 바깥 클릭/ESC 닫기
-  React.useEffect(() => {
-    const onDoc = (e: MouseEvent) => {
-      if (!wrapRef.current?.contains(e.target as Node)) setOpen(false)
-    }
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false)
-    }
-    document.addEventListener('mousedown', onDoc)
-    document.addEventListener('keydown', onKey)
-    return () => {
-      document.removeEventListener('mousedown', onDoc)
-      document.removeEventListener('keydown', onKey)
-    }
-  }, [])
-
-  React.useEffect(() => {
-    if (open) listRef.current?.focus()
-  }, [open])
-
-  // 키보드 탐색
-  const onListKeyDown = (e: React.KeyboardEvent<HTMLUListElement>) => {
-    const items = Array.from(
-      listRef.current?.querySelectorAll<HTMLButtonElement>(
-        'button[data-opt]'
-      ) ?? []
-    )
-    const current = document.activeElement as HTMLElement | null
-    const idx = items.findIndex((n) => n === current)
-    if (e.key === 'ArrowDown') {
-      e.preventDefault()
-      items[Math.min(items.length - 1, Math.max(0, idx + 1))]?.focus()
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault()
-      items[Math.max(0, idx - 1)]?.focus()
-    } else if (e.key === 'Enter' && current?.dataset.value) {
-      e.preventDefault()
-      handleSelect(current.dataset.value)
-    }
-  }
-
-  const handleSelect = (raw: string) => {
-    const v = /^\d+$/.test(raw) ? Number(raw) : raw
-    onSelectOption?.(v)
-    // input value 갱신을 위해 onChange 호출(합성 이벤트)
-    const synthetic = {
-      target: { value: String(v) },
-    } as unknown as React.ChangeEvent<HTMLInputElement>
-    onChange(synthetic)
-    setOpen(false)
-  }
-
-  // 오른쪽 공간 확보: 토글/카운트/아이콘 중 하나라도 있으면 패딩 증가
-  const hasDropdownIcon = Boolean(
-    rightIconSrc && dropdownOptions && dropdownOptions.length > 0
-  )
-  const hasRightAdornment =
-    (showToggle && value) || showCount || hasDropdownIcon
+  // 오른쪽 아이콘/카운트 있을 때 padding 조절
+  const hasRightAdornment = (showToggle && value) || showCount
   const rightPadClass = hasRightAdornment ? 'pr-14' : 'pr-11'
-  const count = value.length
-  const listboxId = id ? `${id}-listbox` : undefined
+  const count = typeof value === 'string' ? value.length : 0
 
-  // 항상 border 보이게
+  // ✅ border 클래스 (항상 border 보이게 수정)
   const borderClasses = invalid
     ? 'border border-line-negative focus:border-line-negative '
     : 'border border-line-normal '
@@ -148,11 +71,8 @@ export default function TextField({
   const passwordSizeClasses =
     inputType === 'password' ? 'text-[18px] tracking-[1px]' : 'text-body-2'
 
-  // ✅ id가 있고 message가 있을 때만 aria-describedby 지정
-  const describedBy = id && message ? `${id}-desc` : undefined
-
   return (
-    <div className={`mb-4 ${className}`} ref={wrapRef}>
+    <div className={`mb-4 ${className}`}>
       {/* 라벨 */}
       {label && (
         <label htmlFor={id} className="block mb-2 text-body-2sb">
@@ -161,6 +81,7 @@ export default function TextField({
         </label>
       )}
       <div className="relative">
+        {/* 입력창 */}
         <input
           id={id}
           type={inputType}
@@ -174,17 +95,14 @@ export default function TextField({
           maxLength={maxLength}
           minLength={minLength}
           pattern={pattern}
-          disabled={disabled}
-          readOnly={readOnly}
           aria-invalid={invalid || undefined}
-          aria-describedby={describedBy}
           className={[
             'w-full h-12 px-[14px] rounded-xl transition outline-none',
             passwordSizeClasses,
             'text-label-normal font-sans',
             'placeholder:text-body-1 placeholder:font-normal placeholder:text-label-assistive',
             'bg-white',
-            borderClasses,
+            borderClasses, // ✅ 수정된 부분 (border 항상 포함)
             rightPadClass,
             isPasswordMasked ? 'password-mask' : '',
           ].join(' ')}
@@ -202,73 +120,17 @@ export default function TextField({
           </button>
         )}
 
-        {/* 오른쪽 SVG 아이콘 버튼(드롭다운 전용) */}
-        {!showToggle && hasDropdownIcon && (
-          <button
-            type="button"
-            onClick={() => setOpen((v) => !v)}
-            aria-label="옵션 열기"
-            aria-haspopup="listbox"
-            aria-expanded={open}
-            aria-controls={listboxId}
-            className="absolute flex items-center justify-center w-5 h-5 -translate-y-1/2 right-3 top-1/2"
-          >
-            <img
-              src={rightIconSrc}
-              alt=""
-              aria-hidden="true"
-              className="object-contain w-5 h-5 opacity-70"
-              draggable={false}
-            />
-          </button>
-        )}
-
         {/* 글자수 카운트 */}
         {showCount && (
           <div className="absolute -translate-y-1/2 pointer-events-none right-3 top-1/2 text-caption text-label-neutral">
             {count}/{maxLength ?? 0}
           </div>
         )}
-
-        {/* 드롭다운 */}
-        {open && dropdownOptions && dropdownOptions.length > 0 && (
-          <ul
-            role="listbox"
-            tabIndex={-1}
-            ref={listRef}
-            id={listboxId}
-            onKeyDown={onListKeyDown}
-            className="absolute right-0 z-20 mt-2 overflow-auto bg-white divide-y shadow-lg w-[75px] max-h-64 rounded-xl divide-line-normal"
-          >
-            {dropdownOptions.map((opt) => {
-              const active = String(opt) === String(value)
-              return (
-                <li key={String(opt)} role="option" aria-selected={active}>
-                  <button
-                    type="button"
-                    data-opt
-                    data-value={String(opt)}
-                    onClick={() => handleSelect(String(opt))}
-                    className={[
-                      'w-full text-center px-4 py-3 text-body-2 transition-colors',
-                      active
-                        ? 'bg-[var(--background-neutral)] text-label-normal'
-                        : 'hover:bg-[var(--background-neutral)]/60',
-                    ].join(' ')}
-                  >
-                    {String(opt)}
-                  </button>
-                </li>
-              )
-            })}
-          </ul>
-        )}
       </div>
 
       {/* 하단 메시지 (에러/헬퍼) */}
       {message && (
         <div
-          id={describedBy}
           className={`mt-1.5 text-caption ${
             invalid ? 'text-line-negative' : 'text-label-neutral'
           }`}
