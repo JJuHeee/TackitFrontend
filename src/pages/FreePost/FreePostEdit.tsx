@@ -45,8 +45,11 @@ function FreePostEdit() {
   }
 
   const isReadyToSubmit = useMemo(
-    () => title.trim().length > 0 && hasMeaningfulContent(content),
-    [title, content]
+    () =>
+      title.trim().length > 0 &&
+      hasMeaningfulContent(content) &&
+      selectedTagIds.length > 0,
+    [title, content, selectedTagIds]
   )
 
   // 태그/게시글 불러오기

@@ -62,8 +62,11 @@ function QnaPostEdit() {
   }
 
   const isReadyToSubmit = useMemo(
-    () => title.trim().length > 0 && hasMeaningfulContent(content),
-    [title, content]
+    () =>
+      title.trim().length > 0 &&
+      hasMeaningfulContent(content) &&
+      selectedTagIds.length > 0,
+    [title, content, selectedTagIds]
   )
 
   useEffect(() => {
@@ -80,7 +83,7 @@ function QnaPostEdit() {
         setTagList(tagNormalized)
 
         // 2) 게시글 상세
-        const postRes = await api.get<QnaPostDetail>(`/api/qna-post/${postId}`)
+        const postRes = await api.get<QnaPostDetail>(`/api/qna-posts/${postId}`)
         const p = postRes.data
 
         setTitle(p.title ?? '')
@@ -149,7 +152,7 @@ function QnaPostEdit() {
         form.append('image', pickedImage)
       }
 
-      await api.put(`/api/qna-post/${postId}`, form)
+      await api.put(`/api/qna-posts/${postId}`, form)
 
       toastSuccess('게시글이 수정되었습니다.')
       navigate(`/qna/${postId}`)

@@ -232,7 +232,7 @@ function QnaPostDetail() {
     const confirmed = window.confirm('이 글을 삭제하시겠습니까?')
     if (!confirmed) return
     try {
-      await api.delete(`/api/qna-post/${postId}`)
+      await api.delete(`/api/qna-posts/${postId}`)
       toastSuccess('게시글이 삭제되었습니다.')
       navigate('/qna')
     } catch {
@@ -269,7 +269,7 @@ function QnaPostDetail() {
   // 찜 토글
   const handleScrapToggle = async () => {
     try {
-      const res = await api.post(`/api/qna-post/${postId}/scrap`)
+      const res = await api.post(`/api/qna-posts/${postId}/scrap`)
       const data = res.data ?? {}
       if (typeof data?.scrapped === 'boolean') {
         setIsScrapped(data.scrapped)

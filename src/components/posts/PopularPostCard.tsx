@@ -17,7 +17,7 @@ export type PopularPost = {
 }
 
 const TYPE_BADGE: Record<PostType, { label: string }> = {
-  FREE_POST: { label: '자유롭게 얘기해요' },
+  FREE_POST: { label: '다같이 얘기해요' },
   QNA_POST: { label: '신입이 질문해요' },
   TIP_POST: { label: '선배가 알려줘요' },
 }
