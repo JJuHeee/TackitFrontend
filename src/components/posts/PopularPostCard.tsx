@@ -1,5 +1,4 @@
 // src/components/posts/PopularPostCard.tsx
-import React from 'react'
 import PostAuthorMeta from './PostAuthorMeta'
 import { useNavigate } from 'react-router-dom'
 

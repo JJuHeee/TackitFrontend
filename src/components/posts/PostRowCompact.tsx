@@ -16,7 +16,7 @@ export type PostRowProps = {
   borderColor?: string
   onClick?: () => void
 
-  // ✅ 확장 플래그들
+  // 확장 플래그들
   showReplyIcon?: boolean
   hideWriter?: boolean
   showTags?: boolean
@@ -24,9 +24,10 @@ export type PostRowProps = {
   previewLines?: number
   thumbnail?: 'auto' | 'none'
   density?: 'comfortable' | 'compact'
+  isLast?: boolean // 마지막 아이템 여부(보더 제거)
 }
 
-const ReplyIcon = ({ className = '' }) => (
+const ReplyIcon = ({ className = '' }: { className?: string }) => (
   <img
     src="/icons/icon-reply.svg"
     alt="reply icon"
@@ -56,6 +57,7 @@ export default function PostRowCompact({
   previewLines = 2,
   thumbnail = 'auto',
   density = 'comfortable',
+  isLast = false,
 }: PostRowProps) {
   const handleClick = () => {
     if (id == null) return toast.error('잘못된 게시글 ID입니다.')
@@ -69,9 +71,8 @@ export default function PostRowCompact({
   return (
     <article
       onClick={handleClick}
-      className={`transition ${className}`}
+      className={`transition ${className ?? ''}`}
       style={{
-        borderBottom: `1px solid ${borderColor}`,
         cursor: 'pointer',
         padding: containerPadding,
         display: 'flex',
@@ -86,6 +87,7 @@ export default function PostRowCompact({
           </div>
         )}
 
+        {/* 텍스트 영역 래퍼: 보더를 여기로 옮겨 아이콘 영역 제외 */}
         <div
           style={{
             flex: '1 1 auto',
@@ -93,16 +95,27 @@ export default function PostRowCompact({
             display: 'flex',
             flexDirection: 'column',
             gap: 6,
+            borderBottom: isLast ? 'none' : `1px solid ${borderColor}`,
+            paddingBottom: Math.max(0, containerPadding - 4),
           }}
         >
           <h3 className="text-title-2b text-label-normal" style={{ margin: 0 }}>
             {title ?? '(제목 없음)'}
           </h3>
+
           <PostPreview
             content={content}
             className="text-body-1 text-label-neutral"
             lines={previewLines}
           />
+
+          {(showTags || !hideWriter || showDate) && (
+            <PostMeta
+              writer={hideWriter ? '' : writer}
+              createdAt={showDate ? createdAt : ''}
+              tags={showTags ? tags : []}
+            />
+          )}
         </div>
 
         {showThumb && (
@@ -126,22 +139,13 @@ export default function PostRowCompact({
                 objectFit: 'cover',
                 display: 'block',
               }}
-              onError={(e) =>
-                ((e.currentTarget as HTMLImageElement).style.display = 'none')
-              }
+              onError={(e) => {
+                ;(e.currentTarget as HTMLImageElement).style.display = 'none'
+              }}
             />
           </div>
         )}
       </div>
-
-      {/* 하단 메타: 태그/닉네임/날짜 노출 제어 */}
-      {(showTags || !hideWriter || showDate) && (
-        <PostMeta
-          writer={hideWriter ? '' : writer}
-          createdAt={showDate ? createdAt : ''}
-          tags={showTags ? tags : []}
-        />
-      )}
     </article>
   )
 }

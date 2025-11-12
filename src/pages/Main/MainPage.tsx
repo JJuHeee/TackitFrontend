@@ -80,10 +80,9 @@ export default function MainPage() {
     )
 
     // QNA 최신 3개
-    fetchPosts(
-      '/api/qna-posts/list?page=0&size=3&sort=createdAt,desc',
-      toQna
-    ).then(setQnas)
+    fetchPosts('/api/qna-posts?page=0&size=3&sort=createdAt,desc', toQna).then(
+      setQnas
+    )
 
     // FREE 최신 3개
     fetchPosts(
@@ -231,7 +230,7 @@ function SectionList({
                   writer={p.writer}
                   createdAt={p.createdAt}
                   tags={p.tags}
-                  imageUrl={p.imageUrl ?? undefined} // <- null 대신 undefined로 전달
+                  imageUrl={p.imageUrl ?? undefined}
                   previewLines={1}
                   showTags
                   showDate
