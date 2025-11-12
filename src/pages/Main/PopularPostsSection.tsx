@@ -3,6 +3,7 @@ import PopularPostCard, {
   type PopularPost,
 } from '../../components/posts/PopularPostCard'
 import api from '../../api/api'
+import { stripHtml } from '../../utils/stripHtml'
 
 type ApiPopularPost = {
   id: number
@@ -19,7 +20,7 @@ type ApiPopularPost = {
 const toPopularPost = (x: ApiPopularPost): PopularPost => ({
   ...x,
   profileImageUrl: x.profileImageUrl ?? undefined,
-  content: x.content ?? '',
+  content: x.content ? stripHtml(x.content) : '',
   viewCount: x.viewCount ?? 0,
   scrapCount: x.scrapCount ?? 0,
 })

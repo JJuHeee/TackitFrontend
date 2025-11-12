@@ -51,23 +51,10 @@
   cursor: pointer;
 }
 
-.write-button {
-  margin-left: auto;
-  background: #4d77ff;
-  color: #fff;
-  border: 0;
-  border-radius: 8px;
-  padding: 10px 16px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
 /* 4) 목록 */
 .tippost-list {
   display: flex;
   flex-direction: column;
-  gap: 20px;
 }
 
 /* 5) 반응형 */

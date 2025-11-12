@@ -16,6 +16,7 @@ import type {
   ApiPostAll,
   ApiPostByTag,
 } from '../../types/post'
+import WriteButton from '../../components/ui/WriteButton' // ✅ 추가
 
 const mapAllToPost = (p: ApiPostAll): Post => ({
   id: p.id,
@@ -40,10 +41,10 @@ const mapByTagToPost = (p: ApiPostByTag): Post => ({
 function FreePostList() {
   const navigate = useNavigate()
 
-  const [tagId, setTagId] = useState<number | null>(0) // 0/null = 전체
+  const [tagId, setTagId] = useState<number | null>(0)
   const [posts, setPosts] = useState<Post[]>([])
   const [totalPages, setTotalPages] = useState<number>(1)
-  const [currentPage, setCurrentPage] = useState<number>(1) // 1-base
+  const [currentPage, setCurrentPage] = useState<number>(1)
   const size = 5
 
   useEffect(() => {
@@ -70,7 +71,6 @@ function FreePostList() {
         setPosts(normalized)
         setTotalPages(Math.max(1, Number(data?.totalPages ?? 1)))
       } catch {
-        // fallback
         const fallbackResponse = {
           page: 0,
           content: [
@@ -112,6 +112,7 @@ function FreePostList() {
         <HomeBar />
         <main className="flex-1">
           <div className="freepost-container">
+            {/* 배너 */}
             <div className="freepost-banner">
               <img src="/banners/free-banner.svg" alt="자유게시판 배너" />
             </div>
@@ -138,12 +139,8 @@ function FreePostList() {
                 />
               </div>
 
-              <button
-                className="write-button"
-                onClick={() => navigate('/free/write')}
-              >
-                + 글쓰기
-              </button>
+              {/* ✅ 글쓰기 버튼 컴포넌트로 교체 */}
+              <WriteButton onClick={() => navigate('/free/write')} />
             </div>
 
             {/* 리스트 */}
@@ -162,6 +159,7 @@ function FreePostList() {
               ) : (
                 posts.map((post) => (
                   <PostCard
+                    key={post.id}
                     id={post.id}
                     title={post.title}
                     content={stripHtml(

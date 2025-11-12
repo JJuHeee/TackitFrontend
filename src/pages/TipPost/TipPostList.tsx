@@ -11,6 +11,7 @@ import PostCard from '../../components/posts/PostCard'
 import { stripHtml } from '../../utils/stripHtml'
 import { hydrateCoverToken } from '../../utils/coverToken'
 import MyInfo from '../MyPage/MyInfo'
+import WriteButton from '../../components/ui/WriteButton'
 
 type Post = {
   postId: number
@@ -88,12 +89,10 @@ const mapByTagToPost = (p: any): Post => ({
 export default function TipPostList() {
   const navigate = useNavigate()
 
-  // 태그 0 또는 null = 전체
   const [tagId, setTagId] = useState<number | null>(0)
   const [posts, setPosts] = useState<Post[]>([])
   const [totalPages, setTotalPages] = useState<number>(1)
-  const [currentPage, setCurrentPage] = useState<number>(1) // 1-base
-
+  const [currentPage, setCurrentPage] = useState<number>(1)
   const size = 5
 
   useEffect(() => {
@@ -104,7 +103,7 @@ export default function TipPostList() {
 
         const res = await api.get<ListResp>(url, {
           params: {
-            page: currentPage - 1, // 서버는 0-base
+            page: currentPage - 1,
             size,
             sort: 'createdAt,desc',
           },
@@ -112,8 +111,6 @@ export default function TipPostList() {
 
         const data = res.data
         const contentArr = Array.isArray(data?.content) ? data.content : []
-
-        // Free와 동일하게 'postId' 존재 여부로 매핑 분기
         const normalized: Post[] = contentArr.map((item: any) =>
           'postId' in item ? mapByTagToPost(item) : mapAllToPost(item)
         )
@@ -121,7 +118,6 @@ export default function TipPostList() {
         setPosts(normalized)
         setTotalPages(Math.max(1, Number(data?.totalPages ?? 1)))
       } catch {
-        // fallback
         setPosts(
           (fallbackResponse.content as any[]).map((p) =>
             'postId' in p ? mapByTagToPost(p) : mapAllToPost(p)
@@ -167,13 +163,9 @@ export default function TipPostList() {
                   />
                 </div>
 
+                {/* ✅ 글쓰기 버튼 컴포넌트로 교체 */}
                 {!loading && myInfo?.role === 'SENIOR' && (
-                  <button
-                    className="write-button"
-                    onClick={() => navigate('/tip/write')}
-                  >
-                    + 글쓰기
-                  </button>
+                  <WriteButton onClick={() => navigate('/tip/write')} />
                 )}
               </div>
 
@@ -212,7 +204,7 @@ export default function TipPostList() {
                 )}
               </div>
 
-              {/* 페이지네이션 (1-base) */}
+              {/* 페이지네이션 */}
               <div className="flex justify-center mt-6">
                 <Pagination
                   currentPage={currentPage}

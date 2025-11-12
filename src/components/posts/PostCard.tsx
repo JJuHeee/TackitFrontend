@@ -40,7 +40,7 @@ export default function PostCard({
       style={{
         borderBottom: `1px solid ${borderColor}`,
         cursor: 'pointer',
-        padding: 16,
+        padding: '24px 0 ',
         display: 'flex',
         flexDirection: 'column',
         gap: 10,
@@ -105,8 +105,12 @@ export default function PostCard({
         )}
       </div>
 
-      {/* 아래: 태그 + 닉네임 · 날짜 */}
-      <PostMeta writer={writer} createdAt={createdAt} tags={tags} />
+      <PostMeta
+        writer={writer}
+        createdAt={createdAt}
+        tags={tags}
+        variant="compact"
+      />
     </article>
   )
 }

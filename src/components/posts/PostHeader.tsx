@@ -59,9 +59,12 @@ export default function PostHeader({
         </div>
       </div>
 
-      {/* ✅ meta: 왼쪽 정렬 */}
       <div className="mt-3 text-left">
-        <PostAuthorMeta writer={writer} createdAt={createdAt} />
+        <PostAuthorMeta
+          writer={writer}
+          createdAt={createdAt}
+          variant="default"
+        />
       </div>
     </div>
   )

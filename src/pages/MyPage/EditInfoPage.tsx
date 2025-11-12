@@ -146,7 +146,7 @@ function EditInfoForm({ myInfo }: { myInfo: MyInfoData }) {
 
     if (pwTried) {
       if (pwOk) {
-        toastSuccess('비밀번호가 변경되었습니다. 다시 로그인해 주세요.')
+        toastSuccess('비밀번호가 변경되었습니다.')
         setCurrentPassword('')
         setPassword('')
         setConfirmPassword('')

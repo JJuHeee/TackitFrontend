@@ -1,4 +1,3 @@
-// src/pages/qna/QnaPostList.tsx
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './QnaPostList.css'
@@ -12,6 +11,7 @@ import PostCard from '../../components/posts/PostCard'
 import { stripHtml } from '../../utils/stripHtml'
 import { hydrateCoverToken } from '../../utils/coverToken'
 import MyInfo from '../MyPage/MyInfo'
+import WriteButton from '../../components/ui/WriteButton'
 
 type Post = {
   postId: number
@@ -164,12 +164,10 @@ function QnaPostList() {
                   />
                 </div>
 
-                <button
-                  className="write-button"
-                  onClick={() => navigate('/qna/write')}
-                >
-                  + 글쓰기
-                </button>
+                {/* ✅ 글쓰기 버튼 컴포넌트로 교체 */}
+                {myInfo?.role === 'NEWBIE' && (
+                  <WriteButton onClick={() => navigate('/qna/write')} />
+                )}
               </div>
 
               {/* 리스트 */}

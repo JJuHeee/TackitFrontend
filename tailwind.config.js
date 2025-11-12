@@ -160,7 +160,15 @@ module.exports = {
           {
             lineHeight: 'var(--lh-title1)',
             letterSpacing: 'var(--ls-title1)',
-            fontWeight: 'var(--fw-title1)', // 여기에 bold 값 들어 있음
+            fontWeight: 'var(--fw-title1)',
+          },
+        ],
+        'caption-regular': [
+          'var(--fs-caption)',
+          {
+            lineHeight: 'var(--lh-caption)',
+            letterSpacing: 'var(--ls-caption)',
+            fontWeight: 'var(--fw-caption-r)',
           },
         ],
       },

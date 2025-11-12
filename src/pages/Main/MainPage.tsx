@@ -81,7 +81,7 @@ export default function MainPage() {
 
     // QNA 최신 3개
     fetchPosts(
-      '/api/qna-post/list?page=0&size=3&sort=createdAt,desc',
+      '/api/qna-posts/list?page=0&size=3&sort=createdAt,desc',
       toQna
     ).then(setQnas)
 

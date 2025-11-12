@@ -1,5 +1,3 @@
-import React from 'react'
-
 type Role = 'NEWBIE' | 'SENIOR'
 
 type PostAuthorMetaProps = {
@@ -9,6 +7,14 @@ type PostAuthorMetaProps = {
   role?: Role
   joinedYear?: number
   profileImageUrl?: string | null
+
+  /** ⬇ 폰트 스타일 분기용 */
+  variant?: 'default' | 'compact'
+
+  /** ⬇ 세부 오버라이드(원하면 개별적으로 덮어쓰기) */
+  nameClassName?: string
+  yearsClassName?: string
+  dateClassName?: string
 }
 
 export default function PostAuthorMeta({
@@ -18,18 +24,28 @@ export default function PostAuthorMeta({
   role,
   joinedYear,
   profileImageUrl,
+  variant = 'default',
+  nameClassName,
+  yearsClassName,
+  dateClassName,
 }: PostAuthorMetaProps) {
   const formatDate = (s?: string) => {
     if (!s) return '-'
     const d = new Date(s)
-    return d.toLocaleDateString('ko-KR', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-    })
+
+    if (variant === 'compact') {
+      const year = d.getFullYear()
+      const month = String(d.getMonth() + 1).padStart(2, '0')
+      const day = String(d.getDate()).padStart(2, '0')
+      return `${year}년 ${month}월 ${day}일`
+    } else {
+      const year = d.getFullYear()
+      const month = String(d.getMonth() + 1).padStart(2, '0')
+      const day = String(d.getDate()).padStart(2, '0')
+      return `${year}.${month}.${day}`
+    }
   }
 
-  // 입사해 포함 n년차 계산 (예: 2023 → 2025년엔 3년차)
   const calcYears = (jy?: number) => {
     if (!jy) return null
     const nowYear = new Date().getFullYear()
@@ -45,6 +61,20 @@ export default function PostAuthorMeta({
       ? '/icons/선배.svg'
       : null
 
+  const nameCls =
+    nameClassName ??
+    (variant === 'compact'
+      ? 'text-caption-regular text-label-neutral'
+      : 'text-body-1sb text-label-normal')
+
+  const yearsCls = yearsClassName ?? 'text-caption-regular text-primary-600'
+
+  const dateCls =
+    dateClassName ??
+    (variant === 'compact'
+      ? 'text-caption-regular text-label-neutral'
+      : 'text-body-1 text-label-neutral')
+
   return (
     <div
       className={`post-author-meta flex items-center gap-2 ${className ?? ''}`}
@@ -53,15 +83,14 @@ export default function PostAuthorMeta({
       <img
         src={profileImageUrl || '/icons/mypage-icon.svg'}
         alt="작성자 프로필"
-        className="object-cover w-6 h-6 rounded-full"
+        className="object-cover w-6 h-6 rounded-full shrink-0"
+        loading="lazy"
       />
 
       {/* 닉네임 + 뱃지 + 년차 */}
       <div className="flex items-center gap-2">
         <span className="flex items-center gap-1.5">
-          <span className="text-body-1sb text-label-normal">
-            {writer || ''}
-          </span>
+          <span className={nameCls}>{writer || ''}</span>
 
           {/* 역할 뱃지 (20×20) */}
           {roleBadgeSrc && (
@@ -74,7 +103,7 @@ export default function PostAuthorMeta({
 
           {/* 선배일 경우 년차 표시 */}
           {typeof years === 'number' && (
-            <span className="text-body-1sb text-primary-600">{years}년차</span>
+            <span className={yearsCls}>{years}년차</span>
           )}
         </span>
 
@@ -82,9 +111,7 @@ export default function PostAuthorMeta({
         <span className="text-label-assistive">|</span>
 
         {/* 날짜 */}
-        <span className="text-body-2 text-label-neutral">
-          {formatDate(createdAt)}
-        </span>
+        <span className={dateCls}>{formatDate(createdAt)}</span>
       </div>
     </div>
   )

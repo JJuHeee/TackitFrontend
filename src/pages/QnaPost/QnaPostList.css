@@ -58,12 +58,12 @@
 .qnapost-list {
   display: flex;
   flex-direction: column;
-  gap: 20px;
 }
 
+/* 개별 게시글 카드 */
 .qnapost-card {
   border-bottom: 1px solid #ddd;
-  padding-bottom: 20px;
+  padding: 24px 0; /* 상하 패딩 24px */
   cursor: pointer;
 }
 

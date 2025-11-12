@@ -83,7 +83,7 @@ function QnaPostDetail() {
     const fetchPost = async () => {
       try {
         setLoading(true)
-        const res = await api.get(`/api/qna-post/${postId}`)
+        const res = await api.get(`/api/qna-posts/${postId}`)
         const item = pickFirst<any>(res?.data)
         if (!item) {
           toastError('게시글을 찾지 못했습니다.')
