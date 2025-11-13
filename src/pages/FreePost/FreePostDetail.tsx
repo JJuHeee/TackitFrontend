@@ -33,7 +33,9 @@ function FreePostDetail() {
     tags: string[]
     createdAt: string
     imageUrl?: string | null
+    scrap?: boolean
   } | null>(null)
+
   const [loading, setLoading] = useState(true)
 
   const [comments, setComments] = useState<CommentModel[]>([])
@@ -104,9 +106,11 @@ function FreePostDetail() {
           tags: Array.isArray(picked.tags) ? picked.tags : [],
           createdAt: picked.createdAt ?? new Date().toISOString(),
           imageUrl: picked.imageUrl ?? null,
+          scrap: !!picked.scrap, // ✅ 백엔드 scrap 값을 boolean으로
         }
 
         setPost(normalized)
+        setIsScrapped(!!normalized.scrap)
       } catch (err) {
         setPost({
           id: postIdNumber || 0,
@@ -116,6 +120,7 @@ function FreePostDetail() {
           tags: ['태그1', '태그3', '태그2'],
           createdAt: '2025-05-13T19:34:53.52603',
           imageUrl: null,
+          scrap: false,
         } as typeof post extends null ? never : NonNullable<typeof post>)
       } finally {
         setLoading(false)
