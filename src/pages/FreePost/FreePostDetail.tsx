@@ -278,20 +278,25 @@ function FreePostDetail() {
     }
   }
 
-  // 찜 토글
   const handleScrapToggle = async () => {
     try {
       const res = await api.post(`/free-posts/${id}/scrap`)
       const message =
         typeof res.data === 'string' ? res.data : res.data?.message
 
-      if (message === '게시글을 스크랩하였습니다.') {
-        setIsScrapped(true)
-        toastSuccess('게시물이 스크랩되었습니다.')
-      } else if (message === '게시글 스크랩을 취소하였습니다.') {
-        setIsScrapped(false)
+      setIsScrapped((prev) => !prev)
+      setPost((prevPost) =>
+        prevPost ? { ...prevPost, scrap: !prevPost.scrap } : prevPost
+      )
+
+      if (typeof message === 'string') {
+        if (message.includes('취소')) {
+          toastInfo(message)
+        } else {
+          toastSuccess(message)
+        }
       } else {
-        toastInfo(message || '처리되었습니다.')
+        toastSuccess('스크랩 상태가 변경되었습니다.')
       }
     } catch (err: any) {
       const status = err?.response?.status
@@ -370,22 +375,20 @@ function FreePostDetail() {
                 comments={comments}
                 currentUserNickname={userInfo?.nickname}
                 editCommentId={editCommentId}
-                // ⬇️ ✅ 인라인 수정 제어 콜백들 전달
                 onBeginEdit={handleBeginEditComment}
                 onCancelEdit={handleCancelEditComment}
-                onEdit={handleSaveEditComment} // 저장
+                onEdit={handleSaveEditComment}
                 onDelete={handleDeleteComment}
                 onReport={handleReportCommentOpen}
               />
             )}
 
-            {/* 댓글 입력: 수정 중에는 숨김 */}
             {!editCommentId && (
               <CommentEditor
                 value={comment}
                 onChange={setComment}
                 onSubmit={handleCommentSubmit}
-                isEditing={false} // ✅ 의미상 false 고정
+                isEditing={false}
               />
             )}
           </div>

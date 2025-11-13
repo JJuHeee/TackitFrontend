@@ -128,7 +128,7 @@ export default function Bookmarked() {
             ? `/api/mypage/tip-scraps?page=${pageParam}`
             : activeTab === 'free'
             ? `/api/mypage/free-scraps?page=${pageParam}`
-            : `/api/qna-post/scrap?page=${pageParam}`
+            : `/api/qna-posts/scrap?page=${pageParam}`
 
         const res = await api.get(url)
         if (!mounted) return
