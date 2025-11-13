@@ -61,7 +61,6 @@ function EditInfoForm({ myInfo }: { myInfo: MyInfoData }) {
         currentPassword.trim().length > 0 &&
         currentPassword !== password))
 
-  // 완료: 변경된 항목만 호출 (둘 다 바뀌면 둘 다 병렬 호출)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -97,32 +96,34 @@ function EditInfoForm({ myInfo }: { myInfo: MyInfoData }) {
       },
     }
 
-    // 닉네임과 비번을 각각 필요 시에만 호출
-    const promises: Promise<any>[] = [
-      nicknameChanged
-        ? api.patch('/api/members/nickname', { nickname }, headers)
-        : Promise.resolve('SKIP_NICK'),
-      hasPwChange
-        ? api.patch(
-            '/api/members/password',
-            { currentPassword, newPassword: password },
-            headers
-          )
-        : Promise.resolve('SKIP_PW'),
-    ]
-
-    const [nickRes, pwRes] = await Promise.allSettled(promises)
-
     const nickTried = nicknameChanged
     const pwTried = hasPwChange
-    const nickOk = nickTried ? nickRes.status === 'fulfilled' : null
-    const pwOk = pwTried ? pwRes.status === 'fulfilled' : null
 
-    // 결과 처리 (부분 성공/실패까지 구분)
+    // 1) 닉네임 + 비밀번호 둘 다 변경된 경우 → 순차 호출
     if (nickTried && pwTried) {
+      let nickOk = false
+      let pwOk = false
+
+      try {
+        await api.patch('/api/members/nickname', { nickname }, headers)
+        nickOk = true
+      } catch (err) {
+        console.error('닉네임 변경 실패:', err)
+      }
+
+      try {
+        await api.patch(
+          '/api/members/password',
+          { currentPassword, newPassword: password },
+          headers
+        )
+        pwOk = true
+      } catch (err) {
+        console.error('비밀번호 변경 실패:', err)
+      }
+
       if (nickOk && pwOk) {
         toastSuccess('닉네임과 비밀번호가 변경되었습니다.')
-        // 보안상 초기화
         setCurrentPassword('')
         setPassword('')
         setConfirmPassword('')
@@ -135,23 +136,33 @@ function EditInfoForm({ myInfo }: { myInfo: MyInfoData }) {
       return
     }
 
+    // 2) 닉네임만 변경된 경우
     if (nickTried) {
-      if (nickOk) {
+      try {
+        await api.patch('/api/members/nickname', { nickname }, headers)
         toastSuccess('닉네임이 변경되었습니다.')
         navigate('/mypage')
-      } else {
+      } catch (err) {
+        console.error('닉네임 변경 실패:', err)
         toastError('닉네임 변경 중 문제가 발생했습니다.')
       }
     }
 
+    // 3) 비밀번호만 변경된 경우
     if (pwTried) {
-      if (pwOk) {
+      try {
+        await api.patch(
+          '/api/members/password',
+          { currentPassword, newPassword: password },
+          headers
+        )
         toastSuccess('비밀번호가 변경되었습니다.')
         setCurrentPassword('')
         setPassword('')
         setConfirmPassword('')
         // 필요 시 navigate('/login')
-      } else {
+      } catch (err) {
+        console.error('비밀번호 변경 실패:', err)
         toastError('비밀번호 변경 중 문제가 발생했습니다.')
       }
     }

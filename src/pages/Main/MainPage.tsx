@@ -1,4 +1,3 @@
-// src/pages/main/MainPage.tsx
 import React, { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import HomeBar from '../../components/HomeBar'
@@ -207,6 +206,9 @@ function SectionList({
   moreTo: string
   items: BaseItem[]
 }) {
+  // 먼저 최대 3개까지 잘라놓고
+  const sliced = items.slice(0, 3)
+
   return (
     <section className="mb-[60px]">
       <div className="overflow-hidden bg-white rounded-xl">
@@ -223,32 +225,37 @@ function SectionList({
 
         {/* 게시글 리스트 */}
         <div>
-          {items.length === 0 ? (
+          {sliced.length === 0 ? (
             <EmptyRow />
           ) : (
-            items.slice(0, 3).map((p) => (
-              <Link
-                key={p.id}
-                to={`${moreTo.replace(/\/$/, '')}/${p.id}`}
-                className="block"
-                style={{ textDecoration: 'none' }}
-              >
-                <PostRowCompact
-                  id={p.id}
-                  title={p.title}
-                  content={p.content}
-                  writer={p.writer}
-                  createdAt={p.createdAt}
-                  tags={p.tags}
-                  imageUrl={p.imageUrl ?? undefined}
-                  previewLines={1}
-                  showTags
-                  showDate
-                  density="comfortable"
-                  className="bg-white"
-                />
-              </Link>
-            ))
+            sliced.map((p, index) => {
+              const isLast = index === sliced.length - 1
+
+              return (
+                <Link
+                  key={p.id}
+                  to={`${moreTo.replace(/\/$/, '')}/${p.id}`}
+                  className="block"
+                  style={{ textDecoration: 'none' }}
+                >
+                  <PostRowCompact
+                    id={p.id}
+                    title={p.title}
+                    content={p.content}
+                    writer={p.writer}
+                    createdAt={p.createdAt}
+                    tags={p.tags}
+                    imageUrl={p.imageUrl ?? undefined}
+                    previewLines={1}
+                    showTags
+                    showDate
+                    density="comfortable"
+                    className="bg-white"
+                    isLast={isLast} // ✅ 여기 추가!
+                  />
+                </Link>
+              )
+            })
           )}
         </div>
       </div>
