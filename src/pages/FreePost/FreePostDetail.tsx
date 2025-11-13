@@ -279,26 +279,19 @@ function FreePostDetail() {
   }
 
   const handleScrapToggle = async () => {
-    try {
-      const res = await api.post(`/free-posts/${id}/scrap`)
-      const message =
-        typeof res.data === 'string' ? res.data : res.data?.message
+    setIsScrapped((prev) => !prev)
+    setPost((prevPost) =>
+      prevPost ? { ...prevPost, scrap: !prevPost.scrap } : prevPost
+    )
 
+    try {
+      await api.post(`/free-posts/${id}/scrap`)
+    } catch (err: any) {
       setIsScrapped((prev) => !prev)
       setPost((prevPost) =>
         prevPost ? { ...prevPost, scrap: !prevPost.scrap } : prevPost
       )
 
-      if (typeof message === 'string') {
-        if (message.includes('취소')) {
-          toastInfo(message)
-        } else {
-          toastSuccess(message)
-        }
-      } else {
-        toastSuccess('스크랩 상태가 변경되었습니다.')
-      }
-    } catch (err: any) {
       const status = err?.response?.status
       const retryFlag = err?.config?._retry
       if (status === 401 && retryFlag) {

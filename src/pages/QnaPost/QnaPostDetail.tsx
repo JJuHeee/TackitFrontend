@@ -28,6 +28,7 @@ type Post = {
   tags: string[]
   createdAt: string
   imageUrl: string | null
+  scrap?: boolean
 }
 
 /** 서버 응답이 단일/배열/페이지네이션 등 다양한 형태일 때 첫 아이템 안전 추출 */
@@ -78,7 +79,6 @@ function QnaPostDetail() {
     null
   )
 
-  // 게시글 로딩 (QnA 응답 → Free 포맷으로 정규화: postId → id 등)
   useEffect(() => {
     const fetchPost = async () => {
       try {
@@ -90,6 +90,7 @@ function QnaPostDetail() {
           setPost(null)
           return
         }
+
         const normalized: Post = {
           id: Number(item.postId ?? postIdNumber ?? 0),
           writer: String(item.writer ?? '(알 수 없음)'),
@@ -98,10 +99,12 @@ function QnaPostDetail() {
           tags: Array.isArray(item.tags) ? item.tags : [],
           createdAt: String(item.createdAt ?? new Date().toISOString()),
           imageUrl: item.imageUrl ?? null,
+          scrap: !!item.scrap, // ✅ 백엔드 scrap 반영
         }
+
         setPost(normalized)
+        setIsScrapped(!!normalized.scrap) // ✅ 초기 상태를 찜 여부로 세팅
       } catch {
-        // 실패 시 더미
         setPost({
           id: postIdNumber || 0,
           writer: '기본',
@@ -110,11 +113,14 @@ function QnaPostDetail() {
           tags: ['태그1', '태그3', '태그2'],
           createdAt: '2025-05-13T19:34:53.52603',
           imageUrl: null,
+          scrap: false,
         })
+        setIsScrapped(false)
       } finally {
         setLoading(false)
       }
     }
+
     if (postId) fetchPost()
   }, [postId, postIdNumber])
 
@@ -268,25 +274,17 @@ function QnaPostDetail() {
 
   // 찜 토글
   const handleScrapToggle = async () => {
+    // 1) 먼저 UI를 바로 토글 (색 바로 바뀜)
+    setIsScrapped((prev) => !prev)
+    setPost((prev) => (prev ? { ...prev, scrap: !prev.scrap } : prev))
+
     try {
-      const res = await api.post(`/api/qna-posts/${postId}/scrap`)
-      const data = res.data ?? {}
-      if (typeof data?.scrapped === 'boolean') {
-        setIsScrapped(data.scrapped)
-        toastSuccess(data.scrapped ? '찜 되었습니다.' : '찜이 취소되었습니다.')
-        return
-      }
-      const message =
-        typeof data === 'string' ? data : (data?.message as string | undefined)
-      if (message === '게시글을 스크랩하였습니다.') {
-        setIsScrapped(true)
-        toastSuccess('게시물이 스크랩되었습니다.')
-      } else if (message === '게시글 스크랩을 취소하였습니다.') {
-        setIsScrapped(false)
-      } else {
-        toastInfo(message || '처리되었습니다.')
-      }
+      // 2) 서버에 실제 요청
+      await api.post(`/api/qna-posts/${postId}/scrap`)
     } catch {
+      // 3) 실패 시 UI 상태 원복 + 에러만 알림 (필요 없으면 이것도 제거 가능)
+      setIsScrapped((prev) => !prev)
+      setPost((prev) => (prev ? { ...prev, scrap: !prev.scrap } : prev))
       toastError('찜 처리에 실패했습니다.')
     }
   }

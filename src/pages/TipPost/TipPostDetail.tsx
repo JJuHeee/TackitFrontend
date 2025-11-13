@@ -20,6 +20,7 @@ type Post = {
   createdAt: string
   imageUrl: string | null
   type: 'Tip' | 'QnA' | 'Free'
+  scrap?: boolean // ✅ 스크랩 여부 추가
 }
 
 function TipPostDetail() {
@@ -37,13 +38,14 @@ function TipPostDetail() {
     const fetchPost = async () => {
       try {
         setLoading(true)
-        const res = await api.get<Post>(`/api/tip-posts/${id}`)
+        const res = await api.get<any>(`/api/tip-posts/${id}`)
         const item = res.data
         if (!item) {
           toast.error('게시글을 찾지 못했습니다.')
           setPost(null)
           return
         }
+
         const normalized: Post = {
           id: item.id,
           writer: item.writer ?? '(알 수 없음)',
@@ -53,11 +55,14 @@ function TipPostDetail() {
           createdAt: item.createdAt,
           imageUrl: item.imageUrl ?? null,
           type: item.type ?? 'Tip',
+          scrap: !!item.scrap, // ✅ 백엔드 scrap 값 반영
         }
+
         setPost(normalized)
+        setIsScrapped(!!normalized.scrap) // ✅ 처음 들어올 때 상태 세팅
       } catch {
         // 더미
-        setPost({
+        const dummy: Post = {
           id: Number(id) || 0,
           writer: 'senior',
           title: '회의록 정리 팁 – 핵심만 빠르게!',
@@ -67,7 +72,10 @@ function TipPostDetail() {
           createdAt: '2025-06-19T00:02:53.52603',
           imageUrl: null,
           type: 'Tip',
-        })
+          scrap: false, // ✅ 더미는 기본 false
+        }
+        setPost(dummy)
+        setIsScrapped(false) // ✅ 안전하게 false로 초기화
       } finally {
         setLoading(false)
       }
@@ -120,28 +128,19 @@ function TipPostDetail() {
     }
   }
 
+  // ✅ 알림 없이, 눌렀을 때 바로 색만 바꾸는 낙관적 스크랩 토글
   const handleScrapToggle = async () => {
+    // 1) UI 먼저 토글 (즉시 색 변경)
+    setIsScrapped((prev) => !prev)
+    setPost((prev) => (prev ? { ...prev, scrap: !prev.scrap } : prev))
+
     try {
-      const res = await api.post<
-        string | { scrapped?: boolean; message?: string }
-      >(`/api/tip-posts/${id}/scrap`)
-      if (typeof res.data === 'object' && res.data && 'scrapped' in res.data) {
-        const scrapped = !!res.data.scrapped
-        setIsScrapped(scrapped)
-        toast[scrapped ? 'success' : 'info'](
-          scrapped ? '찜 되었습니다.' : '찜이 취소되었습니다.'
-        )
-        return
-      }
-      const message = String(res.data)
-      if (message.includes('스크랩하였습니다')) {
-        setIsScrapped(true)
-        toast.success('게시물이 스크랩되었습니다.')
-      } else if (message.includes('취소하였습니다')) {
-        setIsScrapped(false)
-      } else {
-      }
+      // 2) 서버에 실제 요청
+      await api.post(`/api/tip-posts/${id}/scrap`)
     } catch {
+      // 3) 실패 시 상태 롤백 + 에러만 알림
+      setIsScrapped((prev) => !prev)
+      setPost((prev) => (prev ? { ...prev, scrap: !prev.scrap } : prev))
       toast.error('찜 처리에 실패했습니다.')
     }
   }
@@ -180,7 +179,7 @@ function TipPostDetail() {
             title={post.title}
             writer={post.writer}
             createdAt={post.createdAt}
-            isBookmarked={isScrapped}
+            isBookmarked={isScrapped} // ✅ 현재 스크랩 상태 반영
             onToggleBookmark={handleScrapToggle}
             isAuthor={isAuthor}
             onEdit={() => navigate(`/tip/edit/${post.id}`)}
