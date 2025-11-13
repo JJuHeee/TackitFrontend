@@ -10,9 +10,12 @@ const api = axios.create({
 })
 
 let isRefreshing = false
-let refreshQueue = []
+let refreshQueue: Array<{
+  resolve: (token: string | null) => void
+  reject: (error: any) => void
+}> = []
 
-const processQueue = (error, token = null) => {
+const processQueue = (error: any, token: string | null = null) => {
   refreshQueue.forEach((p) => {
     if (error) p.reject(error)
     else p.resolve(token)
@@ -20,7 +23,35 @@ const processQueue = (error, token = null) => {
   refreshQueue = []
 }
 
-const reissueAccessToken = async () => {
+function getAccessTokenExpiryMs(): number | null {
+  const raw = localStorage.getItem('accessTokenExpiresIn')
+  if (!raw) return null
+
+  let expMs = Number(raw)
+  if (!Number.isFinite(expMs)) return null
+
+  if (expMs < 1e12) {
+    expMs = expMs * 1000
+  }
+
+  return expMs
+}
+
+function isAccessTokenExpired(): boolean {
+  const expMs = getAccessTokenExpiryMs()
+  if (!expMs) return true
+  return Date.now() >= expMs
+}
+
+function forceLogout() {
+  try {
+    localStorage.clear()
+    notificationSSE.stop?.()
+  } catch (_) {}
+  window.location.replace('/login')
+}
+
+const reissueAccessToken = async (): Promise<string> => {
   try {
     const refreshToken = localStorage.getItem('refreshToken')
     if (!refreshToken || refreshToken === 'null') {
@@ -31,7 +62,12 @@ const reissueAccessToken = async () => {
       headers: { Authorization: `Bearer ${refreshToken}` },
     })
 
-    const { accessToken, refreshToken: newRefreshToken } = response.data || {}
+    const {
+      accessToken,
+      refreshToken: newRefreshToken,
+      accessTokenExpiresIn,
+    } = response.data || {}
+
     if (!accessToken || !newRefreshToken) {
       throw Object.assign(new Error('Invalid reissue payload'), { status: 500 })
     }
@@ -39,7 +75,10 @@ const reissueAccessToken = async () => {
     localStorage.setItem('accessToken', accessToken)
     localStorage.setItem('refreshToken', newRefreshToken)
 
-    // ★ 여기서 SSE에 새 토큰 알려주기
+    if (accessTokenExpiresIn !== undefined && accessTokenExpiresIn !== null) {
+      localStorage.setItem('accessTokenExpiresIn', String(accessTokenExpiresIn))
+    }
+
     try {
       notificationSSE.restartWithToken(accessToken)
     } catch (e) {
@@ -48,12 +87,7 @@ const reissueAccessToken = async () => {
 
     return accessToken
   } catch (error) {
-    localStorage.clear()
-    // SSE 닫기 (안전)
-    try {
-      notificationSSE.stop()
-    } catch (_) {}
-    window.location.href = '/login'
+    forceLogout()
     throw error
   }
 }
@@ -67,16 +101,22 @@ const AUTH_FREE = [
   '/auth/reissue',
 ]
 
+// 3) 요청 인터셉터
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('accessToken')
     const url = typeof config.url === 'string' ? config.url : ''
 
-    // 절대 URL이면(다른 도메인 포함) 토큰 안 붙이기
+    if (token && isAccessTokenExpired()) {
+      forceLogout()
+      return Promise.reject(
+        new axios.Cancel('Token expired — blocking request & logout')
+      )
+    }
+
     const isAbsolute = /^https?:\/\//i.test(url)
     if (isAbsolute) return config
 
-    // /auth/ 화이트리스트 정확 매칭(부분일치 대신)
     const pathname = url.startsWith('/') ? url : `/${url}`
     const isAuthFree = AUTH_FREE.includes(pathname)
 
@@ -84,23 +124,35 @@ api.interceptors.request.use(
       config.headers = config.headers || {}
       config.headers.Authorization = `Bearer ${token}`
     }
+
     return config
   },
   (error) => Promise.reject(error)
 )
 
+// 4) 응답 인터셉터
 api.interceptors.response.use(
   (res) => res,
   async (error) => {
     const status = error?.response?.status
     const originalRequest = error?.config
 
+    // ---- ✅ 여기 추가: AUTH_FREE URL은 그냥 통과시켜서 컴포넌트에서 처리 ----
+    const rawUrl =
+      typeof originalRequest?.url === 'string' ? originalRequest.url : ''
+    const pathname = rawUrl.startsWith('/') ? rawUrl : `/${rawUrl}`
+
+    if (AUTH_FREE.includes(pathname)) {
+      // 로그인/회원가입/이메일체크 등은 토큰 재발급/강제 로그아웃 X
+      return Promise.reject(error)
+    }
+    // -------------------------------------------------------------------
+
     if (
       (status === 401 || status === 403) &&
       originalRequest &&
       !originalRequest._retry
     ) {
-      // 재발급 자체가 401이면 그냥 실패
       if (
         typeof originalRequest.url === 'string' &&
         originalRequest.url.includes('/auth/reissue')
@@ -110,13 +162,14 @@ api.interceptors.response.use(
 
       originalRequest._retry = true
 
-      // 이미 리프레시 중이면 큐에 대기
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           refreshQueue.push({
             resolve: (newToken) => {
-              originalRequest.headers = originalRequest.headers || {}
-              originalRequest.headers.Authorization = `Bearer ${newToken}`
+              if (newToken) {
+                originalRequest.headers = originalRequest.headers || {}
+                originalRequest.headers.Authorization = `Bearer ${newToken}`
+              }
               resolve(api(originalRequest))
             },
             reject,
@@ -127,10 +180,12 @@ api.interceptors.response.use(
       // 리프레시 시작
       isRefreshing = true
       try {
-        const newAccessToken = await reissueAccessToken() // 실패 시 내부에서 세션정리/리다이렉트
+        const newAccessToken = await reissueAccessToken()
         processQueue(null, newAccessToken)
+
         originalRequest.headers = originalRequest.headers || {}
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`
+
         return api(originalRequest)
       } catch (e) {
         processQueue(e, null)

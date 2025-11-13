@@ -91,7 +91,14 @@ export default function LoginPage(): JSX.Element {
       localStorage.setItem('grantType', grantType)
       localStorage.setItem('role', role)
 
-      navigate(role === 'ADMIN' ? '/admin' : '/main')
+      // ✅ 로그인 성공 후 이동 + 최초 로그인 진입 표시
+      if (role === 'ADMIN') {
+        navigate('/admin')
+      } else {
+        navigate('/main', {
+          state: { fromLogin: true }, // ← 여기 추가
+        })
+      }
     } catch (err: any) {
       if (err.response?.status === 401) {
         setError(
@@ -115,7 +122,7 @@ export default function LoginPage(): JSX.Element {
 
         {/* 로그인 폼 */}
         <form onSubmit={handleSubmit} className="flex flex-col">
-          {/* 이메일 입력칸: 392x48, r=12, line-normal, mb-12 */}
+          {/* 이메일 입력칸 */}
           <div className="mx-auto mb-3 w-[392px]">
             <label
               htmlFor="email"
@@ -136,7 +143,7 @@ export default function LoginPage(): JSX.Element {
             />
           </div>
 
-          {/* 비밀번호 입력칸: 392x48, r=12, line-normal, mb-12 */}
+          {/* 비밀번호 입력칸 */}
           <div className="relative mx-auto mb-3 w-[392px]">
             <label
               htmlFor="password"
@@ -168,24 +175,24 @@ export default function LoginPage(): JSX.Element {
             )}
           </div>
 
-          {/* 에러 메시지 (입력칸 아래) — 줄바꿈 표시 */}
+          {/* 에러 메시지 */}
           {error && (
             <p className="mx-auto mb-1 w-[392px] whitespace-pre-line text-sm leading-5 text-system-red">
               {error}
             </p>
           )}
 
-          {/* 비밀번호 찾기: body2-regular + label-neutral, 아래 24px */}
+          {/* 비밀번호 찾기 */}
           <div className="mx-auto mb-6 w-[392px] text-right">
             <Link
-              to="/passwordfind"
+              to="/password"
               className="text-body-2 text-label-neutral hover:text-label-primary"
             >
               비밀번호 찾기
             </Link>
           </div>
 
-          {/* 로그인 버튼: 비번찾기 밑 24px → 버튼, 버튼 밑 16px */}
+          {/* 로그인 버튼 */}
           <Button
             type="submit"
             variant="primary"
@@ -197,7 +204,7 @@ export default function LoginPage(): JSX.Element {
           </Button>
         </form>
 
-        {/* 가입하기: 로그인 밑 16px 이후 */}
+        {/* 가입하기 */}
         <div className="text-sm text-center">
           아직 tackit 회원이 아닌가요?{' '}
           <Link to="/signup" className="font-medium text-label-primary">

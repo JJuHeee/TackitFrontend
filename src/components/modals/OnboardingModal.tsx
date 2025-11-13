@@ -59,8 +59,7 @@ export default function OnboardingModal({
         <button
           className="absolute top-[8px] right-[16px] p-1"
           onClick={() => {
-            localStorage.setItem('onboarded', 'true')
-            onClose(false)
+            onClose(true)
           }}
           aria-label="닫기"
         >

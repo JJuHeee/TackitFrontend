@@ -35,7 +35,7 @@ export default function MyCommentList() {
   const tabTags = useMemo(
     () => [
       { id: 'qna', name: '신입이 질문해요' },
-      { id: 'free', name: '자유롭게 얘기해요' },
+      { id: 'free', name: '다같이 얘기해요' },
     ],
     []
   )
@@ -86,7 +86,8 @@ export default function MyCommentList() {
     type: string,
     id: number
   ): Promise<PostSummary> {
-    const url = type === 'QnA' ? `/api/qna-post/${id}` : `/api/free-posts/${id}`
+    const url =
+      type === 'QnA' ? `/api/qna-posts/${id}` : `/api/free-posts/${id}`
     const { data } = await api.get(url)
     return {
       title: data.title ?? '(제목 없음)',

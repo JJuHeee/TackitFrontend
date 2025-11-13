@@ -1,3 +1,4 @@
+// src/pages/main/MainPage.tsx
 import React, { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import HomeBar from '../../components/HomeBar'
@@ -70,7 +71,11 @@ export default function MainPage() {
   const [tips, setTips] = useState<BaseItem[]>([])
   const [qnas, setQnas] = useState<BaseItem[]>([])
   const [frees, setFrees] = useState<BaseItem[]>([])
-  const { state } = useLocation() as { state?: { showOnboarding?: boolean } }
+
+  const { state } = useLocation() as {
+    state?: { showOnboarding?: boolean; fromLogin?: boolean }
+  }
+
   const [openOnboarding, setOpenOnboarding] = useState(false)
 
   useEffect(() => {
@@ -78,12 +83,10 @@ export default function MainPage() {
     fetchPosts('/api/tip-posts?page=0&size=3&sort=createdAt,desc', toTip).then(
       setTips
     )
-
     // QNA 최신 3개
     fetchPosts('/api/qna-posts?page=0&size=3&sort=createdAt,desc', toQna).then(
       setQnas
     )
-
     // FREE 최신 3개
     fetchPosts(
       '/api/free-posts?page=0&size=3&sort=createdAt,desc',
@@ -92,19 +95,26 @@ export default function MainPage() {
   }, [])
 
   useEffect(() => {
-    // 최초 방문 시 온보딩 노출
     const seen = localStorage.getItem(ONBOARD_KEY)
-    if (!seen) {
-      setOpenOnboarding(true)
-    }
-    // 특정 라우팅에서 강제 노출하고 싶다면:
+
+    // 1) 특정 라우팅에서 강제 노출하고 싶다면 (관리자 메뉴에서 온보딩 다시 보기 등)
     if (state?.showOnboarding) {
       setOpenOnboarding(true)
+      return
     }
-  }, [state?.showOnboarding])
+
+    // 2) 이미 온보딩 본 적 있으면 끝
+    if (seen) return
+
+    // 3) ✅ "로그인 → 메인으로 들어온 경우"에만 첫 온보딩 노출
+    if (state?.fromLogin) {
+      setOpenOnboarding(true)
+    }
+  }, [state?.showOnboarding, state?.fromLogin])
 
   const dismiss = (dontShowAgain: boolean) => {
     if (dontShowAgain) {
+      // ✅ 한 번 본 뒤에는 다시 안 뜨도록 플래그 저장
       localStorage.setItem(ONBOARD_KEY, '1')
     }
     setOpenOnboarding(false)
