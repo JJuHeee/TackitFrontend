@@ -41,17 +41,19 @@ export default function CommentList({
         </span>
       </h3>
 
-      <div className="divide-y divide-line-normal">
+      <div
+        className={`divide-y divide-line-normal ${
+          comments.length === 0 ? 'mt-6' : ''
+        }`}
+      >
         {ordered.map((c) => (
           <div key={c.id} className="py-6">
             <CommentItem
               comment={c}
               currentUserNickname={currentUserNickname}
               editCommentId={editCommentId}
-              // ⬇️ 인라인 수정 제어 콜백 전달
               onBeginEdit={onBeginEdit}
               onCancelEdit={onCancelEdit}
-              // ⬇️ 저장/삭제/신고 전달
               onEdit={onEdit}
               onDelete={onDelete}
               onReport={onReport}

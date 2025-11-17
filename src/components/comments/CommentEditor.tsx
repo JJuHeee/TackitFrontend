@@ -104,7 +104,10 @@ export default function CommentEditor({
             variant="ghost"
             size="l"
             onClick={() => {
-              if (!isEditing && isEditorEmpty(value)) setIsActive(false)
+              if (!isEditing) {
+                onChange('')
+              }
+              setIsActive(false)
               onCancel?.()
             }}
           >

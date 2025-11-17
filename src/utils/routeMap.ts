@@ -4,10 +4,11 @@ export function toAppRoute(relatedUrl: string): string {
     'qna-post': 'qna',
     'tip-posts': 'tip',
   }
+
   return relatedUrl
     .replace(/^\/api\//, '/') // /api/ 제거
     .replace(
-      /^(\/)(free-posts|qna-post|tips-post)(\/?)/,
+      /^(\/)(free-posts|qna-post|tip-posts)(\/?)/,
       (_, slash, key, after) => {
         return `/${mapping[key]}${after}`
       }

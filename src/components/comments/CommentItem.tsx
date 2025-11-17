@@ -119,16 +119,7 @@ function CommentItemBase({
         />
       )}
 
-      {!isEditingThis && (
-        <div className="mt-[10px] flex justify-start">
-          <button
-            type="button"
-            className="text-label-neutral text-body-1 normal-regular hover:text-label-primary"
-          >
-            답글 달기
-          </button>
-        </div>
-      )}
+      {!isEditingThis && <div className="mt-[10px] flex justify-start"></div>}
     </div>
   )
 }

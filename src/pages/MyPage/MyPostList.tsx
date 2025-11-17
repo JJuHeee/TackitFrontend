@@ -122,9 +122,9 @@ export default function MyPostList() {
     ;(async () => {
       try {
         const token = localStorage.getItem('accessToken')
-        const pageParam = currentPage - 1 // 서버는 0-base
-        const postsPerPage = 5 // ✅ 한 페이지당 3개
-        const sortOrder = 'desc' // ✅ 최신순
+        const pageParam = currentPage - 1
+        const postsPerPage = 3
+        const sortOrder = 'desc'
 
         const url =
           activeTab === 'tip'
@@ -161,10 +161,14 @@ export default function MyPostList() {
     setCurrentPage(1)
   }
 
+  const detailPathMap = {
+    tip: '/tip-posts',
+    free: '/free-posts',
+    qna: '/qna-posts',
+  } as const
+
   const openDetail = (id: number) => {
-    const path =
-      activeTab === 'tip' ? 'tip' : activeTab === 'free' ? 'free' : 'qna'
-    navigate(`/${path}/${id}`)
+    navigate(`${detailPathMap[activeTab]}/${id}`)
   }
 
   const mapToRow = (p: TipItem | FreeItem | QnaItem): Row => {
