@@ -8,7 +8,7 @@ import { Button } from '../ui/Button'
 
 type Slide = {
   title: string
-  desc?: string
+  desc?: React.ReactNode
   img: string
   isLast?: boolean
 }
@@ -16,20 +16,36 @@ type Slide = {
 const slides: Slide[] = [
   {
     title: '역할에 따라 글을 쓸 수 있는 게시판이 달라요',
-    desc: `
-  <div class="flex justify-center">
-    <span class="body-2sb text-label-neutral">💡선배가 알려줘요</span>: 선배만 글 작성 (댓글은 없어요!)
-  </div>
-  <div class="flex justify-center">
-    <span class="body-2sb text-label-neutral">💬신입이 질문해요</span>: 신입이 글 작성, 선배는 댓글로 답해요
-  </div>
-    <div class="flex justify-center">
-    <span class="body-2sb text-label-neutral">🗣️다같이 얘기해요</span>: 다같이 글·댓글로 자유롭게 이야기 나눠요
-  </div>
-  `,
+    desc: (
+      <>
+        <div className="flex justify-center">
+          <span className="body-2sb text-label-neutral">
+            💡 선배가 알려줘요
+          </span>
+          <span className="body-2 text-label-neutral">
+            : 선배만 글 작성 (댓글은 없어요!)
+          </span>
+        </div>
+        <div className="flex justify-center">
+          <span className="body-2sb text-label-neutral">
+            💬 신입이 질문해요
+          </span>
+          <span className="body-2 text-label-neutral">
+            : 신입이 글 작성, 선배는 댓글로 답해요
+          </span>
+        </div>
+        <div className="flex justify-center">
+          <span className="body-2sb text-label-neutral">
+            🗣️ 다같이 얘기해요
+          </span>
+          <span className="body-2 text-label-neutral">
+            : 다같이 글·댓글로 자유롭게 이야기 나눠요
+          </span>
+        </div>
+      </>
+    ),
     img: '/images/onboarding1.svg',
   },
-
   {
     title: '닉네임 옆에 역할에 따른 배지가 부여돼요🌱🌳',
     desc: '올해 신입이라면 내년부터는 자동으로 선배로 전환돼요\n(역할을 잘못 설정했다면 고객센터로 문의해주세요)',
