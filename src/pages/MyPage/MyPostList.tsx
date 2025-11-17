@@ -9,11 +9,12 @@ import './Bookmarked.css'
 
 type Tab = 'tip' | 'qna' | 'free'
 
+/** ✅ 실제 API 응답 타입 (마이페이지용 요약) */
 type TipItem = {
   tipId: number
   title: string
   contentPreview?: string
-  authorName: string
+  writer: string
   createdAt: string
   imageUrl?: string | null
   tags?: string[]
@@ -23,13 +24,13 @@ type FreeItem = {
   title: string
   content?: string
   contentPreview?: string
-  authorName: string
+  writer: string
   createdAt: string
   imageUrl?: string | null
   tags?: string[]
 }
 type QnaItem = {
-  postId: number
+  postId: number // QnA는 postId
   title: string
   content?: string
   contentPreview?: string
@@ -39,6 +40,7 @@ type QnaItem = {
   tags?: string[]
 }
 
+/** 리스트 렌더링을 위한 공통 Row 타입 */
 type Row = {
   id: number
   title: string
@@ -48,6 +50,7 @@ type Row = {
   tags: string[]
   imageUrl: string | null
 }
+
 export default function MyPostList() {
   const navigate = useNavigate()
 
@@ -55,6 +58,7 @@ export default function MyPostList() {
   const [posts, setPosts] = useState<Array<TipItem | FreeItem | QnaItem>>([])
   const [currentPage, setCurrentPage] = useState(1) // 1-base
   const [totalPages, setTotalPages] = useState(1)
+  const [loading, setLoading] = useState(false)
 
   const tabTags = useMemo(
     () => [
@@ -65,13 +69,8 @@ export default function MyPostList() {
     []
   )
 
-  type Fallback = {
-    tip: { content: TipItem[]; totalPages: number }
-    free: { content: FreeItem[]; totalPages: number }
-    qna: { content: QnaItem[]; totalPages: number }
-  }
-
-  const fallbackData: Fallback = useMemo(
+  /** ✅ (옵션) 서버 죽었을 때만 보여줄 더미 */
+  const fallbackData = useMemo(
     () => ({
       tip: {
         content: [
@@ -79,11 +78,11 @@ export default function MyPostList() {
             tipId: 1,
             title: '신입사원을 위한 회사생활 꿀팁',
             contentPreview: '첫 직장에 입사하면…',
-            authorName: '선배로부터',
+            writer: '선배로부터',
             createdAt: '2025-05-26T16:55:22.233909',
             tags: ['인수인계'],
           },
-        ],
+        ] as TipItem[],
         totalPages: 1,
       },
       free: {
@@ -92,11 +91,11 @@ export default function MyPostList() {
             freeId: 2,
             title: '자유 게시글 예시',
             contentPreview: '자유롭게 소통하는 공간…',
-            authorName: '홍길동',
+            writer: '홍길동',
             createdAt: '2025-05-27T22:27:15.846678',
             tags: ['잡담'],
           },
-        ],
+        ] as FreeItem[],
         totalPages: 1,
       },
       qna: {
@@ -109,44 +108,53 @@ export default function MyPostList() {
             createdAt: '2025-05-27T20:24:20.359041',
             tags: ['질문'],
           },
-        ],
+        ] as QnaItem[],
         totalPages: 1,
       },
     }),
     []
   )
 
+  /** ✅ 탭 + 페이지에 따라 마이페이지용 목록 API 호출 */
   useEffect(() => {
     let mounted = true
-
     ;(async () => {
       try {
+        setLoading(true)
+
         const token = localStorage.getItem('accessToken')
         const pageParam = currentPage - 1
-        const postsPerPage = 3
+        const size = 3
         const sortOrder = 'desc'
 
-        const url =
+        const endpoint =
           activeTab === 'tip'
-            ? `/api/mypage/tip-posts?page=${pageParam}&size=${postsPerPage}&sort=createdAt,${sortOrder}`
+            ? `/api/mypage/tip-posts`
             : activeTab === 'free'
-            ? `/api/mypage/free-posts?page=${pageParam}&size=${postsPerPage}&sort=createdAt,${sortOrder}`
-            : `/api/mypage/qna-posts?page=${pageParam}&size=${postsPerPage}&sort=createdAt,${sortOrder}`
+            ? `/api/mypage/free-posts`
+            : `/api/mypage/qna-posts`
 
-        const res = await api.get(url, {
-          headers: {
-            Authorization: `Bearer ${token}`,
+        const res = await api.get(endpoint, {
+          headers: { Authorization: `Bearer ${token}` },
+          params: {
+            page: pageParam,
+            size,
+            sort: `createdAt,${sortOrder}`,
           },
         })
 
         if (!mounted) return
-        setPosts(res.data.content ?? [])
-        setTotalPages(res.data.totalPages ?? 1)
-      } catch {
+
+        setPosts(res.data?.content ?? [])
+        setTotalPages(res.data?.totalPages ?? 1)
+      } catch (err) {
+        console.warn('⚠️ 내가 쓴 글 목록 API 실패, fallback 사용', err)
         if (!mounted) return
         const fb = fallbackData[activeTab]
-        setPosts(fb.content as Array<TipItem | FreeItem | QnaItem>)
+        setPosts(fb.content)
         setTotalPages(fb.totalPages)
+      } finally {
+        if (mounted) setLoading(false)
       }
     })()
 
@@ -154,6 +162,8 @@ export default function MyPostList() {
       mounted = false
     }
   }, [activeTab, currentPage, fallbackData])
+
+  /** 탭 변경 */
   const onChangeTab = (next: string | number) => {
     const key = String(next) as Tab
     if (key === activeTab) return
@@ -161,24 +171,22 @@ export default function MyPostList() {
     setCurrentPage(1)
   }
 
-  const detailPathMap = {
-    tip: '/tip',
-    free: '/free',
-    qna: '/qna',
-  } as const
-
-  const openDetail = (id: number) => {
-    navigate(`${detailPathMap[activeTab]}/${id}`)
+  /** ✅ 게시판 + id → 상세 경로 */
+  const toDetailPath = (tab: Tab, id: number) => {
+    if (tab === 'tip') return `/tip/${id}`
+    if (tab === 'free') return `/free/${id}`
+    return `/qna/${id}`
   }
 
+  /** ✅ 각 탭별 응답을 공통 Row로 변환 */
   const mapToRow = (p: TipItem | FreeItem | QnaItem): Row => {
     if (activeTab === 'tip') {
       const t = p as TipItem
       return {
-        id: t.tipId,
+        id: t.tipId, // ✔ 상세조회에 사용할 tip 게시글 id
         title: t.title,
         content: t.contentPreview ?? '',
-        writer: t.authorName,
+        writer: t.writer,
         createdAt: t.createdAt,
         tags: t.tags ?? [],
         imageUrl: t.imageUrl ?? null,
@@ -187,10 +195,10 @@ export default function MyPostList() {
     if (activeTab === 'free') {
       const f = p as FreeItem
       return {
-        id: f.freeId,
+        id: f.freeId, // ✔ free 게시글 id
         title: f.title,
         content: (f.content ?? f.contentPreview ?? '') as string,
-        writer: f.authorName,
+        writer: f.writer,
         createdAt: f.createdAt,
         tags: f.tags ?? [],
         imageUrl: f.imageUrl ?? null,
@@ -198,7 +206,7 @@ export default function MyPostList() {
     }
     const q = p as QnaItem
     return {
-      id: q.postId,
+      id: q.postId, // ✔ QnA 게시글 id
       title: q.title,
       content: (q.content ?? q.contentPreview ?? '') as string,
       writer: q.writer,
@@ -208,16 +216,18 @@ export default function MyPostList() {
     }
   }
 
+  const empty = !loading && posts.length === 0
+
   return (
     <>
       <HomeBar />
       <main className="pt-[60px] pb-8">
         <div className="post-container">
+          {/* 브레드크럼 */}
           <div className="mb-[32px] flex items-center space-x-[6px]">
             <span
               onClick={() => navigate('/mypage')}
               className="no-underline cursor-pointer text-title1-bold text-label-assistive hover:text-label-normal"
-              style={{ textDecoration: 'none' }}
             >
               마이페이지
             </span>
@@ -243,6 +253,7 @@ export default function MyPostList() {
             </span>
           </div>
 
+          {/* 탭 */}
           <TagChips
             endpoint="/__ignore__"
             mode="single"
@@ -250,13 +261,15 @@ export default function MyPostList() {
             value={activeTab}
             onChange={onChangeTab}
             fallbackTags={tabTags}
-            className="ml-[20px] mb-6" /* 32px */
+            className="ml-[20px] mb-6"
             gapPx={8}
           />
 
-          {/* 리스트: 태그와 같은 시작선(ml-20), 태그 아래 여백 24px */}
+          {/* 리스트 */}
           <section aria-live="polite" className="ml-[20px] mt-6">
-            {!posts || posts.length === 0 ? (
+            {loading ? (
+              <div className="py-10 text-label-assistive">불러오는 중...</div>
+            ) : empty ? (
               <div className="flex flex-col items-center justify-center py-20 text-center no-result">
                 <img
                   src="/icons/empty.svg"
@@ -279,10 +292,10 @@ export default function MyPostList() {
                     writer={row.writer}
                     createdAt={row.createdAt}
                     tags={row.tags}
-                    imageUrl={row.imageUrl ?? null}
+                    imageUrl={row.imageUrl}
                     showReplyIcon={false}
                     density="comfortable"
-                    onClick={() => openDetail(row.id)}
+                    onClick={() => navigate(toDetailPath(activeTab, row.id))}
                     className="mb-4"
                   />
                 )
@@ -290,7 +303,7 @@ export default function MyPostList() {
             )}
           </section>
 
-          {/* 페이지네이션도 같은 정렬 유지 */}
+          {/* 페이지네이션 */}
           <div className="ml-[20px] mt-8 mb-8 flex justify-center">
             <PaginationGroup
               currentPage={currentPage}

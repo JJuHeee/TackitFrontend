@@ -15,6 +15,10 @@ export type CommentRowProps = {
   onClick?: () => void
   showReplyIcon?: boolean
   previewLines?: number
+
+  // PostRowCompact와 유사한 확장 플래그
+  hideWriter?: boolean
+  showDate?: boolean
 }
 
 const ReplyIcon = ({ className = '' }) => (
@@ -40,6 +44,8 @@ export default function CommentRowCompact({
   onClick,
   showReplyIcon = true,
   previewLines = 1,
+  hideWriter = false,
+  showDate = true,
 }: CommentRowProps) {
   const handleClick = () => {
     if (id == null) return toast.error('잘못된 게시글 ID입니다.')
@@ -78,19 +84,16 @@ export default function CommentRowCompact({
           </div>
         )}
 
-        {writer ? (
-          <PostAuthorMeta writer={safeWriter} createdAt={createdAt} />
-        ) : (
-          <span className="text-label-assistive">{createdAt}</span>
-        )}
+        {/* ✅ 항상 PostAuthorMeta를 통해 시간 처리 (PostRowCompact와 동일 패턴) */}
+        <PostAuthorMeta
+          writer={hideWriter ? '' : safeWriter}
+          createdAt={showDate ? createdAt : ''}
+        />
       </div>
 
-      {/* 4) 본문 미리보기: 메타 바로 아래 + 살짝 들여쓰기 */}
       <div className="ml-5">
         <PostPreview
           content={content}
-          // ⬇️ 네 토큰 네이밍에 맞게 사용: body1-reading-regular + label-normal
-          // tailwind 설정이 'body-1rd'라면 아래 줄을 'text-body-1rd'로 바꿔 써줘!
           className="text-body1-reading-regular text-label-normal"
           lines={previewLines}
         />
