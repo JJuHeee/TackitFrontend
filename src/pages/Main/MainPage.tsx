@@ -223,7 +223,7 @@ function SectionList({
         </div>
 
         {/* 게시글 리스트 */}
-        <div className="px-[28px]">
+        <div className="px-[16px]">
           {sliced.length === 0 ? (
             <EmptyRow />
           ) : (
@@ -247,7 +247,7 @@ function SectionList({
                     previewLines={1}
                     showTags
                     showDate
-                    density="comfortable"
+                    density="compact"
                     className="bg-white"
                     isLast={isLast}
                   />
