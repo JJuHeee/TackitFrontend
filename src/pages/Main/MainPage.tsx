@@ -206,14 +206,13 @@ function SectionList({
   moreTo: string
   items: BaseItem[]
 }) {
-  // 먼저 최대 3개까지 잘라놓고
   const sliced = items.slice(0, 3)
 
   return (
     <section className="mb-[60px]">
       <div className="overflow-hidden bg-white rounded-xl">
         {/* 제목 + 더보기 버튼 */}
-        <div className="flex items-center justify-between px-6 pt-6 mb-4">
+        <div className="flex items-center justify-between px-[28px] pt-6 mb-4">
           <h3 className="text-title-1 text-label-normal">{sectionTitle}</h3>
           <Link
             to={moreTo}
@@ -230,7 +229,6 @@ function SectionList({
           ) : (
             sliced.map((p, index) => {
               const isLast = index === sliced.length - 1
-
               return (
                 <Link
                   key={p.id}
@@ -251,7 +249,7 @@ function SectionList({
                     showDate
                     density="comfortable"
                     className="bg-white"
-                    isLast={isLast} // ✅ 여기 추가!
+                    isLast={isLast}
                   />
                 </Link>
               )
