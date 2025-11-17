@@ -77,7 +77,12 @@ export default function CommentRowCompact({
             <ReplyIcon />
           </div>
         )}
-        <PostAuthorMeta writer={safeWriter} createdAt={createdAt} />
+
+        {writer ? (
+          <PostAuthorMeta writer={safeWriter} createdAt={createdAt} />
+        ) : (
+          <span className="text-label-assistive">{createdAt}</span>
+        )}
       </div>
 
       {/* 4) 본문 미리보기: 메타 바로 아래 + 살짝 들여쓰기 */}

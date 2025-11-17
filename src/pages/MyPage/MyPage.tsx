@@ -40,19 +40,10 @@ export default function MyPageHome() {
   }
 
   const handleConfirmWithdraw = async () => {
-    const accessToken = localStorage.getItem('accessToken')
-    if (!accessToken) {
-      toastError('인증 정보가 없습니다. 다시 로그인해주세요.')
-      navigate('/login')
-      return
-    }
-
     try {
-      const response = await api.post(
-        '/withdraw',
-        {},
-        { headers: { Authorization: `Bearer ${accessToken}` } }
-      )
+      // 1) api 인스턴스가 알아서 accessToken 붙여주게 맡기기
+      const response = await api.post('/withdraw')
+
       toastSuccess(response.data?.message || '탈퇴가 완료되었습니다.')
 
       try {
@@ -61,7 +52,7 @@ export default function MyPageHome() {
         console.warn(e)
       }
 
-      // 토큰 정리
+      // 2) 토큰/로컬스토리지 정리
       localStorage.removeItem('accessToken')
       localStorage.removeItem('refreshToken')
       localStorage.removeItem('accessTokenExpiresIn')
@@ -70,8 +61,12 @@ export default function MyPageHome() {
 
       setWithdrawOpen(false)
       navigate('/login')
-    } catch {
-      toastError('탈퇴 처리 중 오류가 발생했습니다.')
+    } catch (error: any) {
+      // 디버깅용 로그 한번 찍어주면 원인 파악에 도움돼
+      console.error('withdraw error', error?.response || error)
+      toastError(
+        error?.response?.data?.message || '탈퇴 처리 중 오류가 발생했습니다.'
+      )
     }
   }
 

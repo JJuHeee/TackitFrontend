@@ -14,7 +14,7 @@ type TipItem = {
   tipId: number
   title: string
   contentPreview?: string
-  authorName: string
+  writer: string
   createdAt: string
   imageUrl?: string | null
   tags?: string[]
@@ -24,7 +24,7 @@ type FreeItem = {
   title: string
   content?: string
   contentPreview?: string
-  authorName: string
+  writer: string
   createdAt: string
   imageUrl?: string | null
   tags?: string[]
@@ -81,7 +81,7 @@ export default function Bookmarked() {
             tipId: 1,
             title: '신입사원을 위한 회사생활 꿀팁',
             contentPreview: '첫 직장에 입사하면…',
-            authorName: '선배로부터',
+            writer: '선배로부터',
             createdAt: '2025-05-26T16:55:22.233909',
             tags: ['인수인계'],
           },
@@ -94,7 +94,7 @@ export default function Bookmarked() {
             freeId: 2,
             title: '자유 게시글 예시',
             contentPreview: '자유롭게 소통하는 공간…',
-            authorName: '홍길동',
+            writer: '홍길동',
             createdAt: '2025-05-27T22:27:15.846678',
             tags: ['잡담'],
           },
@@ -166,7 +166,7 @@ export default function Bookmarked() {
         id: t.tipId,
         title: t.title,
         content: t.contentPreview ?? '',
-        writer: t.authorName,
+        writer: t.writer,
         createdAt: t.createdAt,
         tags: t.tags ?? [],
         imageUrl: t.imageUrl ?? null,
@@ -178,7 +178,7 @@ export default function Bookmarked() {
         id: f.freeId,
         title: f.title,
         content: (f.content ?? f.contentPreview ?? '') as string,
-        writer: f.authorName,
+        writer: f.writer,
         createdAt: f.createdAt,
         tags: f.tags ?? [],
         imageUrl: f.imageUrl ?? null,

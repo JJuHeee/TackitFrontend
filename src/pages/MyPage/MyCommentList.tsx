@@ -233,8 +233,7 @@ export default function MyCommentList() {
                     id={c.postId}
                     title={s?.title ?? '제목'}
                     content={c.content ?? ''}
-                    writer={s?.writer ?? ''}
-                    createdAt={fmtDate(c.createdAt)} // 문자열 그대로 노출
+                    createdAt={c.createdAt}
                     onClick={() =>
                       navigate(
                         c.type === 'QnA'

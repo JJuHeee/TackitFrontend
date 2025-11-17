@@ -106,16 +106,15 @@ export default function OnboardingModal({
         >
           {slides.map((s, idx) => (
             <SwiperSlide key={idx} className="!h-full">
-              {/* 세로 플렉스: 버튼을 아래로 밀기 위해 mt-auto 사용 */}
               <div className="flex flex-col items-center h-full text-center">
                 <h2 className="mt-1 mb-3 whitespace-pre-line text-title-2b text-label-normal">
                   {s.title}
                 </h2>
 
                 {s.desc && (
-                  <p className="mb-6 whitespace-pre-line text-body-2 text-label-neutral">
+                  <div className="mb-6 text-center text-body-2 text-label-neutral">
                     {s.desc}
-                  </p>
+                  </div>
                 )}
 
                 <div className="flex items-center justify-center min-h-0">

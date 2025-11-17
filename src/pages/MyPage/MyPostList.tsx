@@ -162,9 +162,9 @@ export default function MyPostList() {
   }
 
   const detailPathMap = {
-    tip: '/tip-posts',
-    free: '/free-posts',
-    qna: '/qna-posts',
+    tip: '/tip',
+    free: '/free',
+    qna: '/qna',
   } as const
 
   const openDetail = (id: number) => {
