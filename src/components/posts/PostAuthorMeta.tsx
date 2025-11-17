@@ -77,42 +77,43 @@ export default function PostAuthorMeta({
 
   return (
     <div
-      className={`post-author-meta flex items-center gap-2 ${className ?? ''}`}
+      className={`post-author-meta flex items-center ${writer ? 'gap-2' : ''} ${
+        className ?? ''
+      }`}
     >
-      {/* 프로필 이미지 */}
-      <img
-        src={profileImageUrl || '/icons/mypage-icon.svg'}
-        alt="작성자 프로필"
-        className="object-cover w-6 h-6 rounded-full shrink-0"
-        loading="lazy"
-      />
+      {writer && (
+        <img
+          src={profileImageUrl || '/icons/mypage-icon.svg'}
+          alt="작성자 프로필"
+          className="object-cover w-6 h-6 rounded-full shrink-0"
+          loading="lazy"
+        />
+      )}
 
-      {/* 닉네임 + 뱃지 + 년차 */}
-      <div className="flex items-center gap-2">
-        <span className="flex items-center gap-1.5">
-          <span className={nameCls}>{writer || ''}</span>
+      {writer && (
+        <div className="flex items-center gap-2">
+          <span className="flex items-center gap-1.5">
+            <span className={nameCls}>{writer}</span>
 
-          {/* 역할 뱃지 (20×20) */}
-          {roleBadgeSrc && (
-            <img
-              src={roleBadgeSrc}
-              alt={role === 'NEWBIE' ? '신입' : '선배'}
-              className="w-5 h-5"
-            />
-          )}
+            {roleBadgeSrc && (
+              <img
+                src={roleBadgeSrc}
+                alt={role === 'NEWBIE' ? '신입' : '선배'}
+                className="w-5 h-5"
+              />
+            )}
 
-          {/* 선배일 경우 년차 표시 */}
-          {typeof years === 'number' && (
-            <span className={yearsCls}>{years}년차</span>
-          )}
-        </span>
+            {typeof years === 'number' && (
+              <span className={yearsCls}>{years}년차</span>
+            )}
+          </span>
+        </div>
+      )}
 
-        {/* 구분선 */}
-        <span className="text-label-assistive">|</span>
+      {writer && <span className="text-label-assistive">|</span>}
 
-        {/* 날짜 */}
-        <span className={dateCls}>{formatDate(createdAt)}</span>
-      </div>
+      {/* 날짜만 표시될 때 앞에 여백 없음 */}
+      <span className={dateCls}>{formatDate(createdAt)}</span>
     </div>
   )
 }

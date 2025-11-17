@@ -52,7 +52,8 @@ export default function PopularPostCard({
       className={[
         'relative block cursor-pointer rounded-[12px] border border-[var(--line-normal)]',
         'bg-white hover:shadow-[0_4px_20px_rgba(0,0,0,0.06)] transition-shadow',
-        'w-[336.46px] h-[229.06px] px-[24px] py-[32px]',
+        'w-[350px] h-[229.06px] px-[24px] py-[32px]',
+        ,
         className ?? '',
       ].join(' ')}
     >

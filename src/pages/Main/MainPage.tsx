@@ -224,7 +224,7 @@ function SectionList({
         </div>
 
         {/* 게시글 리스트 */}
-        <div>
+        <div className="px-[28px]">
           {sliced.length === 0 ? (
             <EmptyRow />
           ) : (

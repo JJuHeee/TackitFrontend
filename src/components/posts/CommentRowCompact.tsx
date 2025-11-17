@@ -62,41 +62,36 @@ export default function CommentRowCompact({
       style={{
         borderBottom: `1px solid ${borderColor}`,
         cursor: 'pointer',
-        padding: 12,
+        padding: 16,
         display: 'flex',
         flexDirection: 'column',
-        gap: 8,
+        gap: 12,
       }}
     >
       {/* 1) 제목 */}
-      <h3 className="text-title1-bold text-label-normal" style={{ margin: 0 }}>
+      <h3 className="m-0 text-title-2b text-label-normal">
         {title ?? '(제목 없음)'}
       </h3>
-
-      {/* 2) 12px 여백 */}
-      <div style={{ height: 12 }} />
-
       {/* 3) 댓글 아이콘 + 작성자/날짜 */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-start">
         {showReplyIcon && (
-          <div className="text-label-assistive">
+          <div className="text-label-assistive mr-[12px]">
             <ReplyIcon />
           </div>
         )}
 
-        {/* ✅ 항상 PostAuthorMeta를 통해 시간 처리 (PostRowCompact와 동일 패턴) */}
-        <PostAuthorMeta
-          writer={hideWriter ? '' : safeWriter}
-          createdAt={showDate ? createdAt : ''}
-        />
-      </div>
+        <div className="flex flex-col flex-1 gap-2">
+          <PostAuthorMeta
+            writer={hideWriter ? '' : safeWriter}
+            createdAt={showDate ? createdAt : ''}
+          />
 
-      <div className="ml-5">
-        <PostPreview
-          content={content}
-          className="text-body1-reading-regular text-label-normal"
-          lines={previewLines}
-        />
+          <PostPreview
+            content={content}
+            className="text-body1-reading-regular text-label-normal"
+            lines={previewLines}
+          />
+        </div>
       </div>
     </article>
   )

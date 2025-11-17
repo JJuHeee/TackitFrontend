@@ -11,16 +11,20 @@ type Tab = 'tip' | 'qna' | 'free'
 
 /** ✅ 실제 API 응답 타입 (마이페이지용 요약) */
 type TipItem = {
-  tipId: number
+  id: number
   title: string
+  content?: string
   contentPreview?: string
   writer: string
   createdAt: string
   imageUrl?: string | null
   tags?: string[]
+  profileImageUrl?: string | null
+  type?: string
 }
+
 type FreeItem = {
-  freeId: number
+  id: number
   title: string
   content?: string
   contentPreview?: string
@@ -28,9 +32,12 @@ type FreeItem = {
   createdAt: string
   imageUrl?: string | null
   tags?: string[]
+  profileImageUrl?: string | null
+  type?: string
 }
+
 type QnaItem = {
-  postId: number // QnA는 postId
+  postId: number
   title: string
   content?: string
   contentPreview?: string
@@ -38,6 +45,8 @@ type QnaItem = {
   createdAt: string
   imageUrl?: string | null
   tags?: string[]
+  profileImageUrl?: string | null
+  type?: string
 }
 
 /** 리스트 렌더링을 위한 공통 Row 타입 */
@@ -75,7 +84,7 @@ export default function MyPostList() {
       tip: {
         content: [
           {
-            tipId: 1,
+            id: 1,
             title: '신입사원을 위한 회사생활 꿀팁',
             contentPreview: '첫 직장에 입사하면…',
             writer: '선배로부터',
@@ -88,7 +97,7 @@ export default function MyPostList() {
       free: {
         content: [
           {
-            freeId: 2,
+            id: 2,
             title: '자유 게시글 예시',
             contentPreview: '자유롭게 소통하는 공간…',
             writer: '홍길동',
@@ -183,7 +192,7 @@ export default function MyPostList() {
     if (activeTab === 'tip') {
       const t = p as TipItem
       return {
-        id: t.tipId, // ✔ 상세조회에 사용할 tip 게시글 id
+        id: t.id,
         title: t.title,
         content: t.contentPreview ?? '',
         writer: t.writer,
@@ -195,7 +204,7 @@ export default function MyPostList() {
     if (activeTab === 'free') {
       const f = p as FreeItem
       return {
-        id: f.freeId, // ✔ free 게시글 id
+        id: f.id,
         title: f.title,
         content: (f.content ?? f.contentPreview ?? '') as string,
         writer: f.writer,
@@ -206,7 +215,7 @@ export default function MyPostList() {
     }
     const q = p as QnaItem
     return {
-      id: q.postId, // ✔ QnA 게시글 id
+      id: q.postId,
       title: q.title,
       content: (q.content ?? q.contentPreview ?? '') as string,
       writer: q.writer,
