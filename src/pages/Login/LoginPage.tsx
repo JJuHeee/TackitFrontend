@@ -111,7 +111,11 @@ export default function LoginPage(): JSX.Element {
   }
 
   return (
-    <AuthLayout icons={['/assets/auth/auth-icon.svg']} iconOffset={80}>
+    <AuthLayout
+      showCornerLogo={false}
+      icons={['/assets/auth/auth-icon.svg']}
+      iconOffset={80}
+    >
       <AuthCard
         className="w-[440px] rounded-[12px] bg-white p-6 shadow-[0_4px_16px_rgba(0,0,0,0.08)]
                translate-y-8 md:translate-y-12 lg:translate-y-16"

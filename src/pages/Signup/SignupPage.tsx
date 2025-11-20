@@ -140,7 +140,7 @@ export default function SignupPage() {
                      max-[560px]:h-auto max-[560px]:mt-24"
         >
           <AuthCard className="w-full max-w-[440px]">
-            <h2 className="text-center text-[26px] font-extrabold mb-5">
+            <h2 className="mb-8 text-center text-title1-bold text-label-normal">
               회원가입
             </h2>
 
