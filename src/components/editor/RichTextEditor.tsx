@@ -145,6 +145,7 @@ function InternalEditor(
       ['link', 'image'],
     ]
     const toolbarForComment = [
+      [{ header: 1 }, { header: 2 }, { header: 3 }],
       ['bold', 'italic', 'underline', 'strike'],
       [{ list: 'ordered' }, { list: 'bullet' }],
       ['link'],
@@ -171,7 +172,16 @@ function InternalEditor(
           'link',
           'image',
         ]
-      : ['bold', 'italic', 'underline', 'strike', 'list', 'bullet', 'link']
+      : [
+          'header',
+          'bold',
+          'italic',
+          'underline',
+          'strike',
+          'list',
+          'bullet',
+          'link',
+        ]
 
   return (
     <div

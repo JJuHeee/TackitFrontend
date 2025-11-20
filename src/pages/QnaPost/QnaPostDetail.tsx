@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import './QnaPostDetail.css'
+import '../../components/posts/PostDetail.css'
 import HomeBar from '../../components/HomeBar'
 import api from '../../api/api'
 import { sanitizeHtml } from '../../utils/sanitize'
@@ -29,6 +29,7 @@ type Post = {
   createdAt: string
   imageUrl: string | null
   scrap?: boolean
+  profileImageUrl?: string | null
 }
 
 /** 서버 응답이 단일/배열/페이지네이션 등 다양한 형태일 때 첫 아이템 안전 추출 */
@@ -103,22 +104,41 @@ function QnaPostDetail() {
           tags: Array.isArray(item.tags) ? item.tags : [],
           createdAt: String(item.createdAt ?? new Date().toISOString()),
           imageUrl: item.imageUrl ?? null,
-          scrap: !!item.scrap, // ✅ 백엔드 scrap 반영
+          scrap: !!item.scrap,
+          profileImageUrl: item.profileImageUrl ?? null,
         }
 
         setPost(normalized)
-        setIsScrapped(!!normalized.scrap) // ✅ 초기 상태를 찜 여부로 세팅
+        setIsScrapped(!!normalized.scrap)
       } catch {
         setPost({
           id: postIdNumber || 0,
-          writer: '기본',
-          title: '본문1 제목',
-          content: '내용4',
-          tags: ['태그1', '태그3', '태그2'],
-          createdAt: '2025-05-13T19:34:53.52603',
+          writer: 'tackit',
+          title: '삭제된 게시글입니다',
+          content: `
+<h1>삭제된 게시글입니다</h1>
+<p>해당 게시글은 작성자 또는 관리자에 의해 <strong>삭제</strong>되었습니다.</p>
+<p>더 이상 내용을 확인할 수 없습니다.</p>
+
+<h2>가능한 원인</h2>
+<ul>
+  <li>작성자가 자발적으로 삭제한 경우</li>
+  <li>커뮤니티 운영 정책 위반으로 관리자에 의해 삭제된 경우</li>
+</ul>
+
+<h3>다른 글을 확인해보세요</h3>
+<p>
+게시판 목록으로 이동해 다른 글을 확인할 수 있습니다.<br/>
+이용에 불편을 드려 죄송합니다.
+</p>
+  `,
+          tags: [],
+          createdAt: new Date().toISOString(),
           imageUrl: null,
           scrap: false,
+          profileImageUrl: null,
         })
+
         setIsScrapped(false)
       } finally {
         setLoading(false)
@@ -135,24 +155,7 @@ function QnaPostDetail() {
         const res = await api.get(`/api/qna-comment/${postId}`)
         setComments(normalizeComments(res.data))
       } catch {
-        setComments([
-          {
-            id: 1,
-            writer: '주희',
-            content: '신입 테스트 댓글입니다.',
-            createdAt: '2025-05-12T20:06:42.621605',
-            role: 'SENIOR',
-            joinedYear: 2024,
-          },
-          {
-            id: 2,
-            writer: '혜경',
-            content: '선배 테스트 댓글입니다.',
-            createdAt: '2025-05-12T20:08:11.738681',
-            role: 'SENIOR',
-            joinedYear: 2022,
-          },
-        ])
+        setComments([])
       }
     }
     if (postId) fetchComments()
@@ -179,7 +182,24 @@ function QnaPostDetail() {
       const res = await api.patch(`/api/qna-comment/${id}`, {
         content: trimmed,
       })
-      setComments((prev) => prev.map((c) => (c.id === id ? res.data : c)))
+      const [updated] = normalizeComments(res.data)
+
+      setComments((prev) =>
+        prev.map((c) =>
+          c.id === id
+            ? {
+                ...c, // 기존 정보 유지
+                writer: updated?.writer ?? c.writer,
+                content: updated?.content ?? c.content,
+                createdAt: updated?.createdAt ?? c.createdAt,
+                profileImageUrl: updated?.profileImageUrl ?? c.profileImageUrl,
+                role: updated?.role ?? c.role,
+                joinedYear: updated?.joinedYear ?? c.joinedYear,
+              }
+            : c
+        )
+      )
+
       toastSuccess('댓글이 수정되었습니다.')
       setEditCommentId(null)
     } catch {
@@ -233,9 +253,11 @@ function QnaPostDetail() {
         qnaPostId: postIdNumber,
         content: trimmed,
       })
-      setComments((prev) => [...prev, res.data])
+
+      const [normalized] = normalizeComments(res.data)
+
+      setComments((prev) => (normalized ? [...prev, normalized] : prev))
       setComment('')
-      toastSuccess('댓글이 등록되었습니다.')
     } catch {
       toastError('댓글 등록에 실패했습니다.')
     }
@@ -311,9 +333,9 @@ function QnaPostDetail() {
           return (
             <>
               <HomeBar />
-              <div className="qnapost-detail-container">
+              <div className="post-detail-container">
                 <h1 className="board-title">질문 게시판</h1>
-                <div className="qnapost-box">불러오는 중...</div>
+                <div className="post-box">불러오는 중...</div>
               </div>
             </>
           )
@@ -322,7 +344,7 @@ function QnaPostDetail() {
         return (
           <>
             <HomeBar />
-            <div className="qnapost-detail-container">
+            <div className="post-detail-container">
               <img
                 src="/assets/icons/arrow-left.svg"
                 alt="뒤로가기"
@@ -335,6 +357,7 @@ function QnaPostDetail() {
                   title={post.title}
                   writer={post.writer}
                   createdAt={post.createdAt}
+                  profileImageUrl={post.profileImageUrl}
                   isBookmarked={isScrapped}
                   onToggleBookmark={handleScrapToggle}
                   isAuthor={isAuthor}
@@ -345,7 +368,7 @@ function QnaPostDetail() {
               )}
 
               <div className="mt-12">
-                <div className="qnapost-box">
+                <div className="post-box">
                   {post && (
                     <div className="prose detail-content max-w-none">
                       <div

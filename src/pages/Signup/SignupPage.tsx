@@ -18,6 +18,10 @@ export default function SignupPage() {
   const [passwordVisible, setPasswordVisible] = useState(false)
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false)
 
+  // 👉 이름 상태 추가 (name 말고 realName으로)
+  const [realName, setRealName] = useState('')
+  const [realNameTouched, setRealNameTouched] = useState(false)
+
   // 드롭다운 옵션 (입사년도)
   const yearOptions = useMemo(() => {
     const endYear = new Date().getFullYear()
@@ -51,6 +55,11 @@ export default function SignupPage() {
       : '유효한 연도를 선택해 주세요.'
     : undefined
 
+  // 👉 이름 유효성 (제출 후 빈값이면 에러)
+  const nameInvalid =
+    (realNameTouched && realName.trim() === '') ||
+    (submitted && realName.trim() === '')
+
   // 폼 훅
   const {
     email,
@@ -83,6 +92,12 @@ export default function SignupPage() {
     e.preventDefault()
     setSubmitted(true) // 제출 시 표시 플래그 ON
 
+    // 👉 이름 체크
+    if (!realName.trim()) {
+      toastWarn('이름을 입력해 주세요.')
+      return
+    }
+
     if (!role) {
       toastWarn('역할을 선택해 주세요.')
       return
@@ -95,6 +110,7 @@ export default function SignupPage() {
     }
 
     const formData = {
+      name: realName, // 👉 여기서 name 키로 보내기
       email,
       password,
       nickname,
@@ -112,7 +128,8 @@ export default function SignupPage() {
     }
   }
 
-  const submitDisabled = !isFormValid || !role || joinedYearActuallyInvalid
+  const submitDisabled =
+    !isFormValid || !role || joinedYearActuallyInvalid || realName.trim() === ''
 
   return (
     <AuthLayout icons={['/assets/auth/auth-icon.svg']} iconOffset={80}>
@@ -128,6 +145,18 @@ export default function SignupPage() {
             </h2>
 
             <form onSubmit={handleSubmit}>
+              <TextField
+                id="name"
+                label="이름"
+                required
+                value={realName}
+                placeholder="이름을 입력해 주세요."
+                onChange={(e) => setRealName(e.target.value)}
+                onBlur={() => setRealNameTouched(true)} // ← 추가
+                invalid={nameInvalid}
+                message={nameInvalid ? '이름을 입력해주세요.' : undefined}
+              />
+
               {/* 이메일 */}
               <TextField
                 id="email"

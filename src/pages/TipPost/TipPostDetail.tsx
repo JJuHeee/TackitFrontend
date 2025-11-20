@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import './TipPostDetail.css'
+import '../../components/posts/PostDetail.css'
 import HomeBar from '../../components/HomeBar'
 import api from '../../api/api'
 import useFetchUserInfo from '../../hooks/useFetchUserInfo'
@@ -20,7 +20,8 @@ type Post = {
   createdAt: string
   imageUrl: string | null
   type: 'Tip' | 'QnA' | 'Free'
-  scrap?: boolean // ✅ 스크랩 여부 추가
+  scrap?: boolean
+  profileImageUrl?: string | null
 }
 
 function TipPostDetail() {
@@ -55,27 +56,45 @@ function TipPostDetail() {
           createdAt: item.createdAt,
           imageUrl: item.imageUrl ?? null,
           type: item.type ?? 'Tip',
-          scrap: !!item.scrap, // ✅ 백엔드 scrap 값 반영
+          scrap: !!item.scrap,
+          profileImageUrl: item.profileImageUrl ?? null,
         }
 
         setPost(normalized)
-        setIsScrapped(!!normalized.scrap) // ✅ 처음 들어올 때 상태 세팅
+        setIsScrapped(!!normalized.scrap)
       } catch {
         // 더미
         const dummy: Post = {
           id: Number(id) || 0,
-          writer: 'senior',
-          title: '회의록 정리 팁 – 핵심만 빠르게!',
-          content:
-            '회의 중에 모든 걸 기록하기보다, 결정사항과 담당자 중심으로 메모하세요. 나중에 공유할 때 훨씬 명확해집니다.',
-          tags: ['업무팁'],
-          createdAt: '2025-06-19T00:02:53.52603',
+          writer: 'tackit', // 시스템성 안내 느낌
+          title: '삭제된 게시글입니다',
+          content: `
+<h1>삭제된 게시글입니다</h1>
+<p>해당 게시글은 작성자 또는 관리자에 의해 <strong>삭제</strong>되었습니다.</p>
+<p>더 이상 내용을 확인할 수 없습니다.</p>
+
+<h2>가능한 원인</h2>
+<ul>
+  <li>작성자가 직접 삭제한 경우</li>
+  <li>커뮤니티 운영 정책 위반으로 관리자에 의해 삭제된 경우</li>
+</ul>
+
+<h3>다른 글을 확인해보세요</h3>
+<p>
+게시판 목록으로 이동해 다른 글을 확인할 수 있습니다.<br/>
+이용에 불편을 드려 죄송합니다.
+</p>
+  `,
+          tags: [],
+          createdAt: new Date().toISOString(),
           imageUrl: null,
           type: 'Tip',
-          scrap: false, // ✅ 더미는 기본 false
+          scrap: false,
+          profileImageUrl: null,
         }
+
         setPost(dummy)
-        setIsScrapped(false) // ✅ 안전하게 false로 초기화
+        setIsScrapped(false)
       } finally {
         setLoading(false)
       }
@@ -155,9 +174,9 @@ function TipPostDetail() {
     return (
       <>
         <HomeBar />
-        <div className="tippost-detail-container">
+        <div className="post-detail-container">
           <h1 className="board-title">선임자의 TIP</h1>
-          <div className="tippost-box">불러오는 중...</div>
+          <div className="post-box">불러오는 중...</div>
         </div>
       </>
     )
@@ -166,7 +185,7 @@ function TipPostDetail() {
   return (
     <>
       <HomeBar />
-      <div className="tippost-detail-container">
+      <div className="post-detail-container">
         <img
           src="/assets/icons/arrow-left.svg"
           alt="뒤로가기"
@@ -179,7 +198,8 @@ function TipPostDetail() {
             title={post.title}
             writer={post.writer}
             createdAt={post.createdAt}
-            isBookmarked={isScrapped} // ✅ 현재 스크랩 상태 반영
+            profileImageUrl={post.profileImageUrl}
+            isBookmarked={isScrapped}
             onToggleBookmark={handleScrapToggle}
             isAuthor={isAuthor}
             onEdit={() => navigate(`/tip/edit/${post.id}`)}
@@ -189,7 +209,7 @@ function TipPostDetail() {
         )}
 
         <div className="mt-12">
-          <div className="tippost-box">
+          <div className="post-box">
             {post && (
               <div className="prose detail-content max-w-none">
                 <div

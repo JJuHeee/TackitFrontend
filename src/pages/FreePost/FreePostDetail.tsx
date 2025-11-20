@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import './FreePostDetail.css'
+import '../../components/posts/PostDetail.css'
 import HomeBar from '../../components/HomeBar'
 import api from '../../api/api'
 import useFetchUserInfo from '../../hooks/useFetchUserInfo'
@@ -34,6 +34,7 @@ function FreePostDetail() {
     createdAt: string
     imageUrl?: string | null
     scrap?: boolean
+    profileImageUrl?: string | null
   } | null>(null)
 
   const [loading, setLoading] = useState(true)
@@ -110,7 +111,8 @@ function FreePostDetail() {
           tags: Array.isArray(picked.tags) ? picked.tags : [],
           createdAt: picked.createdAt ?? new Date().toISOString(),
           imageUrl: picked.imageUrl ?? null,
-          scrap: !!picked.scrap, // ✅ 백엔드 scrap 값을 boolean으로
+          scrap: !!picked.scrap,
+          profileImageUrl: picked.profileImageUrl ?? null,
         }
 
         setPost(normalized)
@@ -118,13 +120,30 @@ function FreePostDetail() {
       } catch (err) {
         setPost({
           id: postIdNumber || 0,
-          writer: '기본',
-          title: '본문1 제목',
-          content: '내용4',
+          writer: 'tackit',
+          title: '삭제된 게시글입니다',
+          content: `
+<h1>삭제된 게시글입니다</h1>
+<p>해당 게시글은 작성자 또는 관리자에 의해 <strong>삭제</strong>되었습니다.</p>
+<p>게시글을 더 이상 확인할 수 없습니다.</p>
+
+<h2>가능한 원인</h2>
+<ul>
+  <li>작성자가 자발적으로 삭제한 경우</li>
+  <li>커뮤니티 운영 정책 위반으로 관리자가 삭제한 경우</li>
+</ul>
+
+<h3>다른 글을 확인해보세요</h3>
+<p>
+게시판 목록으로 이동하여 다른 글을 확인할 수 있습니다.<br/>
+불편을 드려 죄송합니다.
+</p>
+  `,
           tags: ['태그1', '태그3', '태그2'],
           createdAt: '2025-05-13T19:34:53.52603',
           imageUrl: null,
           scrap: false,
+          profileImageUrl: null,
         } as typeof post extends null ? never : NonNullable<typeof post>)
       } finally {
         setLoading(false)
@@ -141,26 +160,13 @@ function FreePostDetail() {
         const res = await api.get(`free-comments/${id}`)
         setComments(normalizeComments(res.data))
       } catch {
-        setComments([
-          {
-            id: 1,
-            writer: '주희',
-            content: '신입 테스트 댓글입니다.',
-            createdAt: '2025-05-12T20:06:42.621605',
-            role: 'NEWBIE',
-            joinedYear: 2024,
-          },
-          {
-            id: 2,
-            writer: '혜경',
-            content: '선배 테스트 댓글입니다.',
-            createdAt: '2025-05-12T20:08:11.738681',
-            role: 'SENIOR',
-            joinedYear: 2022,
-          },
-        ])
+        // 에러 시 더미 폴백 없이 빈 배열만 유지
+        setComments([])
+        // 필요하면 토스트만 띄우기
+        // toastError('댓글을 불러오지 못했습니다.')
       }
     }
+
     if (id) fetchComments()
   }, [id])
 
@@ -240,7 +246,6 @@ function FreePostDetail() {
       const [normalized] = normalizeComments(res.data)
       setComments((prev) => (normalized ? [...prev, normalized] : prev))
       setComment('')
-      toastSuccess('댓글이 등록되었습니다.')
     } catch {
       toastError('댓글 등록에 실패했습니다.')
     }
@@ -331,9 +336,9 @@ function FreePostDetail() {
     return (
       <>
         <HomeBar />
-        <div className="freepost-detail-container">
-          <h1 className="free-board-title">자유 게시판</h1>
-          <div className="freepost-box">불러오는 중...</div>
+        <div className="post-detail-container">
+          <h1 className="board-title">자유 게시판</h1>
+          <div className="post-box">불러오는 중...</div>
         </div>
       </>
     )
@@ -342,7 +347,7 @@ function FreePostDetail() {
   return (
     <>
       <HomeBar />
-      <div className="freepost-detail-container">
+      <div className="post-detail-container">
         <img
           src="/assets/icons/arrow-left.svg"
           alt="뒤로가기"
@@ -355,6 +360,7 @@ function FreePostDetail() {
             title={post.title}
             writer={post.writer}
             createdAt={post.createdAt}
+            profileImageUrl={post.profileImageUrl}
             isBookmarked={isScrapped}
             onToggleBookmark={handleScrapToggle}
             isAuthor={isAuthor}
@@ -365,7 +371,7 @@ function FreePostDetail() {
         )}
 
         <div className="mt-12">
-          <div className="freepost-box">
+          <div className="post-box">
             {post && (
               <>
                 <div className="prose detail-content max-w-none">

@@ -68,7 +68,6 @@ function CommentItemBase({
           writer={c.writer || '(알 수 없음)'}
           createdAt={c.createdAt}
           className="justify-start"
-          variant="compact"
           role={c.role}
           joinedYear={c.joinedYear}
           profileImageUrl={c.profileImageUrl}
@@ -118,7 +117,7 @@ function CommentItemBase({
         </div>
       ) : (
         <div
-          className="mt-3 text-body-1 reading-regular text-label-normal comment-content detail-content"
+          className="mt-3 text-body-1 reading-regular text-label-normal comment-content"
           dangerouslySetInnerHTML={{
             __html: sanitizeHtml(String(c.content ?? '')),
           }}

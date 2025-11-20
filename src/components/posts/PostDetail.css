@@ -1,0 +1,128 @@
+/* ===== 공통 Detail Container ===== */
+.post-detail-container {
+  max-width: 1100px;
+  margin: 40px auto 80px;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
+/* 섹션 박스 */
+.post-box {
+  position: relative;
+  background-color: #fff;
+  margin-bottom: 40px;
+}
+
+/* 상단 보드 타이틀 */
+.board-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  color: #000;
+  cursor: pointer;
+}
+
+.detail-content {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: pre-line;
+  font-size: 16px;
+  line-height: 1;
+  color: #000;
+}
+.comment-content {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  color: #000;
+  line-height: 1.7;
+}
+
+.detail-content {
+  margin-bottom: 100px;
+}
+
+.detail-content img,
+.comment-content img {
+  max-width: 100%;
+  height: auto;
+}
+
+.detail-content h1,
+.detail-content h2,
+.detail-content h3,
+.detail-content p,
+.comment-content h1,
+.comment-content h2,
+.comment-content h3,
+.comment-content p {
+  margin: 0 !important;
+}
+
+.detail-content h1,
+.comment-content h1 {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.detail-content h2,
+.comment-content h2 {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.detail-content h3,
+.comment-content h3 {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+/* 본문 & 리스트 */
+.detail-content p,
+.detail-content li,
+.comment-content p,
+.comment-content li {
+  font-size: 16px;
+  color: #000;
+}
+
+/* 리스트 들여쓰기 (작성 시와 느낌 맞춤) */
+.detail-content ul,
+.comment-content ul {
+  list-style: disc;
+  margin-left: 2rem;
+  padding-left: 0.4rem;
+}
+
+.detail-content ol,
+.comment-content ol {
+  list-style: decimal;
+  margin-left: 2rem;
+  padding-left: 0.4rem;
+}
+
+.comment-rte .ql-toolbar {
+  border: 0;
+}
+
+.comment-rte .ql-container {
+  border: 0;
+}
+
+.comment-rte .ql-editor {
+  padding: 16px;
+  font-size: 14px;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 1024px) {
+  .post-detail-container {
+    padding: 0 16px;
+  }
+}
+
+@media (max-width: 640px) {
+  .post-detail-container {
+    padding: 0 12px;
+    margin: 24px auto 60px;
+  }
+}
