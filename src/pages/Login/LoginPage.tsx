@@ -144,7 +144,9 @@ export default function LoginPage(): JSX.Element {
           </div>
 
           {/* 비밀번호 입력칸 */}
-          <div className="relative mx-auto mb-3 w-[392px]">
+          <div
+            className={`relative mx-auto w-[392px] ${error ? 'mb-3' : 'mb-6'}`}
+          >
             <label
               htmlFor="password"
               className="hidden mb-1 text-sm font-medium text-label-secondary"
@@ -157,7 +159,7 @@ export default function LoginPage(): JSX.Element {
               onChange={(e) => setPassword(e.target.value)}
               required
               className="h-12 w-full rounded-[12px] border border-line-normal px-3 pr-10 text-sm outline-none
-                         placeholder:text-label-assistive focus:border-line-active"
+               placeholder:text-label-assistive focus:border-line-active"
             />
             {password.length > 0 && (
               <button
@@ -175,40 +177,51 @@ export default function LoginPage(): JSX.Element {
             )}
           </div>
 
-          {/* 에러 메시지 */}
+          {/* 에러 메시지 (있을 때만) */}
           {error && (
-            <p className="mx-auto mb-1 w-[392px] whitespace-pre-line text-sm leading-5 text-system-red">
+            <p className="mx-auto mb-[24px] w-[392px] whitespace-pre-line text-sm leading-5 text-system-red">
               {error}
             </p>
           )}
-
-          {/* 비밀번호 찾기 */}
-          <div className="mx-auto mb-6 w-[392px] text-right">
-            <Link
-              to="/password"
-              className="text-body-2 text-label-neutral hover:text-label-primary"
-            >
-              비밀번호 찾기
-            </Link>
-          </div>
 
           {/* 로그인 버튼 */}
           <Button
             type="submit"
             variant="primary"
             size="m"
-            className="mx-auto mb-4 h-12 w-[392px]"
+            className="mx-auto  h-12 w-[392px]"
             disabled={!isValid}
           >
             로그인
           </Button>
         </form>
 
-        {/* 가입하기 */}
-        <div className="text-sm text-center">
-          아직 tackit 회원이 아닌가요?{' '}
-          <Link to="/signup" className="font-medium text-label-primary">
-            가입하기
+        {/* 가입 / 찾기 링크 */}
+        <div className="flex items-center justify-center mt-4 text-body-2 text-label-neutral">
+          <Link
+            to="/signup"
+            className="mr-3 font-normal hover:text-label-primary"
+          >
+            회원가입
+          </Link>
+
+          {/* 구분선: line-normal, center, weight 1px */}
+          <span className="w-px h-4 mr-3 bg-line-normal" aria-hidden="true" />
+
+          <Link
+            to="/login/find-email"
+            className="mr-3 font-normal hover:text-label-primary"
+          >
+            이메일 찾기
+          </Link>
+
+          <span className="w-px h-4 mr-3 bg-line-normal" aria-hidden="true" />
+
+          <Link
+            to="/login/find-password"
+            className="font-normal hover:text-label-primary"
+          >
+            비밀번호 찾기
           </Link>
         </div>
       </AuthCard>
