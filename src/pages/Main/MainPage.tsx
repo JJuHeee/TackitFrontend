@@ -19,6 +19,7 @@ type BaseItem = {
   createdAt: string
   tags?: string[]
   imageUrl?: string | null
+  profileImageUrl?: string | null
 }
 type PageResponse<T> = {
   content: T[]
@@ -32,6 +33,7 @@ const toTip = (x: any): BaseItem => ({
   createdAt: x.createdAt,
   tags: x.tags ?? [],
   imageUrl: x.imageUrl ?? null,
+  profileImageUrl: x.profileImageUrl ?? null,
 })
 
 const toQna = (x: any): BaseItem => ({
@@ -42,6 +44,7 @@ const toQna = (x: any): BaseItem => ({
   createdAt: x.createdAt,
   tags: x.tags ?? [],
   imageUrl: x.imageUrl ?? null,
+  profileImageUrl: x.profileImageUrl ?? null,
 })
 
 const toFree = (x: any): BaseItem => ({
@@ -52,6 +55,7 @@ const toFree = (x: any): BaseItem => ({
   createdAt: x.createdAt,
   tags: x.tags ?? [],
   imageUrl: x.imageUrl ?? null,
+  profileImageUrl: x.profileImageUrl ?? null,
 })
 
 async function fetchPosts(
@@ -244,6 +248,9 @@ function SectionList({
                     createdAt={p.createdAt}
                     tags={p.tags}
                     imageUrl={p.imageUrl ?? undefined}
+                    profileImageUrl={
+                      p.profileImageUrl ?? '/icons/mypage-icon.svg'
+                    }
                     previewLines={1}
                     showTags
                     showDate

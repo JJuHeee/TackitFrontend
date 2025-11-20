@@ -56,6 +56,10 @@ function normalizeComments(raw: any): CommentModel[] {
       createdAt: String(
         c.createdAt ?? c.created_at ?? new Date().toISOString()
       ),
+
+      profileImageUrl: c.profileImageUrl ?? null,
+      role: c.role,
+      joinedYear: c.joinedYear ? Number(c.joinedYear) : undefined,
     }))
     .filter((c: CommentModel) => Number.isFinite(c.id))
 }
@@ -134,15 +138,19 @@ function QnaPostDetail() {
         setComments([
           {
             id: 1,
-            writer: '기본값',
-            content: '댓글 내용입니다.',
+            writer: '주희',
+            content: '신입 테스트 댓글입니다.',
             createdAt: '2025-05-12T20:06:42.621605',
+            role: 'SENIOR',
+            joinedYear: 2024,
           },
           {
             id: 2,
-            writer: 'test',
-            content: '댓글 내용입니다. 2',
+            writer: '혜경',
+            content: '선배 테스트 댓글입니다.',
             createdAt: '2025-05-12T20:08:11.738681',
+            role: 'SENIOR',
+            joinedYear: 2022,
           },
         ])
       }

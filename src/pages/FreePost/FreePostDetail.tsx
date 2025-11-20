@@ -69,6 +69,10 @@ function FreePostDetail() {
         createdAt: String(
           c.createdAt ?? c.created_at ?? new Date().toISOString()
         ),
+
+        profileImageUrl: c.profileImageUrl ?? null,
+        role: c.role,
+        joinedYear: c.joinedYear ? Number(c.joinedYear) : undefined,
       }))
       .filter((c: CommentModel) => Number.isFinite(c.id))
   }
@@ -140,15 +144,19 @@ function FreePostDetail() {
         setComments([
           {
             id: 1,
-            writer: '기본값',
-            content: '댓글 내용입니다.',
+            writer: '주희',
+            content: '신입 테스트 댓글입니다.',
             createdAt: '2025-05-12T20:06:42.621605',
+            role: 'NEWBIE',
+            joinedYear: 2024,
           },
           {
             id: 2,
-            writer: 'test',
-            content: '댓글 내용입니다. 2',
+            writer: '혜경',
+            content: '선배 테스트 댓글입니다.',
             createdAt: '2025-05-12T20:08:11.738681',
+            role: 'SENIOR',
+            joinedYear: 2022,
           },
         ])
       }
@@ -156,7 +164,6 @@ function FreePostDetail() {
     if (id) fetchComments()
   }, [id])
 
-  // ✅ 인라인 수정: 시작/취소/저장 분리
   const handleBeginEditComment = (targetId: number) => {
     setEditCommentId(targetId)
   }
@@ -176,9 +183,24 @@ function FreePostDetail() {
     if (!trimmed) return toastWarn('댓글을 입력해주세요.')
     if (trimmed.length > 250)
       return toastWarn('댓글은 최대 250자까지 작성할 수 있어요.')
+
     try {
       const res = await api.patch(`free-comments/${id}`, { content: trimmed })
-      setComments((prev) => prev.map((c) => (c.id === id ? res.data : c)))
+      const updated = res.data
+
+      setComments((prev) =>
+        prev.map((c) =>
+          c.id === id
+            ? {
+                ...c,
+                writer: updated.writer ?? c.writer,
+                content: updated.content ?? c.content,
+                createdAt: updated.createdAt ?? c.createdAt,
+              }
+            : c
+        )
+      )
+
       toastSuccess('댓글이 수정되었습니다.')
       setEditCommentId(null)
     } catch {
@@ -215,7 +237,8 @@ function FreePostDetail() {
         freePostId: postIdNumber,
         content: trimmed,
       })
-      setComments((prev) => [...prev, res.data]) // 새 댓글 맨 아래
+      const [normalized] = normalizeComments(res.data)
+      setComments((prev) => (normalized ? [...prev, normalized] : prev))
       setComment('')
       toastSuccess('댓글이 등록되었습니다.')
     } catch {

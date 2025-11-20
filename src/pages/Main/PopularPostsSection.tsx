@@ -1,3 +1,4 @@
+// src/pages/Main/PopularPostsSection.tsx
 import React, { useEffect, useState } from 'react'
 import PopularPostCard, {
   type PopularPost,
@@ -17,6 +18,7 @@ type ApiPopularPost = {
   scrapCount: number | null
 }
 
+// ✅ API 응답 → PopularPost 형식으로 변환
 const toPopularPost = (x: ApiPopularPost): PopularPost => ({
   ...x,
   profileImageUrl: x.profileImageUrl ?? undefined,
@@ -44,6 +46,7 @@ export default function PopularPostsSection() {
       try {
         const res = await api.get<ApiPopularPost[]>('/api/home/popular')
         if (!mounted) return
+
         const arr = dedupe(Array.isArray(res.data) ? res.data : []).slice(0, 3)
         setItems(arr.map(toPopularPost))
       } catch {

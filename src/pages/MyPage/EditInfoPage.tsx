@@ -1,5 +1,5 @@
 // src/pages/MyPage/EditInfoPage.tsx
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../../api/api'
 import { toastSuccess, toastError, toastWarn } from '../../utils/toast'
@@ -11,6 +11,124 @@ import MyInfo, { type MyInfoData } from './MyInfo'
 
 const passwordRegex =
   /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_\-+={[}\];:'",.<>/?\\|`~]).{8,}$/
+
+type ProfileImageBoxProps = {
+  imageUrl?: string | null // myInfo.profileImageUrl 들어오는 곳
+}
+
+function ProfileImageBox({ imageUrl }: ProfileImageBoxProps) {
+  const [previewUrl, setPreviewUrl] = useState<string | null>(imageUrl ?? null)
+  const [manuallyDeleted, setManuallyDeleted] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+
+  // myInfo.profileImageUrl이 바뀌었을 때만 동기화.
+  // 단, 사용자가 '삭제'를 눌러서 수동 삭제한 상태라면 덮어쓰지 않음.
+  useEffect(() => {
+    if (!manuallyDeleted) {
+      setPreviewUrl(imageUrl ?? null)
+    }
+  }, [imageUrl, manuallyDeleted])
+
+  const handleImageClick = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // 새로 업로드하면 다시 "삭제 상태" 해제
+    setManuallyDeleted(false)
+
+    // 업로드한 파일로 즉시 미리보기 변경
+    const url = URL.createObjectURL(file)
+    setPreviewUrl(url)
+
+    const formData = new FormData()
+    formData.append('image', file)
+
+    try {
+      await api.patch('/api/members/profile-image', formData, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+        },
+      })
+      toastSuccess('프로필 이미지가 변경되었습니다.')
+    } catch (err) {
+      console.error('이미지 변경 중 오류:', err)
+      toastError('이미지 업로드에 실패했습니다. 다시 시도해 주세요.')
+      // 실패해도 일단 미리보기는 유지하고, 다음에 myInfo 다시 불러올 때 동기화됨
+    } finally {
+      // 같은 파일 다시 선택해도 change 이벤트 발생하도록 초기화
+      e.target.value = ''
+    }
+  }
+
+  const handleDelete = async () => {
+    // 롤백용으로 현재 미리보기 저장
+    const prev = previewUrl
+
+    // 삭제 상태로 전환 + 기본 이미지로 즉시 변경
+    setManuallyDeleted(true)
+    setPreviewUrl(null)
+
+    try {
+      await api.delete('/api/members/profile-image', {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+        },
+      })
+      toastSuccess('프로필 이미지가 삭제되었습니다.')
+    } catch (err) {
+      console.error('프로필 이미지 삭제 실패:', err)
+      toastError('프로필 이미지 삭제 중 오류가 발생했습니다.')
+
+      // 실패 시 다시 복구
+      setManuallyDeleted(false)
+      setPreviewUrl(prev)
+    }
+  }
+
+  const src =
+    previewUrl && previewUrl.trim().length > 0
+      ? previewUrl
+      : '/icons/mypage-icon.svg' // 기본 아이콘
+
+  return (
+    <div className="flex flex-col items-center mb-6">
+      <div className="relative w-[100px] h-[100px]">
+        <img
+          src={src}
+          alt="프로필 아이콘"
+          className="w-full h-full rounded-full bg-[#f5f5f5] cursor-pointer hover:opacity-80 transition object-cover object-center"
+          onClick={handleImageClick}
+        />
+        <div
+          className="absolute bottom-0 right-0 w-[32px] h-[32px] flex items-center justify-center cursor-pointer"
+          onClick={handleImageClick}
+        >
+          <img src="/icons/edit.svg" alt="수정" className="w-[32px] h-[32px]" />
+        </div>
+      </div>
+
+      <button
+        type="button"
+        onClick={handleDelete}
+        className="mt-3 underline text-body2-regular text-label-assistive hover:text-label-normal"
+      >
+        프로필 이미지 삭제
+      </button>
+
+      <input
+        type="file"
+        accept="image/*"
+        ref={fileInputRef}
+        style={{ display: 'none' }}
+        onChange={handleFileChange}
+      />
+    </div>
+  )
+}
 
 function EditInfoForm({ myInfo }: { myInfo: MyInfoData }) {
   const navigate = useNavigate()
@@ -332,29 +450,6 @@ export default function EditInfoPage() {
 
           <div className="relative flex flex-col items-center min-h-screen">
             <div className="mt-6 w-[440px] px-5 pt-8 pb-[60px] max-[560px]:static max-[560px]:w-full max-[560px]:mt-8">
-              {/* 프로필 이미지 */}
-              <div className="flex justify-center mb-6">
-                <div className="relative w-[100px] h-[100px]">
-                  <img
-                    src="/icons/mypage-icon.svg"
-                    alt="프로필 아이콘"
-                    className="w-full h-full rounded-full bg-[#f5f5f5] cursor-pointer hover:opacity-80 transition"
-                    onClick={() => navigate('/mypage/edit-info')}
-                  />
-                  <div
-                    className="absolute bottom-0 right-0 w-[32px] h-[32px] flex items-center justify-center cursor-pointer"
-                    onClick={() => navigate('/mypage/edit-info')}
-                  >
-                    <img
-                      src="/icons/edit.svg"
-                      alt="수정"
-                      className="w-[32px] h-[32px]"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* MyInfo 사용 */}
               <MyInfo>
                 {(myInfo, loading) => {
                   if (loading)
@@ -369,7 +464,16 @@ export default function EditInfoPage() {
                         프로필 정보를 불러오지 못했습니다.
                       </p>
                     )
-                  return <EditInfoForm myInfo={myInfo} />
+
+                  return (
+                    <>
+                      {/* 프로필 이미지 영역 (업로드/삭제 포함) */}
+                      <ProfileImageBox imageUrl={myInfo.profileImageUrl} />
+
+                      {/* 정보 수정 폼 */}
+                      <EditInfoForm myInfo={myInfo} />
+                    </>
+                  )
                 }}
               </MyInfo>
             </div>

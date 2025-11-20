@@ -18,6 +18,7 @@ type TipItem = {
   createdAt: string
   imageUrl?: string | null
   tags?: string[]
+  profileImageUrl?: string | null
 }
 type FreeItem = {
   freeId: number
@@ -28,6 +29,7 @@ type FreeItem = {
   createdAt: string
   imageUrl?: string | null
   tags?: string[]
+  profileImageUrl?: string | null
 }
 type QnaItem = {
   postId: number
@@ -38,6 +40,7 @@ type QnaItem = {
   createdAt: string
   imageUrl?: string | null
   tags?: string[]
+  profileImageUrl?: string | null
 }
 
 type Row = {
@@ -48,6 +51,7 @@ type Row = {
   createdAt: string
   tags: string[]
   imageUrl: string | null
+  profileImageUrl?: string | null
 }
 
 export default function Bookmarked() {
@@ -110,6 +114,7 @@ export default function Bookmarked() {
             writer: 'newbie01',
             createdAt: '2025-05-27T20:24:20.359041',
             tags: ['질문'],
+            profileImageUrl: 'https://randomuser.me/api/portraits/women/44.jpg',
           },
         ],
         totalPages: 1,
@@ -170,6 +175,7 @@ export default function Bookmarked() {
         createdAt: t.createdAt,
         tags: t.tags ?? [],
         imageUrl: t.imageUrl ?? null,
+        profileImageUrl: t.profileImageUrl ?? null,
       }
     }
     if (activeTab === 'free') {
@@ -182,6 +188,7 @@ export default function Bookmarked() {
         createdAt: f.createdAt,
         tags: f.tags ?? [],
         imageUrl: f.imageUrl ?? null,
+        profileImageUrl: f.profileImageUrl ?? null,
       }
     }
     const q = p as QnaItem
@@ -193,6 +200,7 @@ export default function Bookmarked() {
       createdAt: q.createdAt,
       tags: q.tags ?? [],
       imageUrl: q.imageUrl ?? null,
+      profileImageUrl: q.profileImageUrl ?? null,
     }
   }
 
@@ -266,6 +274,7 @@ export default function Bookmarked() {
                     createdAt={row.createdAt}
                     tags={row.tags}
                     imageUrl={row.imageUrl ?? null}
+                    profileImageUrl={row.profileImageUrl}
                     showReplyIcon={false}
                     density="comfortable"
                     onClick={() => openDetail(row.id)}

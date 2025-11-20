@@ -62,7 +62,6 @@ export default function MyPageHome() {
       setWithdrawOpen(false)
       navigate('/login')
     } catch (error: any) {
-      // 디버깅용 로그 한번 찍어주면 원인 파악에 도움돼
       console.error('withdraw error', error?.response || error)
       toastError(
         error?.response?.data?.message || '탈퇴 처리 중 오류가 발생했습니다.'
@@ -93,15 +92,16 @@ export default function MyPageHome() {
                     <div className="flex items-center justify-between p-[24px]">
                       <div className="flex items-center">
                         <div className="relative w-[80px] h-[80px]">
-                          {/* 프로필 아이콘 */}
                           <img
-                            src="/icons/mypage-icon.svg"
-                            alt="프로필 아이콘"
-                            className="w-full h-full rounded-full bg-[#f5f5f5] cursor-pointer hover:opacity-80 transition"
+                            src={
+                              me?.profileImageUrl ?? '/icons/mypage-icon.svg'
+                            }
+                            alt="프로필 이미지"
+                            className="w-full h-full rounded-full object-cover bg-[#f5f5f5] cursor-pointer hover:opacity-80 transition"
                             onClick={() => navigate('/mypage/edit-info')}
                           />
 
-                          {/* 수정 아이콘 (오른쪽 아래 겹침) */}
+                          {/* 수정 아이콘 */}
                           <div
                             className="absolute bottom-0 right-0 w-[32px] h-[32px] flex items-center justify-center cursor-pointer"
                             onClick={() => navigate('/mypage/edit-info')}

@@ -7,6 +7,9 @@ type PostHeaderProps = {
   writer?: string
   createdAt?: string
 
+  // 추가
+  profileImageUrl?: string | null
+
   // 액션 관련
   isBookmarked?: boolean
   onToggleBookmark?: () => void
@@ -25,6 +28,7 @@ export default function PostHeader({
   title,
   writer,
   createdAt,
+  profileImageUrl, // ⭐ 추가
   isBookmarked = false,
   onToggleBookmark,
   isAuthor = false,
@@ -40,7 +44,7 @@ export default function PostHeader({
         className ?? ''
       }`}
     >
-      {/* ✅ 제목 + 액션 한 줄 정렬 */}
+      {/* 제목 + 액션 */}
       <div className="flex items-center justify-between mt-10">
         <h1 className="font-bold leading-tight break-words text-h1 text-label-normal">
           {title}
@@ -63,6 +67,7 @@ export default function PostHeader({
         <PostAuthorMeta
           writer={writer}
           createdAt={createdAt}
+          profileImageUrl={profileImageUrl}
           variant="default"
         />
       </div>

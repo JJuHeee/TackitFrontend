@@ -22,6 +22,7 @@ type Post = {
   type?: 'Free' | 'Qna' | 'Tip'
   createdAt: string
   imageUrl?: string | null
+  profileImageUrl?: string | null
 }
 
 type ListResp = {
@@ -44,6 +45,7 @@ const fallbackResponse: ListResp = {
       createdAt: '2025-05-26T00:49:09.773772',
       type: 'Qna',
       imageUrl: null,
+      profileImageUrl: 'https://randomuser.me/api/portraits/women/44.jpg',
     },
     {
       postId: 1,
@@ -54,8 +56,8 @@ const fallbackResponse: ListResp = {
       tags: ['Axios', '에러처리'],
       createdAt: '2025-05-26T00:47:58.054746',
       type: 'Qna',
-      imageUrl:
-        'https://tackit.s3.ap-northeast-2.amazonaws.com/sample-image.jpg',
+      imageUrl: null,
+      profileImageUrl: 'https://randomuser.me/api/portraits/men/32.jpg',
     },
   ],
   size: 5,
@@ -72,6 +74,7 @@ const mapAllToPost = (p: any): Post => ({
   createdAt: p.createdAt ?? '',
   type: p.type ?? 'Qna',
   imageUrl: p.imageUrl ?? null,
+  profileImageUrl: p.profileImageUrl ?? null,
 })
 
 const mapByTagToPost = (p: any): Post => ({
@@ -83,6 +86,7 @@ const mapByTagToPost = (p: any): Post => ({
   createdAt: p.createdAt ?? '',
   type: p.type ?? 'Qna',
   imageUrl: p.imageUrl ?? null,
+  profileImageUrl: p.profileImageUrl ?? null,
 })
 
 function QnaPostList() {
@@ -196,6 +200,7 @@ function QnaPostList() {
                       createdAt={post.createdAt}
                       tags={post.tags}
                       imageUrl={post.imageUrl ?? null}
+                      profileImageUrl={post.profileImageUrl ?? null} // ✅ 여기서 최종 전달
                       onClick={() => {
                         if (post.postId != null) navigate(`/qna/${post.postId}`)
                         else toast.error('잘못된 게시글 ID입니다.')

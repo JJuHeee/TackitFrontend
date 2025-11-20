@@ -16,7 +16,7 @@ import type {
   ApiPostAll,
   ApiPostByTag,
 } from '../../types/post'
-import WriteButton from '../../components/ui/WriteButton' // ✅ 추가
+import WriteButton from '../../components/ui/WriteButton'
 
 const mapAllToPost = (p: ApiPostAll): Post => ({
   id: p.id,
@@ -26,6 +26,7 @@ const mapAllToPost = (p: ApiPostAll): Post => ({
   tags: p.tags,
   createdAt: p.createdAt,
   imageUrl: p.imageUrl ?? null,
+  profileImageUrl: p.profileImageUrl ?? null,
 })
 
 const mapByTagToPost = (p: ApiPostByTag): Post => ({
@@ -36,6 +37,7 @@ const mapByTagToPost = (p: ApiPostByTag): Post => ({
   tags: p.tags,
   createdAt: p.createdAt,
   imageUrl: p.imageUrl ?? null,
+  profileImageUrl: p.profileImageUrl ?? null,
 })
 
 function FreePostList() {
@@ -91,8 +93,9 @@ function FreePostList() {
                 '안녕하세요.\n오늘은 날씨가 정말 좋네요!\n\n내일은 비가 온다고 합니다.',
               tags: ['스터디', '프론트엔드', 'React', '모집'],
               createdAt: '2025-05-26T00:47:58.054746',
-              imageUrl:
-                'https://tackit.s3.ap-northeast-2.amazonaws.com/sample-image.jpg',
+              imageUrl: null,
+              profileImageUrl:
+                'https://randomuser.me/api/portraits/women/44.jpg',
             },
           ],
           size: 5,
@@ -169,6 +172,7 @@ function FreePostList() {
                     createdAt={post.createdAt}
                     tags={post.tags}
                     imageUrl={post.imageUrl ?? null}
+                    profileImageUrl={post.profileImageUrl ?? null}
                     onClick={() => navigate(`/free/${post.id}`)}
                   />
                 ))

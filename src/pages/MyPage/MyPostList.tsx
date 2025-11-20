@@ -58,6 +58,7 @@ type Row = {
   createdAt: string
   tags: string[]
   imageUrl: string | null
+  profileImageUrl?: string | null
 }
 
 export default function MyPostList() {
@@ -103,6 +104,7 @@ export default function MyPostList() {
             writer: '홍길동',
             createdAt: '2025-05-27T22:27:15.846678',
             tags: ['잡담'],
+            profileImageUrl: 'https://randomuser.me/api/portraits/women/44.jpg',
           },
         ] as FreeItem[],
         totalPages: 1,
@@ -199,6 +201,7 @@ export default function MyPostList() {
         createdAt: t.createdAt,
         tags: t.tags ?? [],
         imageUrl: t.imageUrl ?? null,
+        profileImageUrl: t.profileImageUrl ?? null,
       }
     }
     if (activeTab === 'free') {
@@ -211,6 +214,7 @@ export default function MyPostList() {
         createdAt: f.createdAt,
         tags: f.tags ?? [],
         imageUrl: f.imageUrl ?? null,
+        profileImageUrl: f.profileImageUrl ?? null,
       }
     }
     const q = p as QnaItem
@@ -222,6 +226,7 @@ export default function MyPostList() {
       createdAt: q.createdAt,
       tags: q.tags ?? [],
       imageUrl: q.imageUrl ?? null,
+      profileImageUrl: q.profileImageUrl ?? null,
     }
   }
 
@@ -302,6 +307,7 @@ export default function MyPostList() {
                     createdAt={row.createdAt}
                     tags={row.tags}
                     imageUrl={row.imageUrl}
+                    profileImageUrl={row.profileImageUrl}
                     showReplyIcon={false}
                     density="comfortable"
                     onClick={() => navigate(toDetailPath(activeTab, row.id))}

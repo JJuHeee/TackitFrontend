@@ -1,7 +1,6 @@
-// src/components/comments/CommentItem.tsx
 import React, { useEffect, useState } from 'react'
-import PostAuthorMeta from '../posts/PostAuthorMeta'
-import DOMPurify from 'dompurify'
+import PostAuthorMeta, { type Role } from '../posts/PostAuthorMeta'
+import { sanitizeHtml } from '../../utils/sanitize'
 import CommentEditor from './CommentEditor'
 
 export type CommentModel = {
@@ -9,6 +8,9 @@ export type CommentModel = {
   writer: string
   content: string
   createdAt: string
+  profileImageUrl?: string | null
+  role?: Role
+  joinedYear?: number
 }
 
 type CommentItemProps = {
@@ -66,6 +68,10 @@ function CommentItemBase({
           writer={c.writer || '(알 수 없음)'}
           createdAt={c.createdAt}
           className="justify-start"
+          variant="compact"
+          role={c.role}
+          joinedYear={c.joinedYear}
+          profileImageUrl={c.profileImageUrl}
         />
 
         <div className="flex items-center text-body-2 text-label-neutral">
@@ -112,9 +118,9 @@ function CommentItemBase({
         </div>
       ) : (
         <div
-          className="mt-3 whitespace-pre-line text-body-1 reading-regular text-label-normal"
+          className="mt-3 text-body-1 reading-regular text-label-normal comment-content detail-content"
           dangerouslySetInnerHTML={{
-            __html: DOMPurify.sanitize(String(c.content ?? '')),
+            __html: sanitizeHtml(String(c.content ?? '')),
           }}
         />
       )}

@@ -1,4 +1,4 @@
-type Role = 'NEWBIE' | 'SENIOR'
+export type Role = 'NEWBIE' | 'SENIOR'
 
 type PostAuthorMetaProps = {
   writer?: string
@@ -7,11 +7,7 @@ type PostAuthorMetaProps = {
   role?: Role
   joinedYear?: number
   profileImageUrl?: string | null
-
-  /** ⬇ 폰트 스타일 분기용 */
   variant?: 'default' | 'compact'
-
-  /** ⬇ 세부 오버라이드(원하면 개별적으로 덮어쓰기) */
   nameClassName?: string
   yearsClassName?: string
   dateClassName?: string

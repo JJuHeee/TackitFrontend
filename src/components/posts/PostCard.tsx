@@ -14,6 +14,7 @@ type PostCardProps = {
   className?: string
   borderColor?: string
   imageUrl?: string | null
+  profileImageUrl?: string | null
 }
 
 export default function PostCard({
@@ -27,6 +28,7 @@ export default function PostCard({
   className,
   borderColor = 'var(--line-normal)',
   imageUrl = null,
+  profileImageUrl = null,
 }: PostCardProps) {
   const handleClick = () => {
     if (id == null) return toast.error('잘못된 게시글 ID입니다.')
@@ -110,6 +112,7 @@ export default function PostCard({
         createdAt={createdAt}
         tags={tags}
         variant="compact"
+        profileImageUrl={profileImageUrl ?? undefined}
       />
     </article>
   )

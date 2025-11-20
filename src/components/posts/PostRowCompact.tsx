@@ -12,6 +12,7 @@ export type PostRowProps = {
   createdAt?: string
   tags?: string[]
   imageUrl?: string | null
+  profileImageUrl?: string | null
   className?: string
   borderColor?: string
   onClick?: () => void
@@ -46,6 +47,7 @@ export default function PostRowCompact({
   createdAt = '',
   tags = [],
   imageUrl = null,
+  profileImageUrl = null,
   className = '',
   borderColor = 'var(--line-normal)',
   onClick,
@@ -114,6 +116,7 @@ export default function PostRowCompact({
               writer={hideWriter ? '' : writer}
               createdAt={showDate ? createdAt : ''}
               tags={showTags ? tags : []}
+              profileImageUrl={profileImageUrl ?? undefined}
             />
           )}
         </div>

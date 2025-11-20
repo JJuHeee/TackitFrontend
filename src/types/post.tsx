@@ -29,6 +29,7 @@ export type Post = {
   tags: string[]
   createdAt: string
   imageUrl?: string | null
+  profileImageUrl?: string | null
 }
 
 // 목록 응답 타입 (전체 / 태그별)
@@ -40,6 +41,7 @@ export type ApiPostAll = {
   tags: string[]
   createdAt: string
   imageUrl?: string | null
+  profileImageUrl?: string | null
 }
 
 export type ApiPostByTag = {
@@ -50,6 +52,7 @@ export type ApiPostByTag = {
   tags: string[]
   createdAt: string
   imageUrl?: string | null
+  profileImageUrl?: string | null
 }
 
 export type ListRespAll = {

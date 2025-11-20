@@ -9,7 +9,7 @@ export type CommentRowProps = {
   content: string
   writer?: string
   createdAt?: string
-  imageUrl?: string | null
+  imageUrl?: string | null // ← 프로필 이미지 URL로 사용
   className?: string
   borderColor?: string
   onClick?: () => void
@@ -38,7 +38,7 @@ export default function CommentRowCompact({
   content,
   writer = '',
   createdAt = '',
-  imageUrl = null,
+  imageUrl = null, // 👈 여기까지는 동일
   className = '',
   borderColor = 'var(--line-normal)',
   onClick,
@@ -72,6 +72,7 @@ export default function CommentRowCompact({
       <h3 className="m-0 text-title-2b text-label-normal">
         {title ?? '(제목 없음)'}
       </h3>
+
       {/* 3) 댓글 아이콘 + 작성자/날짜 */}
       <div className="flex items-start">
         {showReplyIcon && (
@@ -84,6 +85,7 @@ export default function CommentRowCompact({
           <PostAuthorMeta
             writer={hideWriter ? '' : safeWriter}
             createdAt={showDate ? createdAt : ''}
+            profileImageUrl={imageUrl ?? undefined} // ⭐ 여기 추가
           />
 
           <PostPreview

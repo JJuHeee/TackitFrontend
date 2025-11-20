@@ -92,7 +92,7 @@ export default function PopularPostCard({
         style={{
           display: '-webkit-box',
           WebkitBoxOrient: 'vertical',
-          WebkitLineClamp: 2,
+          WebkitLineClamp: 1,
           overflow: 'hidden',
         }}
         title={post.title}
@@ -115,7 +115,11 @@ export default function PopularPostCard({
       </p>
 
       {/* 작성자/날짜 */}
-      <PostAuthorMeta writer={post.writer} createdAt={post.createdAt} />
+      <PostAuthorMeta
+        writer={post.writer}
+        createdAt={post.createdAt}
+        profileImageUrl={post.profileImageUrl ?? undefined}
+      />
     </div>
   )
 }
