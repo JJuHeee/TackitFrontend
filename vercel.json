@@ -9,8 +9,8 @@
       "destination": "http://3.39.8.131:8080/auth/:path*"
     },
     {
-      "source": "/api/withdraw/:path*",
-      "destination": "http://3.39.8.131:8080/withdraw/:path*"
+      "source": "/api/withdraw",
+      "destination": "http://3.39.8.131:8080/withdraw"
     },
     {
       "source": "/api/:path*",
