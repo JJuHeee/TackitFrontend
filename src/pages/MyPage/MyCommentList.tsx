@@ -220,8 +220,15 @@ export default function MyCommentList() {
             {loading ? (
               <div className="py-10 text-label-assistive">불러오는 중...</div>
             ) : empty ? (
-              <div className="py-16 text-center text-label-neutral">
-                작성한 댓글이 없어요.
+              <div className="flex flex-col items-center justify-center py-20 text-center no-result">
+                <img
+                  src="/icons/empty.svg"
+                  alt="빈 댓글 목록"
+                  className="w-20 h-20 mb-4"
+                />
+                <p className="text-body-1sb text-label-normal">
+                  아직 작성한 댓글이 없어요!
+                </p>
               </div>
             ) : (
               comments.map((c) => {

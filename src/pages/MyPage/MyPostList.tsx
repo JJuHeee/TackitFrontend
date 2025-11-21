@@ -9,7 +9,6 @@ import './Bookmarked.css'
 
 type Tab = 'tip' | 'qna' | 'free'
 
-/** ✅ 실제 API 응답 타입 (마이페이지용 요약) */
 type TipItem = {
   id: number
   title: string
@@ -49,7 +48,6 @@ type QnaItem = {
   type?: string
 }
 
-/** 리스트 렌더링을 위한 공통 Row 타입 */
 type Row = {
   id: number
   title: string
@@ -79,7 +77,6 @@ export default function MyPostList() {
     []
   )
 
-  /** ✅ (옵션) 서버 죽었을 때만 보여줄 더미 */
   const fallbackData = useMemo(
     () => ({
       tip: {
@@ -126,7 +123,6 @@ export default function MyPostList() {
     []
   )
 
-  /** ✅ 탭 + 페이지에 따라 마이페이지용 목록 API 호출 */
   useEffect(() => {
     let mounted = true
     ;(async () => {
@@ -174,7 +170,6 @@ export default function MyPostList() {
     }
   }, [activeTab, currentPage, fallbackData])
 
-  /** 탭 변경 */
   const onChangeTab = (next: string | number) => {
     const key = String(next) as Tab
     if (key === activeTab) return
@@ -182,14 +177,12 @@ export default function MyPostList() {
     setCurrentPage(1)
   }
 
-  /** ✅ 게시판 + id → 상세 경로 */
   const toDetailPath = (tab: Tab, id: number) => {
     if (tab === 'tip') return `/tip/${id}`
     if (tab === 'free') return `/free/${id}`
     return `/qna/${id}`
   }
 
-  /** ✅ 각 탭별 응답을 공통 Row로 변환 */
   const mapToRow = (p: TipItem | FreeItem | QnaItem): Row => {
     if (activeTab === 'tip') {
       const t = p as TipItem
