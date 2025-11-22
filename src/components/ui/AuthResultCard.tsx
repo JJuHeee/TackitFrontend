@@ -36,16 +36,12 @@ export default function AuthResultCard({
   return (
     <AuthCard className="w-[440px] rounded-[12px] bg-white p-6 shadow-[0_4px_16px_rgba(0,0,0,0.08)]">
       <div className="flex flex-col items-center justify-center">
-        {/* 아이콘 (위 ↔ 제목 12px) */}
         <img
           src={iconSrc}
           alt={variant}
-          className="mb-[12px] h-[23.1px] w-[23.1px]"
+          className="mb-[12px] h-[32px] w-[32px]"
         />
 
-        {/* 제목: 
-            - 설명 모드: 아래 4px
-            - children 모드: 아래 12px */}
         <h2
           className={`text-center text-title-2b text-label-normal ${
             isDescriptionMode ? 'mb-[4px]' : 'mb-[12px]'
@@ -54,8 +50,6 @@ export default function AuthResultCard({
           {title}
         </h2>
 
-        {/* 1) 설명 있는 버전: icon → title → description → button
-               간격: 12 / 4 / 24 */}
         {isDescriptionMode && (
           <>
             <p className="mb-[24px] text-center text-body-2 text-label-neutral">
@@ -72,9 +66,6 @@ export default function AuthResultCard({
           </>
         )}
 
-        {/* 2) 설명 없고 children 있는 버전:
-               icon → title → children → button
-               간격: 12 / 12 / 24 */}
         {isChildrenMode && (
           <>
             <div
@@ -100,7 +91,6 @@ export default function AuthResultCard({
           </>
         )}
 
-        {/* 설명도 children도 없을 때 fallback */}
         {!isDescriptionMode && !isChildrenMode && (
           <Button
             variant="primary"

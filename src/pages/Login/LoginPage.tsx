@@ -6,6 +6,7 @@ import api from '../../api/api'
 import AuthLayout from '../../components/layouts/AuthLayout'
 import { AuthCard } from '../../components/ui/AuthCard'
 import { Button } from '../../components/ui/Button'
+import { toastInfo } from '../../utils/toast'
 
 type AuthResponse = {
   accessToken: string
@@ -91,12 +92,11 @@ export default function LoginPage(): JSX.Element {
       localStorage.setItem('grantType', grantType)
       localStorage.setItem('role', role)
 
-      // ✅ 로그인 성공 후 이동 + 최초 로그인 진입 표시
       if (role === 'ADMIN') {
         navigate('/admin')
       } else {
         navigate('/main', {
-          state: { fromLogin: true }, // ← 여기 추가
+          state: { fromLogin: true },
         })
       }
     } catch (err: any) {
@@ -116,10 +116,7 @@ export default function LoginPage(): JSX.Element {
       icons={['/assets/auth/auth-icon.svg']}
       iconOffset={80}
     >
-      <AuthCard
-        className="w-[440px] rounded-[12px] bg-white p-6 shadow-[0_4px_16px_rgba(0,0,0,0.08)]
-               translate-y-8 md:translate-y-12 lg:translate-y-16"
-      >
+      <AuthCard className="w-[440px] translate-y-12 md:translate-y-20 lg:translate-y-28">
         <div className="mt-[12px] mb-8 flex items-center justify-center">
           <img src="/logo.svg" alt="Tackit" className="h-[48px]" />
         </div>
@@ -209,7 +206,6 @@ export default function LoginPage(): JSX.Element {
             회원가입
           </Link>
 
-          {/* 구분선: line-normal, center, weight 1px */}
           <span className="w-px h-4 mr-3 bg-line-normal" aria-hidden="true" />
 
           <Link
@@ -222,7 +218,11 @@ export default function LoginPage(): JSX.Element {
           <span className="w-px h-4 mr-3 bg-line-normal" aria-hidden="true" />
 
           <Link
-            to="/login/find-password"
+            to="#"
+            onClick={(e) => {
+              e.preventDefault()
+              toastInfo('해당 서비스는 아직 준비 중입니다.')
+            }}
             className="font-normal hover:text-label-primary"
           >
             비밀번호 찾기

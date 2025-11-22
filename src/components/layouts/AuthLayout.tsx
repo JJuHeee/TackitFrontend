@@ -7,14 +7,14 @@ interface AuthLayoutProps {
   children: React.ReactNode
   iconOffset?: number | string
   icons?: IconType[]
-  showCornerLogo?: boolean // 🔹 추가
+  showCornerLogo?: boolean
 }
 
 export default function AuthLayout({
   children,
   icons = [],
   iconOffset = 190,
-  showCornerLogo = true, // 🔹 기본값: 로고 보이게
+  showCornerLogo = true,
 }: AuthLayoutProps) {
   const strip = icons[0]
   const rootRef = useRef<HTMLDivElement>(null)
@@ -56,7 +56,6 @@ export default function AuthLayout({
       className="relative overflow-x-hidden min-h-dvh bg-gradient-to-b from-white to-background-blue"
       style={{ ['--app-bg' as any]: 'transparent' }}
     >
-      {/* 🔹 왼쪽 위 로고 (공통) */}
       {showCornerLogo && (
         <Link
           to="/login"
@@ -83,7 +82,6 @@ export default function AuthLayout({
           <div className="w-full max-w-[480px] px-4">{children}</div>
         </div>
 
-        {/* flow 모드 */}
         {strip && !useFixedStrip && (
           <div className="relative z-0 w-full pt-4 pb-0 pointer-events-none">
             {typeof strip === 'string' ? (
@@ -101,7 +99,6 @@ export default function AuthLayout({
         )}
       </div>
 
-      {/* fixed 모드 */}
       {strip && useFixedStrip && (
         <div
           className="fixed inset-x-0 z-0 pointer-events-none"

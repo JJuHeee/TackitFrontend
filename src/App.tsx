@@ -27,6 +27,7 @@ import AdminReportsPage from './pages/AdminPage/ReportListPage'
 import ReportReasonDetailPage from './pages/AdminPage/ReportDetailPage'
 import FindEmailPage from './pages/Login/FindEmail'
 import FindPasswordPage from './pages/Login/FindPassword'
+import ResetPasswordPage from './pages/Login/ResetPassword'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
@@ -45,6 +46,7 @@ function App(): JSX.Element {
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/login/find-email" element={<FindEmailPage />} />
         <Route path="/login/find-password" element={<FindPasswordPage />} />
+        <Route path="/login/reset-password" element={<ResetPasswordPage />} />
         <Route path="/main" element={<MainPage />} />
         {/* 게시판 */}
         <Route path="/free" element={<FreePostList />} />
