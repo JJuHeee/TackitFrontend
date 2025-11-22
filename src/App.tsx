@@ -72,7 +72,7 @@ function App(): JSX.Element {
         <Route path="/admin/users" element={<AdminUsersPage />} />{' '}
         <Route path="/admin/reports" element={<AdminReportsPage />} />{' '}
         <Route
-          path="/admin/reports/:targetId"
+          path="/admin/reports/:targetType/:targetId"
           element={<ReportReasonDetailPage />}
         />
       </Routes>

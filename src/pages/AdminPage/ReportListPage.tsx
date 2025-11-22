@@ -6,7 +6,6 @@ import PaginationGroup from '../../components/Pagination'
 import api from '../../api/api'
 import './ReportListPage.css'
 
-// 서버 응답 스키마에 맞춘 타입
 type TargetType = 'FREE_POST' | 'QNA_POST' | 'TIP_POST' | string
 type RowStatus = 'ACTIVE' | 'DISABLED' | string
 
@@ -18,34 +17,34 @@ type RawReport = {
   status: RowStatus
   reportCount: number
   lastReportedAt: string
-  // targetId?: number
 }
 
-// 뷰 모델
 type ViewReport = {
   reportId: number
   targetId: number
   targetType: TargetType
-  boardLabel: '자유게시판' | '질문게시판' | '선임자의 TIP' | string
+  boardLabel: '자유게시판' | '질문게시판' | '선임자의 TIP' | '댓글' | string
   title: string
   statusChip: { label: string; tone: 'neutral' | 'danger' | 'primary' }
   lastReportedDate: string
-  // targetId?: number
 }
 
 const PAGE_SIZE = 10
 
-// 보드 라벨 변환(관리자 콘텍스트에 맞게 게시판명으로 통일)
 function boardLabelOf(t: TargetType): ViewReport['boardLabel'] {
-  const upper = t.toUpperCase()
-  if (upper.includes('COMMENT')) return '댓글'
-  if (upper.includes('POST')) return '게시글'
-
-  if (upper === 'FREE_POST') return '게시글'
-  if (upper === 'QNA_POST') return '게시글'
-  if (upper === 'TIP_POST') return '게시글'
-
-  return t
+  switch (t) {
+    case 'FREE_POST':
+      return '자유게시판'
+    case 'QNA_POST':
+      return '질문게시판'
+    case 'TIP_POST':
+      return '선임자의 TIP'
+    default: {
+      const upper = t.toUpperCase()
+      if (upper.includes('COMMENT')) return '댓글'
+      return t
+    }
+  }
 }
 
 function toView(r: RawReport): ViewReport {
@@ -62,31 +61,8 @@ function toView(r: RawReport): ViewReport {
     title: r.title,
     statusChip,
     lastReportedDate: r.lastReportedAt.slice(0, 10),
-    // targetId: r.targetId,
   }
 }
-
-// 현재 제공된 예시 응답에 맞춘 fallback
-const fallback: RawReport[] = [
-  {
-    reportId: 1,
-    targetId: 1,
-    targetType: 'TIP_POST',
-    title: '팁 제목',
-    status: 'ACTIVE',
-    reportCount: 1,
-    lastReportedAt: '2025-10-24T01:30:31.900332',
-  },
-  {
-    reportId: 2,
-    targetId: 2,
-    targetType: 'FREE_POST',
-    title: '[비활성화] 광고성 글로 신고된 게시글 예시',
-    status: 'DISABLED',
-    reportCount: 3,
-    lastReportedAt: '2025-10-25T09:15:42.123456',
-  },
-]
 
 type Filter = '전체' | '신고 접수' | '비활성화'
 const filterToId = (f: Filter) => (f === '전체' ? 0 : f === '신고 접수' ? 1 : 2)
@@ -167,16 +143,8 @@ export default function AdminReportStatusPage() {
           setTotalPages(res?.data?.totalPages ?? 1)
         }
       } catch {
-        let src: RawReport[] = fallback
-
-        if (filter === '신고 접수') {
-          src = src.filter((r) => r.status === 'ACTIVE')
-        } else if (filter === '비활성화') {
-          src = src.filter((r) => r.status === 'DISABLED')
-        }
-
         if (mounted) {
-          setItems(src.map(toView))
+          setItems([]) // fallback 제거 → 빈 배열 반환
           setTotalPages(1)
         }
       } finally {
@@ -223,7 +191,6 @@ export default function AdminReportStatusPage() {
           <div className="pt-[24px] pb-[12px] px-[24px]">
             <div className="overflow-hidden rounded-xl">
               <table className="w-full table-fixed border-collapse text-[15px]">
-                {/* ✅ 요청 반영: thead 스타일 및 4개 컬럼(유형/신고 내용/상태/신고 일자) */}
                 <thead className="bg-[var(--background-neutral)] text-left text-[var(--label-neutral)] text-body-2">
                   <tr className="h-[48px]">
                     <th className="pl-[24px] w-[20%] font-medium align-middle">
@@ -247,7 +214,9 @@ export default function AdminReportStatusPage() {
 
                   {!loading &&
                     items.map((r, i) => {
-                      const detailHref = `/admin/reports/${r.targetId}`
+                      // ✅ 상세 페이지 경로: /admin/reports/:targetType/:targetId
+                      const detailHref = `/admin/reports/${r.targetType}/${r.targetId}`
+
                       return (
                         <tr
                           key={r.reportId}

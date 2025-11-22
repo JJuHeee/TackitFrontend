@@ -14,11 +14,8 @@ const JOIN_START_YEAR = 2015
 const CALENDAR_ICON_PATH = '/icons/calendar.svg'
 
 export default function SignupPage() {
-  // 비밀번호 눈토글
   const [passwordVisible, setPasswordVisible] = useState(false)
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false)
-
-  // 👉 이름 상태 추가 (name 말고 realName으로)
   const [realName, setRealName] = useState('')
   const [realNameTouched, setRealNameTouched] = useState(false)
 
@@ -31,22 +28,18 @@ export default function SignupPage() {
     )
   }, [])
 
-  // joinedYear: '' | number
   const [joinedYear, setJoinedYear] = useState<number | ''>('')
   const [joinedYearTouched, setJoinedYearTouched] = useState(false)
   const [submitted, setSubmitted] = useState(false)
 
-  // joinedYear 유효성 (실제/표시 분리)
   const joinedYearEmpty = joinedYear === ''
   const joinedYearOutOfRange =
     !joinedYearEmpty && !yearOptions.includes(Number(joinedYear))
 
-  // ✅ UI 표시 조건: (값이 있었고 blur됨 + 범위밖) || (제출 시 빈값/범위밖)
   const joinedYearInvalidUi =
     (joinedYearTouched && !joinedYearEmpty && joinedYearOutOfRange) ||
     (submitted && (joinedYearEmpty || joinedYearOutOfRange))
 
-  // ✅ 실제 제출/버튼 비활성화
   const joinedYearActuallyInvalid = joinedYearEmpty || joinedYearOutOfRange
 
   const joinedYearMessage = joinedYearInvalidUi
@@ -55,12 +48,10 @@ export default function SignupPage() {
       : '유효한 연도를 선택해 주세요.'
     : undefined
 
-  // 👉 이름 유효성 (제출 후 빈값이면 에러)
   const nameInvalid =
     (realNameTouched && realName.trim() === '') ||
     (submitted && realName.trim() === '')
 
-  // 폼 훅
   const {
     email,
     password,
@@ -84,15 +75,14 @@ export default function SignupPage() {
     isFormValid,
     checkEmailDuplicate,
     checkNicknameDuplicate,
-  } = useUserForm('') // 초기 역할 없음
+  } = useUserForm('') 
 
   const navigate = useNavigate()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setSubmitted(true) // 제출 시 표시 플래그 ON
+    setSubmitted(true) 
 
-    // 👉 이름 체크
     if (!realName.trim()) {
       toastWarn('이름을 입력해 주세요.')
       return
@@ -104,13 +94,13 @@ export default function SignupPage() {
     }
 
     if (!isFormValid || joinedYearActuallyInvalid) {
-      setJoinedYearTouched(true) // 제출 시 빈값도 에러 표시 허용
+      setJoinedYearTouched(true) 
       toastError('입력값을 다시 확인해 주세요.')
       return
     }
 
     const formData = {
-      name: realName, // 👉 여기서 name 키로 보내기
+      name: realName, 
       email,
       password,
       nickname,

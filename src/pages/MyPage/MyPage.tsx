@@ -124,14 +124,14 @@ export default function MyPageHome() {
                                 <span>{me?.nickname ?? '사용자'}</span>
                                 {me?.role === 'NEWBIE' && (
                                   <img
-                                    src="/icons/신입.svg"
+                                    src="/icons/newbie.svg"
                                     alt="신입 뱃지"
                                     className="w-[24px] h-[24px]"
                                   />
                                 )}
                                 {me?.role === 'SENIOR' && (
                                   <img
-                                    src="/icons/선배.svg"
+                                    src="/icons/senior.svg"
                                     alt="선배 뱃지"
                                     className="w-[24px] h-[24px]"
                                   />
