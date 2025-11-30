@@ -218,11 +218,7 @@ export default function LoginPage(): JSX.Element {
           <span className="w-px h-4 mr-3 bg-line-normal" aria-hidden="true" />
 
           <Link
-            to="#"
-            onClick={(e) => {
-              e.preventDefault()
-              toastInfo('해당 서비스는 아직 준비 중입니다.')
-            }}
+            to="/login/find-password"
             className="font-normal hover:text-label-primary"
           >
             비밀번호 찾기

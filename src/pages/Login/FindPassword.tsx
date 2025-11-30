@@ -32,7 +32,6 @@ export default function FindPasswordPage(): JSX.Element {
   const nameInvalid = touched.name && !name.trim()
   const orgInvalid = touched.organization && !organization.trim()
 
-  // ⭐ 이메일 정규식 검사 추가
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   const emailFormatInvalid =
     touched.email && email.trim() !== '' && !emailRegex.test(email)
@@ -50,23 +49,40 @@ export default function FindPasswordPage(): JSX.Element {
       return
     }
 
-    // ⭐ 제출 시 이메일 형식 불일치 차단
     if (emailFormatInvalid) {
       toastError('규칙에 맞는 이메일 주소를 입력해 주세요.')
       return
     }
 
     try {
-      await api.post('/auth/find-password', {
+      const resp = await api.post('/auth/find-password', {
         email,
         name,
         organization,
       })
 
+      const { accessToken } = resp.data as {
+        grantType: string
+        accessToken: string
+        refreshToken: string | null
+        accessTokenExpiresIn: number
+        role: string | null
+      }
+
+      if (!accessToken) {
+        toastError('비밀번호 재설정 토큰이 없습니다. 다시 시도해 주세요.')
+        return
+      }
+
+      sessionStorage.setItem('resetPasswordToken', accessToken)
+
       toastSuccess('비밀번호 재설정 안내를 이메일로 보내드렸습니다.')
       navigate('/login/reset-password')
     } catch (err: any) {
-      toastError('비밀번호를 찾을 수 없습니다.')
+      const message =
+        err?.response?.data?.message || '비밀번호를 찾을 수 없습니다.'
+      setError(message)
+      toastError(message)
       setStatus('fail')
     }
   }
@@ -91,12 +107,12 @@ export default function FindPasswordPage(): JSX.Element {
               placeholder="이메일을 입력해 주세요."
               onChange={(e) => setEmail(e.target.value)}
               onBlur={() => setTouched((prev) => ({ ...prev, email: true }))}
-              invalid={emailInvalid || emailFormatInvalid} // ⭐ 수정
+              invalid={emailInvalid || emailFormatInvalid}
               message={
                 emailInvalid
                   ? '이메일을 입력해 주세요.'
                   : emailFormatInvalid
-                  ? '규칙에 맞는 이메일 주소를 입력해 주세요.' // ⭐ 메시지 추가
+                  ? '규칙에 맞는 이메일 주소를 입력해 주세요.'
                   : undefined
               }
             />

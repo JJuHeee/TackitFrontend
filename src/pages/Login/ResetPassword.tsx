@@ -9,11 +9,11 @@ import TextField from '../../components/forms/TextField'
 import AuthResultCard from '../../components/ui/AuthResultCard'
 
 type ViewStatus = 'form' | 'success'
+
 const PASSWORD_REGEX =
   /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_\-+={[\]};:'",.<>/?\\|`~]).{8,}$/
 
 export default function ResetPasswordPage(): JSX.Element {
-  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [passwordConfirm, setPasswordConfirm] = useState('')
   const [error, setError] = useState('')
@@ -25,43 +25,24 @@ export default function ResetPasswordPage(): JSX.Element {
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false)
 
   const [touched, setTouched] = useState({
-    email: false,
     password: false,
     passwordConfirm: false,
   })
 
-  const isValid = Boolean(
-    email.trim() && password.trim() && passwordConfirm.trim()
-  )
+  const isValid = Boolean(password.trim() && passwordConfirm.trim())
 
-  const emailInvalid = touched.email && !email.trim()
   const pwInvalid =
     touched.password && !!password && !PASSWORD_REGEX.test(password)
 
   const pwConfirmInvalid =
     touched.passwordConfirm && !!passwordConfirm && passwordConfirm !== password
 
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  const emailFormatInvalid =
-    touched.email && email.trim() !== '' && !emailRegex.test(email)
-
-  const pwMismatch =
-    touched.passwordConfirm &&
-    password.trim() !== '' &&
-    passwordConfirm.trim() !== '' &&
-    password !== passwordConfirm
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError('')
 
     if (!isValid) {
-      setTouched({ email: true, password: true, passwordConfirm: true })
-      return
-    }
-
-    if (emailFormatInvalid) {
-      toastError('올바른 이메일 형식이 아닙니다.')
+      setTouched({ password: true, passwordConfirm: true })
       return
     }
 
@@ -72,14 +53,31 @@ export default function ResetPasswordPage(): JSX.Element {
       return
     }
 
+    const resetToken = sessionStorage.getItem('resetPasswordToken')
+
+    if (!resetToken) {
+      toastError(
+        '비밀번호 재설정 정보가 없습니다. 다시 비밀번호 찾기를 진행해 주세요.'
+      )
+      setError('비밀번호 재설정 정보가 없습니다. 다시 시도해 주세요.')
+      return
+    }
+
     try {
-      await api.post('/auth/reset-password', {
-        email,
-        password,
-        passwordConfirm,
-      })
+      await api.patch(
+        '/auth/reset-password',
+        {
+          newPassword: password,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${resetToken}`,
+          },
+        }
+      )
 
       toastSuccess('비밀번호가 성공적으로 변경되었습니다.')
+      sessionStorage.removeItem('resetPasswordToken')
       setStatus('success')
     } catch (err: any) {
       setError('비밀번호 재설정 중 오류가 발생했습니다. 다시 시도해주세요.')
@@ -108,25 +106,6 @@ export default function ResetPasswordPage(): JSX.Element {
           </h2>
 
           <form onSubmit={handleSubmit} className="w-[392px] mx-auto">
-            <TextField
-              id="email"
-              label="이메일"
-              required
-              type="email"
-              value={email}
-              placeholder="이메일을 입력해 주세요."
-              onChange={(e) => setEmail(e.target.value)}
-              onBlur={() => setTouched((prev) => ({ ...prev, email: true }))}
-              invalid={emailInvalid || emailFormatInvalid}
-              message={
-                emailInvalid
-                  ? '이메일을 입력해 주세요.'
-                  : emailFormatInvalid
-                  ? '규칙에 맞는 이메일 주소를 입력해 주세요.'
-                  : undefined
-              }
-            />
-
             <TextField
               id="password"
               label="새 비밀번호"
