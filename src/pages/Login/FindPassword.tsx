@@ -4,7 +4,6 @@ import AuthLayout from '../../components/layouts/AuthLayout'
 import { AuthCard } from '../../components/ui/AuthCard'
 import { Button } from '../../components/ui/Button'
 import api from '../../api/api'
-import { toastSuccess, toastError } from '../../utils/toast'
 import TextField from '../../components/forms/TextField'
 import AuthResultCard from '../../components/ui/AuthResultCard'
 
@@ -50,7 +49,7 @@ export default function FindPasswordPage(): JSX.Element {
     }
 
     if (emailFormatInvalid) {
-      toastError('규칙에 맞는 이메일 주소를 입력해 주세요.')
+      setError('규칙에 맞는 이메일 주소를 입력해 주세요.')
       return
     }
 
@@ -68,19 +67,17 @@ export default function FindPasswordPage(): JSX.Element {
       }
 
       if (!resetToken) {
-        toastError('비밀번호 재설정 토큰이 없습니다. 다시 시도해 주세요.')
+        setError('비밀번호 재설정 토큰이 없습니다. 다시 시도해 주세요.')
         return
       }
 
       sessionStorage.setItem('resetPasswordToken', resetToken)
 
-      toastSuccess('비밀번호 재설정 안내를 이메일로 보내드렸습니다.')
       navigate('/login/reset-password')
     } catch (err: any) {
       const message =
         err?.response?.data?.message || '비밀번호를 찾을 수 없습니다.'
       setError(message)
-      toastError(message)
       setStatus('fail')
     }
   }

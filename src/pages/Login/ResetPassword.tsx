@@ -4,7 +4,6 @@ import AuthLayout from '../../components/layouts/AuthLayout'
 import { AuthCard } from '../../components/ui/AuthCard'
 import { Button } from '../../components/ui/Button'
 import api from '../../api/api'
-import { toastSuccess, toastError } from '../../utils/toast'
 import TextField from '../../components/forms/TextField'
 import AuthResultCard from '../../components/ui/AuthResultCard'
 
@@ -49,16 +48,12 @@ export default function ResetPasswordPage(): JSX.Element {
     if (password !== passwordConfirm) {
       setTouched((prev) => ({ ...prev, password: true, passwordConfirm: true }))
       setError('비밀번호가 일치하지 않습니다.')
-      toastError('비밀번호가 일치하지 않습니다.')
       return
     }
 
     const resetToken = sessionStorage.getItem('resetPasswordToken')
 
     if (!resetToken) {
-      toastError(
-        '비밀번호 재설정 정보가 없습니다. 다시 비밀번호 찾기를 진행해 주세요.'
-      )
       setError('비밀번호 재설정 정보가 없습니다. 다시 시도해 주세요.')
       return
     }
@@ -66,9 +61,7 @@ export default function ResetPasswordPage(): JSX.Element {
     try {
       await api.patch(
         '/auth/reset-password',
-        {
-          newPassword: password,
-        },
+        { newPassword: password },
         {
           headers: {
             Authorization: `Bearer ${resetToken}`,
@@ -76,12 +69,10 @@ export default function ResetPasswordPage(): JSX.Element {
         }
       )
 
-      toastSuccess('비밀번호가 성공적으로 변경되었습니다.')
       sessionStorage.removeItem('resetPasswordToken')
       setStatus('success')
     } catch (err: any) {
       setError('비밀번호 재설정 중 오류가 발생했습니다. 다시 시도해주세요.')
-      toastError('재설정 실패')
     }
   }
 
