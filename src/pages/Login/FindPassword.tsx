@@ -61,27 +61,22 @@ export default function FindPasswordPage(): JSX.Element {
         organization,
       })
 
-      const { accessToken } = resp.data as {
+      const { resetToken } = resp.data as {
         grantType: string
-        accessToken: string
-        refreshToken: string | null
-        accessTokenExpiresIn: number
-        role: string | null
+        resetToken: string
+        expiresIn: number
       }
 
-      if (!accessToken) {
+      if (!resetToken) {
         toastError('비밀번호 재설정 토큰이 없습니다. 다시 시도해 주세요.')
         return
       }
 
-      sessionStorage.setItem('resetPasswordToken', accessToken)
+      sessionStorage.setItem('resetPasswordToken', resetToken)
 
       toastSuccess('비밀번호 재설정 안내를 이메일로 보내드렸습니다.')
       navigate('/login/reset-password')
     } catch (err: any) {
-      console.log('ERROR STATUS:', err?.response?.status)
-      console.log('ERROR DATA:', err?.response?.data)
-
       const message =
         err?.response?.data?.message || '비밀번호를 찾을 수 없습니다.'
       setError(message)
