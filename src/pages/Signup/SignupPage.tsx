@@ -1,4 +1,3 @@
-// src/pages/auth/SignupPage.tsx
 import React, { useMemo, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import api from '../../api/api'
@@ -13,7 +12,11 @@ import { useUserForm } from '../../hooks/useUserForm'
 const JOIN_START_YEAR = 2015
 const CALENDAR_ICON_PATH = '/icons/calendar.svg'
 
+type Step = 1 | 2
+
 export default function SignupPage() {
+  const [step, setStep] = useState<Step>(1)
+
   const [passwordVisible, setPasswordVisible] = useState(false)
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false)
   const [realName, setRealName] = useState('')
@@ -75,13 +78,35 @@ export default function SignupPage() {
     isFormValid,
     checkEmailDuplicate,
     checkNicknameDuplicate,
-  } = useUserForm('') 
+  } = useUserForm('')
 
   const navigate = useNavigate()
 
+  // 1단계에서 "다음" 버튼 활성화 조건
+  const isStep1ValidForNext =
+    realName.trim() !== '' &&
+    email.trim() !== '' &&
+    !emailHasError &&
+    password.trim() !== '' &&
+    !pwInvalid &&
+    confirmPassword.trim() !== '' &&
+    !confirmInvalid
+
+  const handleNextStep = (e: React.MouseEvent) => {
+    e.preventDefault()
+
+    if (!isStep1ValidForNext) {
+      toastWarn('필수 정보를 먼저 입력해 주세요.')
+      setRealNameTouched(true)
+      return
+    }
+
+    setStep(2)
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setSubmitted(true) 
+    setSubmitted(true)
 
     if (!realName.trim()) {
       toastWarn('이름을 입력해 주세요.')
@@ -94,13 +119,13 @@ export default function SignupPage() {
     }
 
     if (!isFormValid || joinedYearActuallyInvalid) {
-      setJoinedYearTouched(true) 
+      setJoinedYearTouched(true)
       toastError('입력값을 다시 확인해 주세요.')
       return
     }
 
     const formData = {
-      name: realName, 
+      name: realName,
       email,
       password,
       nickname,
@@ -134,142 +159,181 @@ export default function SignupPage() {
               회원가입
             </h2>
 
+            <div className="flex gap-2 mb-8">
+              <div
+                className={`h-1 flex-1 rounded-full ${
+                  step >= 1 ? 'bg-interaction-normal' : 'bg-interaction-disable'
+                }`}
+              />
+              <div
+                className={`h-1 flex-1 rounded-full ${
+                  step === 2
+                    ? 'bg-interaction-normal'
+                    : 'bg-interaction-disable'
+                }`}
+              />
+            </div>
+
             <form onSubmit={handleSubmit}>
-              <TextField
-                id="name"
-                label="이름"
-                required
-                value={realName}
-                placeholder="이름을 입력해 주세요."
-                onChange={(e) => setRealName(e.target.value)}
-                onBlur={() => setRealNameTouched(true)} // ← 추가
-                invalid={nameInvalid}
-                message={nameInvalid ? '이름을 입력해주세요.' : undefined}
-              />
+              {/* ================= 1단계 ================= */}
+              {step === 1 && (
+                <>
+                  <TextField
+                    id="name"
+                    label="이름"
+                    required
+                    value={realName}
+                    placeholder="이름을 입력해 주세요."
+                    onChange={(e) => setRealName(e.target.value)}
+                    onBlur={() => setRealNameTouched(true)}
+                    invalid={nameInvalid}
+                    message={nameInvalid ? '이름을 입력해주세요.' : undefined}
+                  />
 
-              {/* 이메일 */}
-              <TextField
-                id="email"
-                label="이메일"
-                required
-                type="email"
-                value={email}
-                placeholder="이메일을 입력해 주세요."
-                onChange={(e) => setEmail(e.target.value)}
-                onBlur={checkEmailDuplicate}
-                invalid={emailHasError}
-                message={emailMessage}
-                autoComplete="email"
-                inputMode="email"
-              />
+                  {/* 이메일 */}
+                  <TextField
+                    id="email"
+                    label="이메일"
+                    required
+                    type="email"
+                    value={email}
+                    placeholder="이메일을 입력해 주세요."
+                    onChange={(e) => setEmail(e.target.value)}
+                    onBlur={checkEmailDuplicate}
+                    invalid={emailHasError}
+                    message={emailMessage}
+                    autoComplete="email"
+                    inputMode="email"
+                  />
 
-              {/* 비밀번호 */}
-              <TextField
-                id="password"
-                label="비밀번호"
-                required
-                type="password"
-                value={password}
-                placeholder="비밀번호를 입력해 주세요."
-                onChange={(e) => setPassword(e.target.value)}
-                showToggle
-                visible={passwordVisible}
-                onToggle={() => setPasswordVisible((v) => !v)}
-                autoComplete="new-password"
-                invalid={pwInvalid}
-                message={
-                  pwInvalid
-                    ? '대문자와 소문자, 특수문자를 포함해 8자 이상으로 입력해 주세요.'
-                    : undefined
-                }
-              />
+                  {/* 비밀번호 */}
+                  <TextField
+                    id="password"
+                    label="비밀번호"
+                    required
+                    type="password"
+                    value={password}
+                    placeholder="비밀번호를 입력해 주세요."
+                    onChange={(e) => setPassword(e.target.value)}
+                    showToggle
+                    visible={passwordVisible}
+                    onToggle={() => setPasswordVisible((v) => !v)}
+                    autoComplete="new-password"
+                    invalid={pwInvalid}
+                    message={
+                      pwInvalid
+                        ? '대문자와 소문자, 특수문자를 포함해 8자 이상으로 입력해 주세요.'
+                        : undefined
+                    }
+                  />
 
-              {/* 비밀번호 확인 */}
-              <TextField
-                id="confirmPassword"
-                label="비밀번호 확인"
-                required
-                type="password"
-                value={confirmPassword}
-                placeholder="비밀번호를 다시 입력해 주세요."
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                showToggle
-                visible={confirmPasswordVisible}
-                onToggle={() => setConfirmPasswordVisible((v) => !v)}
-                autoComplete="new-password"
-                invalid={confirmInvalid}
-                message={
-                  confirmInvalid ? '비밀번호가 일치하지 않습니다.' : undefined
-                }
-              />
+                  {/* 비밀번호 확인 */}
+                  <TextField
+                    id="confirmPassword"
+                    label="비밀번호 확인"
+                    required
+                    type="password"
+                    value={confirmPassword}
+                    placeholder="비밀번호를 다시 입력해 주세요."
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    showToggle
+                    visible={confirmPasswordVisible}
+                    onToggle={() => setConfirmPasswordVisible((v) => !v)}
+                    autoComplete="new-password"
+                    invalid={confirmInvalid}
+                    message={
+                      confirmInvalid
+                        ? '비밀번호가 일치하지 않습니다.'
+                        : undefined
+                    }
+                  />
 
-              {/* 닉네임 */}
-              <TextField
-                id="nickname"
-                label="닉네임"
-                required
-                value={nickname}
-                placeholder="닉네임을 입력해 주세요."
-                onChange={(e) => setNickname(e.target.value)}
-                onBlur={checkNicknameDuplicate}
-                showCount
-                maxLength={10}
-                invalid={nickHasError}
-                message={nickMessage}
-              />
+                  {/* 다음 버튼 */}
+                  <Button
+                    type="button"
+                    variant="primary"
+                    size="m"
+                    className="w-full mt-4"
+                    disabled={!isStep1ValidForNext}
+                    onClick={handleNextStep}
+                  >
+                    다음
+                  </Button>
+                </>
+              )}
 
-              {/* 소속 */}
-              <TextField
-                id="organization"
-                label="소속"
-                required
-                value={organization}
-                placeholder="소속을 입력해 주세요."
-                onChange={(e) => setOrganization(e.target.value)}
-                invalid={orgInvalid}
-                message={orgInvalid ? '소속을 입력해 주세요.' : undefined}
-              />
+              {/* ================= 2단계 ================= */}
+              {step === 2 && (
+                <>
+                  {/* 닉네임 */}
+                  <TextField
+                    id="nickname"
+                    label="닉네임"
+                    required
+                    value={nickname}
+                    placeholder="닉네임을 입력해 주세요."
+                    onChange={(e) => setNickname(e.target.value)}
+                    onBlur={checkNicknameDuplicate}
+                    showCount
+                    maxLength={10}
+                    invalid={nickHasError}
+                    message={nickMessage}
+                  />
 
-              {/* 입사년도: 빈 값일 때 blur로는 에러 표시하지 않음 */}
-              <TextField
-                id="joinedYear"
-                label="입사년도"
-                required
-                value={joinedYear === '' ? '' : String(joinedYear)}
-                placeholder="입사연도를 선택해 주세요."
-                onChange={(e) => {
-                  const v = e.target.value
-                  setJoinedYear(v === '' ? '' : Number(v))
-                }}
-                onBlur={() => {
-                  if (joinedYear !== '') setJoinedYearTouched(true)
-                }}
-                rightIconSrc={CALENDAR_ICON_PATH}
-                dropdownOptions={yearOptions}
-                invalid={joinedYearInvalidUi}
-                message={joinedYearMessage}
-              />
+                  {/* 소속 */}
+                  <TextField
+                    id="organization"
+                    label="소속"
+                    required
+                    value={organization}
+                    placeholder="소속을 입력해 주세요."
+                    onChange={(e) => setOrganization(e.target.value)}
+                    invalid={orgInvalid}
+                    message={orgInvalid ? '소속을 입력해 주세요.' : undefined}
+                  />
 
-              {/* 역할 */}
-              <RoleSelect
-                className="mb-4"
-                value={(role as Role) || ''}
-                onChange={(next) => setRole(next)}
-                showLabel
-              />
+                  {/* 입사년도 */}
+                  <TextField
+                    id="joinedYear"
+                    label="입사년도"
+                    required
+                    value={joinedYear === '' ? '' : String(joinedYear)}
+                    placeholder="입사연도를 선택해 주세요."
+                    onChange={(e) => {
+                      const v = e.target.value
+                      setJoinedYear(v === '' ? '' : Number(v))
+                    }}
+                    onBlur={() => {
+                      if (joinedYear !== '') setJoinedYearTouched(true)
+                    }}
+                    rightIconSrc={CALENDAR_ICON_PATH}
+                    dropdownOptions={yearOptions}
+                    invalid={joinedYearInvalidUi}
+                    message={joinedYearMessage}
+                  />
 
-              {/* 제출 */}
-              <Button
-                type="submit"
-                variant="primary"
-                size="m"
-                className="w-full mt-4"
-                disabled={submitDisabled}
-              >
-                완료
-              </Button>
+                  {/* 역할 */}
+                  <RoleSelect
+                    className="mb-4"
+                    value={(role as Role) || ''}
+                    onChange={(next) => setRole(next)}
+                    showLabel
+                  />
 
-              {/* 하단 링크 */}
+                  {/* 완료(제출) */}
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    size="m"
+                    className="w-full mt-4"
+                    disabled={submitDisabled}
+                  >
+                    완료
+                  </Button>
+                </>
+              )}
+
+              {/* 하단 링크 (공통) */}
               <div className="mt-4 text-center text-body-2 text-label-neutral">
                 이미 가입된 계정이 있나요?{' '}
                 <Link
