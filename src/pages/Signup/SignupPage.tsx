@@ -15,7 +15,7 @@ const CALENDAR_ICON_PATH = '/icons/calendar.svg'
 type Step = 1 | 2
 
 export default function SignupPage() {
-  const [step, setStep] = useState<Step>(1)
+  const [step, setStep] = useState<Step>(2)
 
   const [passwordVisible, setPasswordVisible] = useState(false)
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false)
@@ -160,17 +160,27 @@ export default function SignupPage() {
             </h2>
 
             <div className="flex gap-2 mb-8">
+              {/* STEP 1 BAR — 항상 클릭 가능 */}
               <div
-                className={`h-1 flex-1 rounded-full ${
-                  step >= 1 ? 'bg-interaction-normal' : 'bg-interaction-disable'
-                }`}
+                onClick={() => setStep(1)}
+                className={`
+      h-1 flex-1 rounded-full
+      cursor-pointer
+      ${step >= 1 ? 'bg-interaction-normal' : 'bg-interaction-disable'}
+    `}
               />
+
+              {/* STEP 2 BAR — Step1이 유효해야만 이동 가능 */}
               <div
-                className={`h-1 flex-1 rounded-full ${
-                  step === 2
-                    ? 'bg-interaction-normal'
-                    : 'bg-interaction-disable'
-                }`}
+                onClick={() => {
+                  if (!isStep1ValidForNext) return
+                  setStep(2)
+                }}
+                className={`
+      h-1 flex-1 rounded-full
+      ${step === 2 ? 'bg-interaction-normal' : 'bg-interaction-disable'}
+      ${isStep1ValidForNext ? 'cursor-pointer' : 'cursor-default'}
+    `}
               />
             </div>
 

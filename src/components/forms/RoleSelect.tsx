@@ -11,6 +11,10 @@ type Props = {
   className?: string
   descriptionText?: string
 }
+const DEFAULT_ROLE_ICON = {
+  src: '/icons/icon-default.svg',
+  alt: 'default role icon',
+}
 
 const ROLE_ICONS: Record<Role, { src: string; alt: string }> = {
   NEWBIE: { src: '/icons/icon-newbie.svg', alt: 'newbie icon' },
@@ -72,8 +76,20 @@ export default function RoleSelect({
         </Button>
       </div>
 
+      {!value && (
+        <div className="flex items-center w-full h-10 gap-2 pl-3 pr-4 mt-3 rounded-lg bg-background-neutral">
+          <img
+            src={DEFAULT_ROLE_ICON.src}
+            alt={DEFAULT_ROLE_ICON.alt}
+            className="w-5 h-5 shrink-0"
+          />
+          <p className="text-body-2 text-label-normal">
+            선택한 역할에 따라 작성 가능한 게시판이 달라요.
+          </p>
+        </div>
+      )}
+
       {value && (
-        // h=40, w=full, r=8, bg-blue, 왼쪽 패딩 12px, 아이콘-텍스트 간격 8px
         <div className="mt-3 flex items-center h-10 w-full rounded-lg bg-[#EEF2FF] pl-3 pr-4 gap-2">
           {renderIcon ? (
             renderIcon(value)
