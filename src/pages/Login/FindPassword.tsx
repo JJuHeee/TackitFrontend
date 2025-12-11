@@ -79,6 +79,9 @@ export default function FindPasswordPage(): JSX.Element {
       toastSuccess('비밀번호 재설정 안내를 이메일로 보내드렸습니다.')
       navigate('/login/reset-password')
     } catch (err: any) {
+      console.log('ERROR STATUS:', err?.response?.status)
+      console.log('ERROR DATA:', err?.response?.data)
+
       const message =
         err?.response?.data?.message || '비밀번호를 찾을 수 없습니다.'
       setError(message)
