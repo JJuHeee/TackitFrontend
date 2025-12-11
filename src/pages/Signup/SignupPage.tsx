@@ -148,215 +148,205 @@ export default function SignupPage() {
 
   return (
     <AuthLayout icons={['/assets/auth/auth-icon.svg']} iconOffset={80}>
-      <div className="relative flex flex-col items-center min-h-screen">
-        <div
-          className="absolute top-20 w-[440px] box-border px-5 pt-8 pb-[60px] mb-0 max-w-none
-                     max-[560px]:static max-[560px]:w-full max-[560px]:max-w-[440px]
-                     max-[560px]:h-auto max-[560px]:mt-24"
-        >
-          <AuthCard className="w-full max-w-[440px]">
-            <h2 className="mb-8 text-center text-title1-bold text-label-normal">
-              회원가입
-            </h2>
+      <AuthCard className="w-[440px] translate-y-12 md:translate-y-20 lg:translate-y-28">
+        <h2 className="mb-8 text-center text-title1-bold text-label-normal">
+          회원가입
+        </h2>
 
-            <div className="flex gap-2 mb-8">
-              {/* STEP 1 BAR — 항상 클릭 가능 */}
-              <div
-                onClick={() => setStep(1)}
-                className={`
+        <div className="flex gap-2 mb-8">
+          {/* STEP 1 BAR — 항상 클릭 가능 */}
+          <div
+            onClick={() => setStep(1)}
+            className={`
       h-1 flex-1 rounded-full
       cursor-pointer
       ${step >= 1 ? 'bg-interaction-normal' : 'bg-interaction-disable'}
     `}
-              />
+          />
 
-              {/* STEP 2 BAR — Step1이 유효해야만 이동 가능 */}
-              <div
-                onClick={() => {
-                  if (!isStep1ValidForNext) return
-                  setStep(2)
-                }}
-                className={`
+          {/* STEP 2 BAR — Step1이 유효해야만 이동 가능 */}
+          <div
+            onClick={() => {
+              if (!isStep1ValidForNext) return
+              setStep(2)
+            }}
+            className={`
       h-1 flex-1 rounded-full
       ${step === 2 ? 'bg-interaction-normal' : 'bg-interaction-disable'}
       ${isStep1ValidForNext ? 'cursor-pointer' : 'cursor-default'}
     `}
-              />
-            </div>
-
-            <form onSubmit={handleSubmit}>
-              {/* ================= 1단계 ================= */}
-              {step === 1 && (
-                <>
-                  <TextField
-                    id="name"
-                    label="이름"
-                    required
-                    value={realName}
-                    placeholder="이름을 입력해 주세요."
-                    onChange={(e) => setRealName(e.target.value)}
-                    onBlur={() => setRealNameTouched(true)}
-                    invalid={nameInvalid}
-                    message={nameInvalid ? '이름을 입력해주세요.' : undefined}
-                  />
-
-                  {/* 이메일 */}
-                  <TextField
-                    id="email"
-                    label="이메일"
-                    required
-                    type="email"
-                    value={email}
-                    placeholder="이메일을 입력해 주세요."
-                    onChange={(e) => setEmail(e.target.value)}
-                    onBlur={checkEmailDuplicate}
-                    invalid={emailHasError}
-                    message={emailMessage}
-                    autoComplete="email"
-                    inputMode="email"
-                  />
-
-                  {/* 비밀번호 */}
-                  <TextField
-                    id="password"
-                    label="비밀번호"
-                    required
-                    type="password"
-                    value={password}
-                    placeholder="비밀번호를 입력해 주세요."
-                    onChange={(e) => setPassword(e.target.value)}
-                    showToggle
-                    visible={passwordVisible}
-                    onToggle={() => setPasswordVisible((v) => !v)}
-                    autoComplete="new-password"
-                    invalid={pwInvalid}
-                    message={
-                      pwInvalid
-                        ? '대문자와 소문자, 특수문자를 포함해 8자 이상으로 입력해 주세요.'
-                        : undefined
-                    }
-                  />
-
-                  {/* 비밀번호 확인 */}
-                  <TextField
-                    id="confirmPassword"
-                    label="비밀번호 확인"
-                    required
-                    type="password"
-                    value={confirmPassword}
-                    placeholder="비밀번호를 다시 입력해 주세요."
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    showToggle
-                    visible={confirmPasswordVisible}
-                    onToggle={() => setConfirmPasswordVisible((v) => !v)}
-                    autoComplete="new-password"
-                    invalid={confirmInvalid}
-                    message={
-                      confirmInvalid
-                        ? '비밀번호가 일치하지 않습니다.'
-                        : undefined
-                    }
-                  />
-
-                  {/* 다음 버튼 */}
-                  <Button
-                    type="button"
-                    variant="primary"
-                    size="m"
-                    className="w-full mt-4"
-                    disabled={!isStep1ValidForNext}
-                    onClick={handleNextStep}
-                  >
-                    다음
-                  </Button>
-                </>
-              )}
-
-              {/* ================= 2단계 ================= */}
-              {step === 2 && (
-                <>
-                  {/* 닉네임 */}
-                  <TextField
-                    id="nickname"
-                    label="닉네임"
-                    required
-                    value={nickname}
-                    placeholder="닉네임을 입력해 주세요."
-                    onChange={(e) => setNickname(e.target.value)}
-                    onBlur={checkNicknameDuplicate}
-                    showCount
-                    maxLength={10}
-                    invalid={nickHasError}
-                    message={nickMessage}
-                  />
-
-                  {/* 소속 */}
-                  <TextField
-                    id="organization"
-                    label="소속"
-                    required
-                    value={organization}
-                    placeholder="소속을 입력해 주세요."
-                    onChange={(e) => setOrganization(e.target.value)}
-                    invalid={orgInvalid}
-                    message={orgInvalid ? '소속을 입력해 주세요.' : undefined}
-                  />
-
-                  {/* 입사년도 */}
-                  <TextField
-                    id="joinedYear"
-                    label="입사년도"
-                    required
-                    value={joinedYear === '' ? '' : String(joinedYear)}
-                    placeholder="입사연도를 선택해 주세요."
-                    onChange={(e) => {
-                      const v = e.target.value
-                      setJoinedYear(v === '' ? '' : Number(v))
-                    }}
-                    onBlur={() => {
-                      if (joinedYear !== '') setJoinedYearTouched(true)
-                    }}
-                    rightIconSrc={CALENDAR_ICON_PATH}
-                    dropdownOptions={yearOptions}
-                    invalid={joinedYearInvalidUi}
-                    message={joinedYearMessage}
-                  />
-
-                  {/* 역할 */}
-                  <RoleSelect
-                    className="mb-4"
-                    value={(role as Role) || ''}
-                    onChange={(next) => setRole(next)}
-                    showLabel
-                  />
-
-                  {/* 완료(제출) */}
-                  <Button
-                    type="submit"
-                    variant="primary"
-                    size="m"
-                    className="w-full mt-4"
-                    disabled={submitDisabled}
-                  >
-                    완료
-                  </Button>
-                </>
-              )}
-
-              {/* 하단 링크 (공통) */}
-              <div className="mt-4 text-center text-body-2 text-label-neutral">
-                이미 가입된 계정이 있나요?{' '}
-                <Link
-                  to="/login"
-                  className="ml-1 font-semibold no-underline text-label-primary hover:underline"
-                >
-                  로그인하기
-                </Link>
-              </div>
-            </form>
-          </AuthCard>
+          />
         </div>
-      </div>
+
+        <form onSubmit={handleSubmit}>
+          {/* ================= 1단계 ================= */}
+          {step === 1 && (
+            <>
+              <TextField
+                id="name"
+                label="이름"
+                required
+                value={realName}
+                placeholder="이름을 입력해 주세요."
+                onChange={(e) => setRealName(e.target.value)}
+                onBlur={() => setRealNameTouched(true)}
+                invalid={nameInvalid}
+                message={nameInvalid ? '이름을 입력해주세요.' : undefined}
+              />
+
+              {/* 이메일 */}
+              <TextField
+                id="email"
+                label="이메일"
+                required
+                type="email"
+                value={email}
+                placeholder="이메일을 입력해 주세요."
+                onChange={(e) => setEmail(e.target.value)}
+                onBlur={checkEmailDuplicate}
+                invalid={emailHasError}
+                message={emailMessage}
+                autoComplete="email"
+                inputMode="email"
+              />
+
+              {/* 비밀번호 */}
+              <TextField
+                id="password"
+                label="비밀번호"
+                required
+                type="password"
+                value={password}
+                placeholder="비밀번호를 입력해 주세요."
+                onChange={(e) => setPassword(e.target.value)}
+                showToggle
+                visible={passwordVisible}
+                onToggle={() => setPasswordVisible((v) => !v)}
+                autoComplete="new-password"
+                invalid={pwInvalid}
+                message={
+                  pwInvalid
+                    ? '대문자와 소문자, 특수문자를 포함해 8자 이상으로 입력해 주세요.'
+                    : undefined
+                }
+              />
+
+              {/* 비밀번호 확인 */}
+              <TextField
+                id="confirmPassword"
+                label="비밀번호 확인"
+                required
+                type="password"
+                value={confirmPassword}
+                placeholder="비밀번호를 다시 입력해 주세요."
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                showToggle
+                visible={confirmPasswordVisible}
+                onToggle={() => setConfirmPasswordVisible((v) => !v)}
+                autoComplete="new-password"
+                invalid={confirmInvalid}
+                message={
+                  confirmInvalid ? '비밀번호가 일치하지 않습니다.' : undefined
+                }
+              />
+
+              {/* 다음 버튼 */}
+              <Button
+                type="button"
+                variant="primary"
+                size="m"
+                className="w-full mt-4"
+                disabled={!isStep1ValidForNext}
+                onClick={handleNextStep}
+              >
+                다음
+              </Button>
+            </>
+          )}
+
+          {/* ================= 2단계 ================= */}
+          {step === 2 && (
+            <>
+              {/* 닉네임 */}
+              <TextField
+                id="nickname"
+                label="닉네임"
+                required
+                value={nickname}
+                placeholder="닉네임을 입력해 주세요."
+                onChange={(e) => setNickname(e.target.value)}
+                onBlur={checkNicknameDuplicate}
+                showCount
+                maxLength={10}
+                invalid={nickHasError}
+                message={nickMessage}
+              />
+
+              {/* 소속 */}
+              <TextField
+                id="organization"
+                label="소속"
+                required
+                value={organization}
+                placeholder="소속을 입력해 주세요."
+                onChange={(e) => setOrganization(e.target.value)}
+                invalid={orgInvalid}
+                message={orgInvalid ? '소속을 입력해 주세요.' : undefined}
+              />
+
+              {/* 입사년도 */}
+              <TextField
+                id="joinedYear"
+                label="입사년도"
+                required
+                value={joinedYear === '' ? '' : String(joinedYear)}
+                placeholder="입사연도를 선택해 주세요."
+                onChange={(e) => {
+                  const v = e.target.value
+                  setJoinedYear(v === '' ? '' : Number(v))
+                }}
+                onBlur={() => {
+                  if (joinedYear !== '') setJoinedYearTouched(true)
+                }}
+                rightIconSrc={CALENDAR_ICON_PATH}
+                dropdownOptions={yearOptions}
+                invalid={joinedYearInvalidUi}
+                message={joinedYearMessage}
+              />
+
+              {/* 역할 */}
+              <RoleSelect
+                className="mb-4"
+                value={(role as Role) || ''}
+                onChange={(next) => setRole(next)}
+                showLabel
+              />
+
+              {/* 완료(제출) */}
+              <Button
+                type="submit"
+                variant="primary"
+                size="m"
+                className="w-full mt-4"
+                disabled={submitDisabled}
+              >
+                완료
+              </Button>
+            </>
+          )}
+
+          {/* 하단 링크 (공통) */}
+          <div className="mt-4 text-center text-body-2 text-label-neutral">
+            이미 가입된 계정이 있나요?{' '}
+            <Link
+              to="/login"
+              className="ml-1 font-semibold no-underline text-label-primary hover:underline"
+            >
+              로그인하기
+            </Link>
+          </div>
+        </form>
+      </AuthCard>
     </AuthLayout>
   )
 }
