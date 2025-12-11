@@ -15,7 +15,7 @@ const CALENDAR_ICON_PATH = '/icons/calendar.svg'
 type Step = 1 | 2
 
 export default function SignupPage() {
-  const [step, setStep] = useState<Step>(2)
+  const [step, setStep] = useState<Step>(1)
 
   const [passwordVisible, setPasswordVisible] = useState(false)
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false)
