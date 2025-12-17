@@ -52,9 +52,9 @@ export default function PostAuthorMeta({
   const years = role === 'SENIOR' ? calcYears(joinedYear) : null
   const roleBadgeSrc =
     role === 'NEWBIE'
-      ? '/icons/newnie.svg'
+      ? '/icons/icon-newnie.svg'
       : role === 'SENIOR'
-      ? '/icons/senior.svg'
+      ? '/icons/icon-senior.svg'
       : null
 
   const nameCls =

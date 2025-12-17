@@ -51,7 +51,7 @@ export function FixedStatCard({
           <span
             className={[
               'text-[24px] leading-none font-extrabold',
-              valueClassName || '', // ← undefined 방지 겸 안전
+              valueClassName || '',
             ].join(' ')}
           >
             {value}
@@ -61,7 +61,7 @@ export function FixedStatCard({
             <span
               className={[
                 'text-[14px] leading-[20px]',
-                valueClassName || 'text-[var(--label-neutral)]', // 기본 색
+                valueClassName || 'text-[var(--label-neutral)]',
               ].join(' ')}
             >
               {suffix}

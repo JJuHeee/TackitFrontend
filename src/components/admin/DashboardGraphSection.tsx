@@ -15,10 +15,14 @@ function YearPicker({
   year,
   onPrev,
   onNext,
+  canPrev = true,
+  canNext = true,
 }: {
   year: number
   onPrev: () => void
   onNext: () => void
+  canPrev?: boolean
+  canNext?: boolean
 }) {
   return (
     <div
@@ -29,7 +33,13 @@ function YearPicker({
         type="button"
         aria-label="이전 연도"
         onClick={onPrev}
-        className="grid place-items-center w-[20px] h-[20px] rounded-full hover:bg-[var(--background-neutral)]"
+        disabled={!canPrev}
+        className={[
+          'grid place-items-center w-[20px] h-[20px] rounded-full',
+          canPrev
+            ? 'hover:bg-[var(--background-neutral)]'
+            : 'opacity-40 cursor-not-allowed',
+        ].join(' ')}
       >
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
           <path
@@ -41,12 +51,20 @@ function YearPicker({
           />
         </svg>
       </button>
+
       {year}
+
       <button
         type="button"
         aria-label="다음 연도"
         onClick={onNext}
-        className="grid place-items-center w-[20px] h-[20px] rounded-full hover:bg-[var(--background-neutral)]"
+        disabled={!canNext}
+        className={[
+          'grid place-items-center w-[20px] h-[20px] rounded-full',
+          canNext
+            ? 'hover:bg-[var(--background-neutral)]'
+            : 'opacity-40 cursor-not-allowed',
+        ].join(' ')}
       >
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
           <path

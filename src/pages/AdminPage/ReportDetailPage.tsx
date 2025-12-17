@@ -4,6 +4,7 @@ import AdminLayout from './layout/AdminLayout'
 import api from '../../api/api'
 import Modal from '../../components/modals/Modal'
 import { toastSuccess, toastError } from '../../utils/toast'
+import { toReportPostTypePath } from '../../utils/adminReport'
 
 type ReportReasonEnum =
   | 'ADVERTISEMENT'
@@ -74,8 +75,6 @@ export default function ReportReasonDetailPage() {
         setLoading(true)
         setError(null)
 
-        // ✅ API 구조에 맞게:
-        // GET /api/admin/dashboard/reports/{targetId}?targetType=TIP_POST
         const { data } = await api.get<DetailResp>(
           `/api/admin/dashboard/reports/${targetId}`,
           {
@@ -135,11 +134,20 @@ export default function ReportReasonDetailPage() {
 
   const handleActivate = async (): Promise<boolean> => {
     if (!data) return false
+
+    const postTypePath = toReportPostTypePath(data.postType)
+    if (!postTypePath) {
+      toastError(`알 수 없는 게시판 타입입니다: ${data.postType}`)
+      return false
+    }
+
     try {
       setActivating(true)
+
       await api.patch(
-        `/api/admin/report/${data.postType}/posts/${data.targetId}/activate`
+        `/api/admin/report/${postTypePath}/posts/${data.targetId}/activate`
       )
+
       setData((prev) => (prev ? { ...prev, status: 'ACTIVE' } : prev))
       toastSuccess('게시글이 복구되었습니다.')
       return true

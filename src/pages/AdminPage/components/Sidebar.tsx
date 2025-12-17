@@ -1,7 +1,6 @@
 import React, { useState, useMemo, useCallback } from 'react'
 import { NavLink } from 'react-router-dom'
 import Modal from '../../../components/modals/Modal'
-
 import { ReactComponent as DashboardIcon } from '../../../assets/icons/icon-dashboard.svg'
 import { ReactComponent as UserIcon } from '../../../assets/icons/UserManagement.svg'
 import { ReactComponent as ReportIcon } from '../../../assets/icons/ReportManagement.svg'
