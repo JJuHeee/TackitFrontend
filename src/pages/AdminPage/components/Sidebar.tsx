@@ -1,3 +1,9 @@
+/**
+ * 관리자 사이드바 컴포넌트
+ * - 관리자 페이지 네비게이션 메뉴 제공
+ * - 로그아웃 액션 및 확인 모달 처리
+ */
+
 import React, { useState, useMemo, useCallback } from 'react'
 import { NavLink } from 'react-router-dom'
 import Modal from '../../../components/modals/Modal'
@@ -33,7 +39,6 @@ export default function Sidebar() {
   const asideClass = useMemo(
     () =>
       [
-        // 높이 관련 수정 ✅
         'w-[282px] bg-white flex flex-col flex-1 h-full self-stretch',
         'border-[var(--line-normal)]',
         'overflow-x-hidden',

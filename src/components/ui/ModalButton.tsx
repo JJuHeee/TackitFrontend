@@ -2,34 +2,26 @@ import * as React from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
 import clsx from 'clsx'
 
-/**
- * Modal Button Variants
- * primary → 파란색 (확인)
- * ghost   → 흰색 + 회색 보더 (취소)
- */
 const modalButtonVariants = cva(
   `
   inline-flex items-center justify-center font-semibold transition-all select-none
-  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-line-focus focus-visible:ring-offset-2
   disabled:cursor-not-allowed rounded-xl
   `,
   {
     variants: {
       variant: {
         primary: `
-
-         bg-interaction-normal text-label-inverse
-         hover:bg-interaction-hover
-         active:bg-interaction-active
-        disabled:bg-interaction-disable disabled:text-label-disable
+          bg-interaction-normal text-label-inverse
+          hover:bg-interaction-hover
+          active:bg-interaction-active
+          disabled:bg-interaction-disable disabled:text-label-disable
         `,
         ghost: `
           bg-[var(--background-common)]
           border border-[var(--line-normal)]
           text-[var(--label-normal)]
-           hover:bg-gray-50
+          hover:bg-gray-50
           active:text-[var(--interaction-normal)]
-          focus:text-[var(--interaction-normal)] 
           active:border-[var(--line-active)]
           disabled:text-[var(--label-disable)] disabled:border-[var(--line-normal)]
         `,

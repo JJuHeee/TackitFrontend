@@ -19,7 +19,6 @@ import {
 import PostHeader from '../../components/posts/PostHeader'
 import MyInfo from '../MyPage/MyInfo'
 
-/** 상세 화면에서 사용할 정규화된 Post 타입 (Free와 동일 포맷) */
 type Post = {
   id: number
   writer: string
@@ -228,7 +227,7 @@ function QnaPostDetail() {
   const handleSubmitCommentReport = async (p: ReportPayload) => {
     if (p.targetType !== 'COMMENT') return
     try {
-      await api.post('/reports/create', {
+      await api.post('/api/reports/create', {
         targetId: p.targetId,
         targetType: 'QNA_COMMENT', // 'COMMENT'
         reason: p.reason,
@@ -280,7 +279,7 @@ function QnaPostDetail() {
   const handleSubmitPostReport = async (p: ReportPayload) => {
     if (p.targetType !== 'POST') return
     try {
-      await api.post('/reports/create', {
+      await api.post('/api/reports/create', {
         targetId: p.targetId,
         targetType: 'QNA_POST', // 'POST'
         reason: p.reason,
@@ -304,17 +303,22 @@ function QnaPostDetail() {
 
   // 찜 토글
   const handleScrapToggle = async () => {
-    // 1) 먼저 UI를 바로 토글 (색 바로 바뀜)
-    setIsScrapped((prev) => !prev)
-    setPost((prev) => (prev ? { ...prev, scrap: !prev.scrap } : prev))
+    const next = !isScrapped
+
+    // 1) UI 먼저 반영
+    setIsScrapped(next)
+    setPost((prev) => (prev ? { ...prev, scrap: next } : prev))
 
     try {
-      // 2) 서버에 실제 요청
+      // 2) 서버 요청
       await api.post(`/api/qna-posts/${postId}/scrap`)
+
+      // 3) 스크랩된 경우에만 토스트
+      if (next) toastSuccess('게시물이 스크랩되었습니다.')
     } catch {
-      // 3) 실패 시 UI 상태 원복 + 에러만 알림 (필요 없으면 이것도 제거 가능)
-      setIsScrapped((prev) => !prev)
-      setPost((prev) => (prev ? { ...prev, scrap: !prev.scrap } : prev))
+      // 4) 실패 시 원복 + 에러 토스트
+      setIsScrapped(!next)
+      setPost((prev) => (prev ? { ...prev, scrap: !next } : prev))
       toastError('찜 처리에 실패했습니다.')
     }
   }
@@ -399,7 +403,7 @@ function QnaPostDetail() {
                     />
                   )}
 
-                  {/* ✅ NEWBIE이면 입력창 숨김 */}
+                  {/* NEWBIE이면 입력창 숨김 */}
                   {!editCommentId && !isNewbie && (
                     <CommentEditor
                       value={comment}

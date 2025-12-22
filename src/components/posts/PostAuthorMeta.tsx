@@ -1,3 +1,11 @@
+/**
+ * 공용 작성자 메타 정보 컴포넌트
+ *
+ * - 작성자 이름, 프로필 이미지, 역할(신입/선배), 연차, 작성일 표시
+ * - variant에 따라 날짜 포맷 및 타이포 스타일 분기 (default / compact)
+ * - writer가 없을 경우 날짜만 렌더링
+ */
+
 export type Role = 'NEWBIE' | 'SENIOR'
 
 type PostAuthorMetaProps = {
@@ -52,9 +60,9 @@ export default function PostAuthorMeta({
   const years = role === 'SENIOR' ? calcYears(joinedYear) : null
   const roleBadgeSrc =
     role === 'NEWBIE'
-      ? '/icons/icon-newnie.svg'
+      ? '/icons/newbie.svg'
       : role === 'SENIOR'
-      ? '/icons/icon-senior.svg'
+      ? '/icons/senior.svg'
       : null
 
   const nameCls =

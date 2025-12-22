@@ -83,30 +83,3 @@
   font-weight: var(--fw-body1-r);
   opacity: 1;
 }
-
-/* ===== 반응형 (Free와 동일) ===== */
-
-/* 노트북 이하 (≤1280px) */
-@media (max-width: 1280px) {
-  .qnapost-write-container {
-    max-width: 900px;
-    padding: 48px 32px;
-  }
-}
-
-/* 태블릿 이하 (≤1024px) */
-@media (max-width: 1024px) {
-  .qnapost-write-container {
-    max-width: 700px;
-    padding: 40px 24px;
-  }
-}
-
-/* 모바일 (≤768px) */
-@media (max-width: 768px) {
-  .qnapost-write-container {
-    max-width: 100%;
-    width: 100%;
-    padding: 32px 16px;
-  }
-}

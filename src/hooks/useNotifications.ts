@@ -1,4 +1,10 @@
-// src/hooks/useNotifications.ts
+/**
+ * 알림 상태 관리 훅
+ * - 알림 목록 조회 및 읽음 처리
+ * - SSE 기반 실시간 알림 반영
+ * - 로컬 캐시를 이용한 오프라인 폴백 처리
+ */
+
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { fetchNotifications, markNotificationRead } from '../api/notify'
 import type { NotificationItem } from '../types/notification'
@@ -31,7 +37,7 @@ function sortByCreatedDesc(list: NotificationItem[]) {
   return [...list].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
 }
 
-// ✅ 기본 문구 fallback 생성 함수
+// 기본 문구 fallback 생성 함수
 function withFallbackMessage(list: NotificationItem[]): NotificationItem[] {
   return list.map((n) => {
     // message가 비어있거나 null/undefined일 경우 기본값 지정
@@ -64,7 +70,6 @@ export function useNotifications() {
   const abortRef = useRef<AbortController | null>(null)
 
   const apply = useCallback((next: NotificationItem[]) => {
-    // ✅ fallback + 정렬 + 저장을 한 번에
     const normalized = sortByCreatedDesc(withFallbackMessage(next))
     setItems(normalized)
     saveCache(normalized)

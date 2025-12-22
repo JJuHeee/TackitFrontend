@@ -6,7 +6,7 @@ export function forceLogout() {
     localStorage.removeItem('userRole')
 
     // 전체 상태 초기화 겸 강제 이동
-    window.location.replace('/login') // 뒤로가기도 막고 싶으면 replace
+    window.location.replace('/login')
   } catch (e) {
     console.error('logout failed', e)
     window.location.replace('/login')

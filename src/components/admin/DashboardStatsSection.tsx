@@ -1,4 +1,8 @@
-import * as React from 'react'
+/**
+ * 대시보드 지표 요약 섹션
+ * - 가입자, 게시글, DAU/MAU 등 주요 지표를 카드 형태로 표시
+ */
+
 import { SectionTitle } from './SectionTitle'
 import { FixedStatCard } from './FixedStatCard'
 

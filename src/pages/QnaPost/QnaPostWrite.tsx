@@ -9,7 +9,7 @@ import 'react-toastify/dist/ReactToastify.css'
 import RichTextEditor, {
   type RichTextEditorHandle,
 } from '../../components/editor/RichTextEditor'
-import { toastWarn, toastError } from '../../utils/toast'
+import { toastWarn, toastError, toastSuccess } from '../../utils/toast'
 import { PostCreateReq, PostCreateRes } from '../../types/post'
 import { replaceFirstDataUrlImgWithToken } from '../../utils/coverToken'
 
@@ -114,15 +114,18 @@ function QnaPostWrite() {
 
       const form = new FormData()
       if (pickedImage) {
-        form.append('image', pickedImage) // key: image
+        form.append('image', pickedImage)
       }
       form.append(
-        'request', // key: request
-        new Blob([JSON.stringify(payload)], { type: 'application/json' }) // content-type: application/json
+        'request',
+        new Blob([JSON.stringify(payload)], { type: 'application/json' })
       )
 
       const { data } = await api.post<PostCreateRes>('/api/qna-posts', form)
       const newId = (data as any)?.id ?? (data as any)?.postId
+
+      toastSuccess('작성이 완료되었습니다.')
+
       navigate(`/qna/${newId}`, { state: { post: data } })
     } catch (err: any) {
       const msg = err?.response?.data?.message || '글 작성에 실패했습니다.'

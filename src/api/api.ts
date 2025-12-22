@@ -2,7 +2,7 @@ import axios from 'axios'
 import { notificationSSE } from '../services/notificationSSE'
 
 // 1) BASE_URL 안전 기본값
-const BASE_URL = process.env.REACT_APP_API_URL || '/api'
+const BASE_URL = process.env.REACT_APP_API_URL || ''
 
 // 2) 공용 axios 인스턴스
 const api = axios.create({
@@ -137,7 +137,7 @@ api.interceptors.response.use(
     const status = error?.response?.status
     const originalRequest = error?.config
 
-    // ---- ✅ 여기 추가: AUTH_FREE URL은 그냥 통과시켜서 컴포넌트에서 처리 ----
+    // ---- UTH_FREE URL은 그냥 통과시켜서 컴포넌트에서 처리 ----
     const rawUrl =
       typeof originalRequest?.url === 'string' ? originalRequest.url : ''
     const pathname = rawUrl.startsWith('/') ? rawUrl : `/${rawUrl}`
@@ -146,7 +146,6 @@ api.interceptors.response.use(
       // 로그인/회원가입/이메일체크 등은 토큰 재발급/강제 로그아웃 X
       return Promise.reject(error)
     }
-    // -------------------------------------------------------------------
 
     if (
       (status === 401 || status === 403) &&

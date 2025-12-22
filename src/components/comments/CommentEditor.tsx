@@ -1,4 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react'
+/**
+ * 댓글 에디터 컴포넌트
+ * - 댓글 작성 및 수정에 사용되는 RichTextEditor 래퍼
+ * - 접힘/펼침 UI 및 외부 클릭 시 자동 접힘 처리
+ */
+
+import { useEffect, useRef, useState } from 'react'
 import RichTextEditor from '../editor/RichTextEditor'
 import ModalButton from '../ui/ModalButton'
 import { isEditorEmpty } from '../../utils/editor'

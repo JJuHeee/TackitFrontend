@@ -1,13 +1,11 @@
-import React from 'react'
-
+/**
+ * 글쓰기 버튼 (아이콘 18x18, 텍스트 고정)
+ */
 type WriteButtonProps = {
   onClick?: () => void
   disabled?: boolean
 }
 
-/**
- * 글쓰기 버튼 (아이콘 18x18, 텍스트 고정)
- */
 export default function WriteButton({
   onClick,
   disabled = false,

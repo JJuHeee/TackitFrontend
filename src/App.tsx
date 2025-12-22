@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import { useEffect } from 'react'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
 import { notificationSSE } from './services/notificationSSE'
 import LoginPage from './pages/Login/LoginPage'

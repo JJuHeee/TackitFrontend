@@ -9,7 +9,7 @@ import 'react-toastify/dist/ReactToastify.css'
 import RichTextEditor, {
   type RichTextEditorHandle,
 } from '../../components/editor/RichTextEditor'
-import { toastWarn, toastError } from '../../utils/toast'
+import { toastWarn, toastError, toastSuccess } from '../../utils/toast'
 import { PostCreateReq, PostCreateRes } from '../../types/post'
 import { replaceFirstDataUrlImgWithToken } from '../../utils/coverToken'
 
@@ -40,7 +40,6 @@ function TipPostWrite() {
     const fetchTags = async () => {
       setLoadingTags(true)
       try {
-        // ✅ 실제 백엔드 엔드포인트 확인
         const res = await api.get('/api/tip-tags/list')
         const normalized = (res.data ?? []).map((t: any) => ({
           id: Number(t.id),
@@ -126,6 +125,9 @@ function TipPostWrite() {
       )
 
       const { data } = await api.post<PostCreateRes>('/api/tip-posts', form)
+
+      toastSuccess('작성이 완료되었습니다.')
+
       navigate(`/tip/${data.id}`, { state: { post: data } })
     } catch (err: any) {
       const msg = err?.response?.data?.message || '글 작성에 실패했습니다.'

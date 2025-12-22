@@ -72,40 +72,13 @@ function FreePostList() {
 
         setPosts(normalized)
         setTotalPages(Math.max(1, Number(data?.totalPages ?? 1)))
-      } catch {
-        const fallbackResponse = {
-          page: 0,
-          content: [
-            {
-              id: 2,
-              writer: '기본값',
-              title: '요즘 날씨 너무 좋지 않나요?',
-              content: '코스 있으시면 댓글로 알려주세요!...',
-              tags: ['일상', '산책', '추천'],
-              createdAt: '2025-05-26T00:49:09.773772',
-              imageUrl: null,
-            },
-            {
-              id: 1,
-              writer: 'test',
-              title: '프론트엔드 스터디 같이 하실 분!',
-              content:
-                '안녕하세요.\n오늘은 날씨가 정말 좋네요!\n\n내일은 비가 온다고 합니다.',
-              tags: ['스터디', '프론트엔드', 'React', '모집'],
-              createdAt: '2025-05-26T00:47:58.054746',
-              imageUrl: null,
-              profileImageUrl:
-                'https://randomuser.me/api/portraits/women/44.jpg',
-            },
-          ],
-          size: 5,
-          totalElements: 2,
-          totalPages: 1,
-        }
-        setPosts(fallbackResponse.content)
-        setTotalPages(fallbackResponse.totalPages)
+      } catch (err) {
+        console.error('자유게시판 목록 조회 실패:', err)
+        setPosts([])
+        setTotalPages(1)
       }
     }
+
     fetchPosts()
   }, [currentPage, tagId])
 
@@ -142,7 +115,7 @@ function FreePostList() {
                 />
               </div>
 
-              {/* ✅ 글쓰기 버튼 컴포넌트로 교체 */}
+              {/* 글쓰기 버튼 컴포넌트 */}
               <WriteButton onClick={() => navigate('/free/write')} />
             </div>
 

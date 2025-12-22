@@ -1,4 +1,3 @@
-// src/components/auth/AuthResultCard.tsx
 import React from 'react'
 import { AuthCard } from '../ui/AuthCard'
 import { Button } from '../ui/Button'

@@ -1,25 +1,25 @@
+/* reset */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
+/* base */
+html,
+body,
+#root {
+  height: 100%;
+  background-color: #ffffff;
+}
+
 body {
   font-family: 'Noto Sans KR', 'Montserrat', sans-serif;
-  background-color: #ffffff;
   line-height: 1.5;
   color: #111;
 }
 
+/* layout */
 .main-content {
-  padding-top: 120px;
-}
-
-.App {
-  text-align: center;
-}
-
-html, body, #root {
-  background-color: #ffffff;
-  height: 100%;
+  padding-top: 120px; /* 헤더 고정 높이 */
 }

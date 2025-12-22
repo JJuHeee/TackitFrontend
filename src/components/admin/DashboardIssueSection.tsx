@@ -1,3 +1,9 @@
+/**
+ * 대시보드 이슈 요약 섹션
+ * - 탈퇴 계정 및 삭제 게시글/댓글 수 요약 표시
+ * - 관련 관리 페이지로 이동하는 액션 제공
+ */
+
 import * as React from 'react'
 import { SectionTitle } from './SectionTitle'
 import { FixedStatCard } from './FixedStatCard'

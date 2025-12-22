@@ -1,3 +1,9 @@
+/**
+ * 관리자 신고 상세 페이지
+ * - 신고 대상(게시글/댓글) 상세 정보 및 최신 신고 사유 표시
+ * - 조건 충족 시 게시글 복구(활성화) 처리
+ */
+
 import * as React from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import AdminLayout from './layout/AdminLayout'
@@ -47,7 +53,7 @@ function reasonCodeToText(code: string): string {
 }
 
 export default function ReportReasonDetailPage() {
-  // ✅ 라우트: /admin/reports/:targetType/:targetId 에 맞게 파라미터 2개 받기
+  // 라우트: /admin/reports/:targetType/:targetId 에 맞게 파라미터 2개 받기
   const { targetId, targetType } = useParams<{
     targetId: string
     targetType: string

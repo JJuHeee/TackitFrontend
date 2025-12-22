@@ -1,4 +1,3 @@
-// components/navigation/Breadcrumbs.tsx
 import React from 'react'
 import { Link } from 'react-router-dom'
 import clsx from 'clsx'

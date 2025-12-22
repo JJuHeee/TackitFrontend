@@ -1,18 +1,6 @@
 {
   "rewrites": [
     {
-      "source": "/api/api/:path*",
-      "destination": "http://3.39.8.131:8080/api/:path*"
-    },
-    {
-      "source": "/api/auth/:path*",
-      "destination": "http://3.39.8.131:8080/auth/:path*"
-    },
-    {
-      "source": "/api/withdraw",
-      "destination": "http://3.39.8.131:8080/withdraw"
-    },
-    {
       "source": "/api/:path*",
       "destination": "http://3.39.8.131:8080/api/:path*"
     }

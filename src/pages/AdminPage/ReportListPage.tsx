@@ -1,4 +1,11 @@
-import React, { useEffect, useState } from 'react'
+/**
+ * 관리자 신고 현황 페이지
+ * - 신고 접수/비활성화 상태별 신고 목록 조회
+ * - 필터 및 페이지네이션으로 목록 관리
+ * - 신고 상세 페이지로 이동 지원
+ */
+
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import AdminLayout from './layout/AdminLayout'
 import TagChips from '../../components/TagChips'

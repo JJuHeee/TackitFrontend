@@ -1,3 +1,7 @@
+/**
+ * Design System – Tag
+ */
+
 import React from 'react'
 
 type TagBadgeProps = {

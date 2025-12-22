@@ -1,3 +1,8 @@
+/**
+ * event-source-polyfill 라이브러리의 타입 정보를 보강하기 위한 TypeScript 선언 파일
+ * - Authorization 헤더, heartbeatTimeout 등 커스텀 옵션 타입 정의
+ */
+
 declare module 'event-source-polyfill' {
   export interface EventSourcePolyfillInit extends EventSourceInit {
     headers?: Record<string, string>

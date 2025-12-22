@@ -1,3 +1,11 @@
+/**
+ * AuthLayout
+ *
+ * 로그인/회원가입 페이지 공통 레이아웃
+ * 하단 장식(strip)이 콘텐츠를 가리지 않도록
+ * 콘텐츠 길이에 따라 fixed / non-fixed를 전환함
+ */
+
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 
@@ -17,8 +25,8 @@ export default function AuthLayout({
   showCornerLogo = true,
 }: AuthLayoutProps) {
   const strip = icons[0]
-  const rootRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
+  // 하단 장식을 fixed로 깔지 여부 (콘텐츠 길이에 따라 결정)
   const [useFixedStrip, setUseFixedStrip] = useState(true)
 
   const toCssOffset = (v: number | string) =>
@@ -26,6 +34,7 @@ export default function AuthLayout({
       ? `calc(env(safe-area-inset-bottom, 0px) + ${v}px)`
       : `calc(env(safe-area-inset-bottom, 0px) + ${v})`
 
+  // 콘텐츠 길이에 따라 strip을 fixed로 사용해도 되는지 판단
   const recomputeMode = () => {
     const el = contentRef.current
     if (!el) return
@@ -52,7 +61,6 @@ export default function AuthLayout({
 
   return (
     <div
-      ref={rootRef}
       className="relative overflow-x-hidden min-h-dvh bg-gradient-to-b from-white to-background-blue"
       style={{ ['--app-bg' as any]: 'transparent' }}
     >

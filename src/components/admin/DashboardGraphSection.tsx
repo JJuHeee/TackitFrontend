@@ -1,3 +1,9 @@
+/**
+ * 대시보드 월별 추이 그래프 섹션
+ * - 월별 가입자 수 및 MAU 변화를 영역 차트로 시각화
+ * - 연도 선택을 통해 연간 데이터 조회
+ */
+
 import * as React from 'react'
 import {
   AreaChart,

@@ -33,38 +33,6 @@ type ListResp = {
   totalPages: number
 }
 
-const fallbackResponse: ListResp = {
-  page: 0,
-  content: [
-    {
-      postId: 2,
-      writer: '기본값',
-      title: 'React 상태관리 뭐로 할까요?',
-      content: 'Zustand vs Redux Toolkit 고민 중입니다… 경험 공유 부탁드려요!',
-      tags: ['리액트', '상태관리', '질문'],
-      createdAt: '2025-05-26T00:49:09.773772',
-      type: 'Qna',
-      imageUrl: null,
-      profileImageUrl: 'https://randomuser.me/api/portraits/women/44.jpg',
-    },
-    {
-      postId: 1,
-      writer: 'test',
-      title: 'Axios 인터셉터 에러 처리 패턴 질문',
-      content:
-        '팀 컨벤션 정하려는데 응답 스키마/리트라이 처리 어떻게 가져가세요?',
-      tags: ['Axios', '에러처리'],
-      createdAt: '2025-05-26T00:47:58.054746',
-      type: 'Qna',
-      imageUrl: null,
-      profileImageUrl: 'https://randomuser.me/api/portraits/men/32.jpg',
-    },
-  ],
-  size: 5,
-  totalElements: 2,
-  totalPages: 1,
-}
-
 const mapAllToPost = (p: any): Post => ({
   postId: p.postId ?? p.id,
   writer: p.writer ?? '',
@@ -108,7 +76,7 @@ function QnaPostList() {
 
         const res = await api.get<ListResp>(url, {
           params: {
-            page: currentPage - 1, // 서버는 0-base
+            page: currentPage - 1,
             size,
             sort: 'createdAt,desc',
           },
@@ -116,21 +84,22 @@ function QnaPostList() {
 
         const data = res.data
         const contentArr = Array.isArray(data?.content) ? data.content : []
+
         const normalized: Post[] = contentArr.map((item: any) =>
           'postId' in item ? mapByTagToPost(item) : mapAllToPost(item)
         )
 
         setPosts(normalized)
         setTotalPages(Math.max(1, Number(data?.totalPages ?? 1)))
-      } catch {
-        setPosts(
-          (fallbackResponse.content as any[]).map((p) =>
-            'postId' in p ? mapByTagToPost(p) : mapAllToPost(p)
-          )
-        )
-        setTotalPages(Math.max(1, fallbackResponse.totalPages))
+      } catch (error) {
+        console.error('QnA 게시글 조회 실패:', error)
+        setPosts([])
+        setTotalPages(1)
+
+        toast.error('게시글을 불러오지 못했어요.')
       }
     }
+
     fetchPosts()
   }, [currentPage, tagId])
 
@@ -168,7 +137,7 @@ function QnaPostList() {
                   />
                 </div>
 
-                {/* ✅ 글쓰기 버튼 컴포넌트로 교체 */}
+                {/* 글쓰기 버튼 컴포넌트 */}
                 {myInfo?.role === 'NEWBIE' && (
                   <WriteButton onClick={() => navigate('/qna/write')} />
                 )}
@@ -200,7 +169,7 @@ function QnaPostList() {
                       createdAt={post.createdAt}
                       tags={post.tags}
                       imageUrl={post.imageUrl ?? null}
-                      profileImageUrl={post.profileImageUrl ?? null} // ✅ 여기서 최종 전달
+                      profileImageUrl={post.profileImageUrl ?? null}
                       onClick={() => {
                         if (post.postId != null) navigate(`/qna/${post.postId}`)
                         else toast.error('잘못된 게시글 ID입니다.')

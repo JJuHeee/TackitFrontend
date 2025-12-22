@@ -1,3 +1,9 @@
+/**
+ * 게시글 본문에서 커버 이미지 처리를 위한 유틸
+ * - 업로드 전: base64 이미지 → COVER_TOKEN으로 치환
+ * - 조회 시: COVER_TOKEN → 서버 이미지 URL로 복원
+ */
+
 export const COVER_TOKEN = '[[COVER]]'
 
 export function replaceFirstDataUrlImgWithToken(html: string): string {

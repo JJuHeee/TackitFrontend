@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import HomeBar from '../../components/HomeBar'
 import MainFooter from '../../components/layouts/MainFooter'
 import api from '../../api/api'
-import PostRowCompact from '../../components/posts/PostRowCompact'
+import PostCard from '../../components/posts/PostCard'
 import './MainPage.css'
 import PopularPostsSection from './PopularPostsSection'
 import OnboardingModal from '../../components/modals/OnboardingModal'
@@ -109,7 +109,7 @@ export default function MainPage() {
     // 2) 이미 온보딩 본 적 있으면 끝
     if (seen) return
 
-    // 3) ✅ "로그인 → 메인으로 들어온 경우"에만 첫 온보딩 노출
+    // 3) "로그인 → 메인으로 들어온 경우"에만 첫 온보딩 노출
     if (state?.fromLogin) {
       setOpenOnboarding(true)
     }
@@ -117,7 +117,7 @@ export default function MainPage() {
 
   const dismiss = (dontShowAgain: boolean) => {
     if (dontShowAgain) {
-      // ✅ 한 번 본 뒤에는 다시 안 뜨도록 플래그 저장
+      // 한 번 본 뒤에는 다시 안 뜨도록 플래그 저장
       localStorage.setItem(ONBOARD_KEY, '1')
     }
     setOpenOnboarding(false)
@@ -227,7 +227,7 @@ function SectionList({
         </div>
 
         {/* 게시글 리스트 */}
-        <div className="px-[16px]">
+        <div className="px-[28px]">
           {sliced.length === 0 ? (
             <EmptyRow />
           ) : (
@@ -240,23 +240,20 @@ function SectionList({
                   className="block"
                   style={{ textDecoration: 'none' }}
                 >
-                  <PostRowCompact
+                  <PostCard
                     id={p.id}
                     title={p.title}
                     content={p.content}
                     writer={p.writer}
                     createdAt={p.createdAt}
-                    tags={p.tags}
-                    imageUrl={p.imageUrl ?? undefined}
+                    tags={p.tags ?? []}
+                    imageUrl={p.imageUrl ?? null}
                     profileImageUrl={
                       p.profileImageUrl ?? '/icons/mypage-icon.svg'
                     }
-                    previewLines={1}
-                    showTags
-                    showDate
-                    density="compact"
+                    previewLines={1} // 홈은 본문 1줄만
+                    borderColor={isLast ? 'transparent' : 'var(--line-normal)'} // 마지막줄 보더 제거
                     className="bg-white"
-                    isLast={isLast}
                   />
                 </Link>
               )

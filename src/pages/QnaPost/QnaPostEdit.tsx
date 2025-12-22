@@ -17,13 +17,13 @@ import {
 
 type Tag = { id: number; tagName: string }
 
-// QnA 상세 응답(예시)용 타입
+// QnA 상세 응답용 타입
 type QnaPostDetail = {
   postId: number
   writer: string
   title: string
   content: string
-  tags: string[] // 태그명 배열
+  tags: string[]
   createdAt: string
   imageUrl?: string | null
 }

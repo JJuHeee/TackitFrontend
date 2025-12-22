@@ -1,11 +1,15 @@
-// src/hooks/useUserForm.ts
+/**
+ * 사용자 폼 상태 관리 훅
+ * - 입력 값 및 에러 메시지 상태 관리
+ * - 실시간 유효성 검사 및 중복 확인 지원
+ */
+
 import { useState } from 'react'
 import api from '../api/api'
 import type { AxiosError } from 'axios'
 
 type CheckEmailErrorBody = string | { message?: string } | undefined
 
-// ✅ 정규식은 모듈 상단에 (의존성 경고 예방)
 const PASSWORD_REGEX =
   /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_\-+={[\]};:'",.<>/?\\|`~]).{8,}$/
 

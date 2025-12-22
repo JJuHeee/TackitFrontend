@@ -1,3 +1,8 @@
+/**
+ * Tag – Badge List
+ * Tag 디자인 시스템(TagBadge)을 사용해 태그 목록을 구성
+ */
+
 import React, { useEffect, useState } from 'react'
 import TagBadge from './TagBadge'
 

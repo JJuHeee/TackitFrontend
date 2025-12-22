@@ -1,4 +1,10 @@
-import React, { useState, useRef, useEffect } from 'react'
+/**
+ * 게시글 액션(북마크/더보기 메뉴) 컴포넌트
+ * - 작성자: 수정/삭제
+ * - 비작성자: 신고
+ */
+
+import { useState, useRef, useEffect } from 'react'
 import { Bookmark, MoreVertical } from 'lucide-react'
 
 type PostActionsProps = {

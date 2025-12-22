@@ -1,3 +1,9 @@
+/**
+ * 폼 입력 필드 컴포넌트
+ * - 텍스트/이메일/비밀번호 입력 공통 UI
+ * - 유효성 상태, 보조 메시지, 드롭다운 옵션 처리
+ */
+
 import * as React from 'react'
 import { Eye, EyeOff } from 'lucide-react'
 
@@ -30,12 +36,8 @@ type Props = {
   pattern?: string
   disabled?: boolean
   readOnly?: boolean
-
-  /** ✅ 오른쪽 SVG 아이콘(예: /icons/calendar.svg)을 표시하고, 클릭 시 드롭다운 열기 */
   rightIconSrc?: string
-  /** ✅ 드롭다운 옵션(존재하면 아이콘 버튼이 드롭다운 토글을 수행) */
   dropdownOptions?: Option[]
-  /** ✅ 옵션 선택시 추가로 처리하고 싶을 때(선택 값 전달) */
   onSelectOption?: (v: Option) => void
 }
 
@@ -63,9 +65,9 @@ export default function TextField({
   disabled,
   readOnly,
 
-  rightIconSrc, // ✅ 추가
-  dropdownOptions, // ✅ 추가
-  onSelectOption, // ✅ 추가
+  rightIconSrc,
+  dropdownOptions,
+  onSelectOption,
 }: Props) {
   // 비밀번호 보이기/가리기
   const inputType = showToggle ? (visible ? 'text' : 'password') : type
@@ -140,7 +142,6 @@ export default function TextField({
   const count = typeof value === 'string' ? value.length : 0
   const listboxId = id ? `${id}-listbox` : undefined
 
-  // ✅ border 클래스 (항상 border 보이게)
   const borderClasses = invalid
     ? 'border border-line-negative focus:border-line-negative '
     : 'border border-line-normal '
@@ -202,7 +203,7 @@ export default function TextField({
           </button>
         )}
 
-        {/* ✅ 오른쪽 SVG 아이콘 버튼(드롭다운 전용) */}
+        {/* 오른쪽 SVG 아이콘 버튼(드롭다운 전용) */}
         {!showToggle && hasDropdownIcon && (
           <button
             type="button"
@@ -230,7 +231,7 @@ export default function TextField({
           </div>
         )}
 
-        {/* ✅ 드롭다운 */}
+        {/* 드롭다운 */}
         {open && dropdownOptions && dropdownOptions.length > 0 && (
           <ul
             role="listbox"

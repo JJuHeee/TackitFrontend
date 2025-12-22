@@ -9,7 +9,7 @@ import './FreePostWrite.css'
 import RichTextEditor, {
   RichTextEditorHandle,
 } from '../../components/editor/RichTextEditor'
-import { toastWarn, toastError } from '../../utils/toast'
+import { toastWarn, toastError, toastSuccess } from '../../utils/toast'
 import { PostCreateReq, PostCreateRes } from '../../types/post'
 import { replaceFirstDataUrlImgWithToken } from '../../utils/coverToken'
 
@@ -120,6 +120,9 @@ function FreePostWrite() {
       )
 
       const { data } = await api.post<PostCreateRes>('/api/free-posts', form)
+
+      toastSuccess('작성이 완료되었습니다.')
+
       navigate(`/free/${data.id}`, { state: { post: data } })
     } catch (err: any) {
       const msg = err?.response?.data?.message || '글 작성에 실패했습니다.'

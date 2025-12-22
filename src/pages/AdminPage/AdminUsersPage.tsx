@@ -1,10 +1,13 @@
-// src/pages/Admin/UserManagementPage.tsx
+/**
+ * 관리자 회원 관리 페이지
+ * - 회원 목록 조회 및 상태(전체/사용중/탈퇴) 필터링
+ * - 페이지네이션으로 목록 표시
+ */
 import React, { useEffect, useMemo, useState } from 'react'
 import AdminLayout from './layout/AdminLayout'
 import TagChips from '../../components/TagChips'
 import PaginationGroup from '../../components/Pagination'
 import api from '../../api/api'
-import usersFromApi from '../../data/users' // 폴백 (동일 스키마 가정)
 import './AdminUsersPage.css'
 
 type RawUser = {
@@ -50,19 +53,19 @@ export default function UserManagementPage() {
         const res = await api.get<RawUser[]>('/api/admin/members', {
           headers: token ? { Authorization: `Bearer ${token}` } : undefined,
         })
-        const payload = (
-          res.data?.length ? res.data : usersFromApi
-        ) as RawUser[]
-        setUsers(normalize(payload))
-      } catch {
-        setUsers(normalize(usersFromApi as RawUser[]))
+        setUsers(normalize(res.data ?? []))
+      } catch (e) {
+        console.error('회원 목록 조회 실패', e)
+        setUsers([])
       } finally {
         setLoading(false)
       }
     }
-    if (role === 'ADMIN') fetchUsers()
-    else {
-      setUsers(normalize(usersFromApi as RawUser[]))
+
+    if (role === 'ADMIN') {
+      fetchUsers()
+    } else {
+      setUsers([])
       setLoading(false)
     }
   }, [role])

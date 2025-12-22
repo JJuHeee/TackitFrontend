@@ -19,27 +19,29 @@ const slides: Slide[] = [
     desc: (
       <>
         <div className="flex justify-center">
-          <span className="body-2sb text-label-neutral">
-            💡 선배가 알려줘요
+          <span className="text-body-2sb text-label-neutral">
+            💡 선배가 알려줘요:&nbsp;
           </span>
-          <span className="body-2 text-label-neutral">
-            : 선배만 글 작성 (댓글은 없어요!)
-          </span>
-        </div>
-        <div className="flex justify-center">
-          <span className="body-2sb text-label-neutral">
-            💬 신입이 질문해요
-          </span>
-          <span className="body-2 text-label-neutral">
-            : 신입이 글 작성, 선배는 댓글로 답해요
+          <span className="text-body-2 text-label-neutral">
+            선배만 글 작성 (댓글은 없어요!)
           </span>
         </div>
+
         <div className="flex justify-center">
-          <span className="body-2sb text-label-neutral">
-            🗣️ 다같이 얘기해요
+          <span className="text-body-2sb text-label-neutral">
+            💬 신입이 질문해요:&nbsp;
           </span>
-          <span className="body-2 text-label-neutral">
-            : 다같이 글·댓글로 자유롭게 이야기 나눠요
+          <span className="text-body-2 text-label-neutral">
+            신입이 글 작성, 선배는 댓글로 답해요
+          </span>
+        </div>
+
+        <div className="flex justify-center">
+          <span className="text-body-2sb text-label-neutral">
+            🗣️ 다같이 얘기해요:&nbsp;
+          </span>
+          <span className="text-body-2 text-label-neutral">
+            다같이 글·댓글로 자유롭게 이야기 나눠요
           </span>
         </div>
       </>
@@ -78,7 +80,7 @@ export default function OnboardingModal({
     <div className="fixed inset-0 z-[1000] bg-black/40 grid place-items-center">
       <div
         className="
-    relative w-[480px] h-[550px] pt-8
+    relative w-[440px] h-[540px] pt-8
     bg-white rounded-[12px] shadow-[0_4px_16px_rgba(0,0,0,0.08)]
     overflow-hidden
   "
@@ -112,7 +114,7 @@ export default function OnboardingModal({
                 </h2>
 
                 {s.desc && (
-                  <div className="mb-6 text-center text-body-2 text-label-neutral">
+                  <div className="mb-6 text-center whitespace-pre-line text-body-2 text-label-neutral">
                     {s.desc}
                   </div>
                 )}

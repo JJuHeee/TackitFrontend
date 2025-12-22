@@ -22,7 +22,7 @@ type Post = {
   type?: 'Free' | 'Qna' | 'Tip'
   createdAt: string
   imageUrl?: string | null
-  profileImageUrl?: string | null // ✅ 프로필 이미지 필드 추가
+  profileImageUrl?: string | null
 }
 
 type ListResp = {
@@ -31,40 +31,6 @@ type ListResp = {
   size: number
   totalElements: number
   totalPages: number
-}
-
-const fallbackResponse: ListResp = {
-  page: 0,
-  content: [
-    {
-      postId: 2,
-      writer: '기본값',
-      title: '요즘 날씨 너무 좋지 않나요?',
-      content:
-        '코스 있으시면 댓글로 알려주세요!코스 있으시면 댓글로 알려주세요!코스 있으시면 댓글로 알려주세요!',
-      tags: ['일상', '산책', '추천'],
-      createdAt: '2025-05-26T00:49:09.773772',
-      type: 'Tip',
-      imageUrl: null,
-      profileImageUrl: null, // ✅ 테스트용
-    },
-    {
-      postId: 1,
-      writer: 'test',
-      title: '프론트엔드 스터디 같이 하실 분!',
-      content:
-        '안녕하세요.\n오늘은 날씨가 정말 좋네요!\n\n내일은 비가 온다고 합니다.',
-      tags: ['스터디', '프론트엔드', 'React', '모집'],
-      createdAt: '2025-05-26T00:47:58.054746',
-      type: 'Tip',
-      imageUrl:
-        'https://tackit.s3.ap-northeast-2.amazonaws.com/sample-image.jpg',
-      profileImageUrl: 'https://randomuser.me/api/portraits/men/32.jpg',
-    },
-  ],
-  size: 5,
-  totalElements: 2,
-  totalPages: 1,
 }
 
 const mapAllToPost = (p: any): Post => ({
@@ -76,7 +42,7 @@ const mapAllToPost = (p: any): Post => ({
   createdAt: p.createdAt ?? '',
   type: p.type ?? 'Tip',
   imageUrl: p.imageUrl ?? null,
-  profileImageUrl: p.profileImageUrl ?? null, // ✅ API에서 오는 프로필 매핑
+  profileImageUrl: p.profileImageUrl ?? null,
 })
 
 const mapByTagToPost = (p: any): Post => ({
@@ -88,7 +54,7 @@ const mapByTagToPost = (p: any): Post => ({
   createdAt: p.createdAt ?? '',
   type: p.type ?? 'Tip',
   imageUrl: p.imageUrl ?? null,
-  profileImageUrl: p.profileImageUrl ?? null, // ✅ 태그별 응답도 동일
+  profileImageUrl: p.profileImageUrl ?? null,
 })
 
 export default function TipPostList() {
@@ -122,13 +88,12 @@ export default function TipPostList() {
 
         setPosts(normalized)
         setTotalPages(Math.max(1, Number(data?.totalPages ?? 1)))
-      } catch {
-        setPosts(
-          (fallbackResponse.content as any[]).map((p) =>
-            'postId' in p ? mapByTagToPost(p) : mapAllToPost(p)
-          )
-        )
-        setTotalPages(Math.max(1, fallbackResponse.totalPages))
+      } catch (error) {
+        console.error('TIP 게시글 목록 조회 실패:', error)
+
+        setPosts([])
+        setTotalPages(1)
+        toast.error('게시글을 불러오지 못했어요.')
       }
     }
     fetchPosts()
@@ -168,7 +133,7 @@ export default function TipPostList() {
                   />
                 </div>
 
-                {/* ✅ 글쓰기 버튼 컴포넌트로 교체 */}
+                {/* 글쓰기 버튼 컴포넌트 */}
                 {!loading && myInfo?.role === 'SENIOR' && (
                   <WriteButton onClick={() => navigate('/tip/write')} />
                 )}
@@ -200,7 +165,7 @@ export default function TipPostList() {
                       createdAt={post.createdAt}
                       tags={post.tags}
                       imageUrl={post.imageUrl ?? null}
-                      profileImageUrl={post.profileImageUrl ?? null} // ✅ 최종 전달
+                      profileImageUrl={post.profileImageUrl ?? null}
                       onClick={() => {
                         if (post.postId != null) navigate(`/tip/${post.postId}`)
                         else toast.error('잘못된 게시글 ID입니다.')

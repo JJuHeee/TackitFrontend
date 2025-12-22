@@ -1,3 +1,9 @@
+/**
+ * 댓글 아이템 컴포넌트
+ * - 댓글 메타/내용 표시 및 작성자/비작성자 액션(수정,삭제,신고) 제공
+ * - 선택된 댓글은 인라인 편집 모드로 전환해 수정 UI 렌더링
+ */
+
 import React, { useEffect, useState } from 'react'
 import PostAuthorMeta, { type Role } from '../posts/PostAuthorMeta'
 import { sanitizeHtml } from '../../utils/sanitize'

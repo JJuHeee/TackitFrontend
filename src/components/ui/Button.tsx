@@ -1,3 +1,12 @@
+/**
+ * Design System Button
+ *
+ * - Button / Main        → variant="primary",  size="m" (default)
+ * - Button / Outlined / M → variant="outlined", size="outlinedM"
+ * - Button / Outlined / S → variant="outlined", size="outlinedS"
+ *
+ */
+
 import * as React from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
 import clsx from 'clsx'

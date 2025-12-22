@@ -1,4 +1,10 @@
-import React from 'react'
+/**
+ * 게시글 상단 영역(Header)
+ * - 제목
+ * - 작성자 정보
+ * - 게시글 액션(북마크/수정/삭제/신고)
+ */
+
 import PostActions from './PostActions'
 import PostAuthorMeta from './PostAuthorMeta'
 
@@ -6,11 +12,7 @@ type PostHeaderProps = {
   title: string
   writer?: string
   createdAt?: string
-
-  // 추가
   profileImageUrl?: string | null
-
-  // 액션 관련
   isBookmarked?: boolean
   onToggleBookmark?: () => void
 
@@ -28,7 +30,7 @@ export default function PostHeader({
   title,
   writer,
   createdAt,
-  profileImageUrl, // ⭐ 추가
+  profileImageUrl,
   isBookmarked = false,
   onToggleBookmark,
   isAuthor = false,

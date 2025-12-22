@@ -4,7 +4,12 @@ import '../../components/posts/PostDetail.css'
 import HomeBar from '../../components/HomeBar'
 import api from '../../api/api'
 import useFetchUserInfo from '../../hooks/useFetchUserInfo'
-import { toast } from 'react-toastify'
+import {
+  toastSuccess,
+  toastWarn,
+  toastError,
+  toastInfo,
+} from '../../utils/toast'
 import PostHeader from '../../components/posts/PostHeader'
 import ReportModal from '../../components/modals/ReportModal'
 import type { ReportPayload } from '../../components/modals/ReportModal'
@@ -42,7 +47,7 @@ function TipPostDetail() {
         const res = await api.get<any>(`/api/tip-posts/${id}`)
         const item = res.data
         if (!item) {
-          toast.error('게시글을 찾지 못했습니다.')
+          toastWarn('게시글을 찾지 못했습니다.')
           setPost(null)
           return
         }
@@ -63,10 +68,10 @@ function TipPostDetail() {
         setPost(normalized)
         setIsScrapped(!!normalized.scrap)
       } catch {
-        // 더미
+        // 더미 시스템성 안내
         const dummy: Post = {
           id: Number(id) || 0,
-          writer: 'tackit', // 시스템성 안내 느낌
+          writer: 'tackit',
           title: '삭제된 게시글입니다',
           content: `
 <h1>삭제된 게시글입니다</h1>
@@ -107,11 +112,8 @@ function TipPostDetail() {
     if (!confirmed) return
     try {
       await api.delete(`/api/tip-posts/${id}`)
-      toast.success('게시글이 삭제되었습니다.')
       navigate('/tip')
-    } catch {
-      toast.error('게시글 삭제에 실패했습니다.')
-    }
+    } catch {}
   }
 
   const handleReportPost = async (p?: ReportPayload) => {
@@ -121,7 +123,7 @@ function TipPostDetail() {
         alert('신고 사유를 선택해주세요.')
         return
       }
-      await api.post(`/reports/create`, {
+      await api.post(`/api/reports/create`, {
         targetId: Number(id),
         targetType: 'TIP_POST',
         reason: reasonToUse,
@@ -133,34 +135,37 @@ function TipPostDetail() {
         typeof res.data === 'string' ? res.data : res.data?.message
 
       if (message === '게시글을 신고하였습니다.') {
-        toast.success('게시글이 신고되었습니다.')
+        toastSuccess('신고 처리가 완료되었습니다.')
         setShowReportModal(false)
         setReportReason('')
       } else if (message === '이미 신고한 게시글입니다.') {
-        toast.info('이미 신고한 게시글입니다.')
+        toastInfo('이미 신고한 게시글입니다.')
       } else {
-        toast.info(message || '신고가 접수되었습니다.')
+        toastInfo(message || '신고가 접수되었습니다.')
       }
     } catch (err) {
       console.error('게시글 신고 실패:', err)
-      toast.error('신고 처리에 실패했습니다.')
+      toastError('신고 처리에 실패했습니다.')
     }
   }
 
-  // ✅ 알림 없이, 눌렀을 때 바로 색만 바꾸는 낙관적 스크랩 토글
+  //찜 토글
   const handleScrapToggle = async () => {
-    // 1) UI 먼저 토글 (즉시 색 변경)
-    setIsScrapped((prev) => !prev)
-    setPost((prev) => (prev ? { ...prev, scrap: !prev.scrap } : prev))
+    const next = !isScrapped
+
+    setIsScrapped(next)
+    setPost((prev) => (prev ? { ...prev, scrap: next } : prev))
 
     try {
-      // 2) 서버에 실제 요청
       await api.post(`/api/tip-posts/${id}/scrap`)
+
+      if (next) {
+        toastSuccess('게시물이 스크랩되었습니다.')
+      }
     } catch {
-      // 3) 실패 시 상태 롤백 + 에러만 알림
-      setIsScrapped((prev) => !prev)
-      setPost((prev) => (prev ? { ...prev, scrap: !prev.scrap } : prev))
-      toast.error('찜 처리에 실패했습니다.')
+      setIsScrapped(!next)
+      setPost((prev) => (prev ? { ...prev, scrap: !next } : prev))
+      toastError('찜 처리에 실패했습니다.')
     }
   }
 

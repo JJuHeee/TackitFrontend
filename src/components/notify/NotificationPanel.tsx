@@ -1,4 +1,9 @@
-import React from 'react'
+/**
+ * 알림 패널 컴포넌트
+ * - 알림 목록 표시
+ * - 읽음 처리 후 관련 페이지로 이동
+ */
+
 import { useNavigate } from 'react-router-dom'
 import type { NotificationItem } from '../../types/notification'
 import { toAppRoute } from '../../utils/routeMap'
@@ -47,12 +52,12 @@ export default function NotificationPanel({
 
   return (
     <div
-      className="absolute right-0 mt-2 w-[420px] max-h-[75vh] overflow-y-auto rounded-2xl 
+      className="absolute right-0 mt-2 z-50 w-[440px] max-h-[75vh] overflow-y-auto rounded-2xl 
                bg-white shadow-[0_0_16px_rgba(0,0,0,0.08)]"
       role="dialog"
       aria-label="알림 목록"
     >
-      {/* ✅ fallback 처리 */}
+      {/* fallback 처리 */}
       {!hasItems ? (
         <div className="flex flex-col items-center justify-center py-16 text-center text-[var(--label-assistive)]">
           <img
@@ -67,8 +72,9 @@ export default function NotificationPanel({
           {items.map((n) => (
             <li key={n.id}>
               <button
-                className={`w-full text-left p-4 flex gap-2 transition rounded-xl
-${n.read ? 'opacity-80' : 'bg-[var(--background-neutral)]/40 font-medium'}
+                className={`relative w-[440px] h-[116px] text-left
+px-6 py-5 transition 
+${n.read ? 'opacity-80' : 'bg-[var(--background-neutral)]/40'}
 hover:bg-[var(--background-neutral)]`}
                 onClick={async () => {
                   await onReadOne(n.id)
@@ -77,18 +83,26 @@ hover:bg-[var(--background-neutral)]`}
                 }}
               >
                 {!n.read && (
-                  <span className="mt-2 w-2 h-2 rounded-full bg-[var(--primary-500)] shrink-0" />
+                  <span className="absolute left-6 top-7 w-2 h-2 rounded-full bg-[var(--primary-500)]" />
                 )}
-                <div className="flex-1">
+
+                <div className="flex flex-col">
+                  {/* 활동 */}
+                  <div className="text-[var(--label-primary)] text-body-2 font-semibold mb-2">
+                    활동
+                  </div>
+
+                  {/* 알림 멘트: 읽음/안읽음 글씨 굵기 분기 */}
                   <div
-                    className={`text-[15px] leading-6 text-[var(--label-normal)] 
-                              font-[var(--body1-normal-regular)] ${
-                                n.read ? '' : 'font-semibold'
-                              }`}
+                    className={`text-[var(--label-normal)] text-body-1 mb-2 ${
+                      n.read ? 'font-normal' : 'font-semibold'
+                    }`}
                   >
                     {n.message}
                   </div>
-                  <div className="text-xs text-[var(--label-assistive)] mt-1">
+
+                  {/* 날짜 */}
+                  <div className="text-[var(--label-neutral)] text-caption">
                     {formatDateKorean(n.createdAt)}
                   </div>
                 </div>

@@ -1,4 +1,13 @@
-import React, { useEffect, useMemo, useState } from 'react'
+/**
+ * TagChips
+ *
+ * - Chip 컴포넌트를 그룹으로 관리하는 선택 컨트롤
+ * - single / multiple 선택 모드 지원
+ * - API 또는 fallback 데이터 기반 태그 렌더링
+ * - value / onChange를 통한 제어 컴포넌트
+ */
+
+import { useEffect, useMemo, useState } from 'react'
 import Chip from './Chip'
 import api from '../api/api'
 

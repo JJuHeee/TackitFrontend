@@ -1,5 +1,10 @@
-// src/pages/Main/PopularPostsSection.tsx
-import React, { useEffect, useState } from 'react'
+/**
+ * 홈 화면의 인기 게시글 섹션
+ * - 인기 게시글 API를 조회하여 상위 게시글을 가져옴
+ * - 중복 게시글 제거 후 최대 3개만 PopularPostCard로 렌더링
+ */
+
+import { useEffect, useState } from 'react'
 import PopularPostCard, {
   type PopularPost,
 } from '../../components/posts/PopularPostCard'
@@ -18,7 +23,6 @@ type ApiPopularPost = {
   scrapCount: number | null
 }
 
-// ✅ API 응답 → PopularPost 형식으로 변환
 const toPopularPost = (x: ApiPopularPost): PopularPost => ({
   ...x,
   profileImageUrl: x.profileImageUrl ?? undefined,

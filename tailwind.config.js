@@ -6,9 +6,6 @@ module.exports = {
       mobile: '375px', // mobile 기준
       tablet: '768px',
       desktop: '1440px',
-      // 기존 md/lg/xl도 병행하고 싶으면 추가
-      md: '768px',
-      xl: '1280px',
     },
     extend: {
       colors: {

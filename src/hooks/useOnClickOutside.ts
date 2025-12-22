@@ -1,3 +1,5 @@
+// 알림 종 드롭다운 외부 클릭 감지용
+
 import { useEffect } from 'react'
 
 export function useOnClickOutside(

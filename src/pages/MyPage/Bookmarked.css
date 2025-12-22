@@ -1,7 +1,0 @@
-.post-container {
-  max-width: 1100px; /* 중앙 컨텐츠 폭 고정 */
-  margin: 0 auto; /* 가운데 정렬 */
-  padding: 0 20px 40px; /* 좌우 20px, 하단 40px 여백 */
-  box-sizing: border-box;
-}
-  

@@ -1,10 +1,16 @@
-// src/services/notificationSSE.ts
+/**
+ * 인증 토큰 기반 알림 SSE(Service-Sent Events) 연결을 관리하는 서비스 클래스
+ * - 알림/하트비트 이벤트 수신
+ * - 네트워크 오류 시 지수 백오프 재연결
+ * - 토큰 갱신 시 재시작 지원
+ */
+
 import { EventSourcePolyfill } from 'event-source-polyfill'
 
 type Handlers = {
   onMessage?: (data: any) => void
   onHeartbeat?: (data: any) => void
-  onError?: (e: Event) => void // <-- 타입 명시
+  onError?: (e: Event) => void
 }
 
 class NotificationSSE {

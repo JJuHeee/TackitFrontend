@@ -1,44 +1,44 @@
-import { useEffect, useState } from 'react';
-import api from '../api/api';
+import { useEffect, useState } from 'react'
+import api from '../api/api'
 
 const useFetchUserInfo = () => {
   const [userInfo, setUserInfo] = useState({
-    nickname: "기본값",
+    nickname: '기본값',
     joinedYear: 2024,
     yearsOfService: 2,
-  });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  })
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
-        const token = localStorage.getItem('accessToken');
+        const token = localStorage.getItem('accessToken')
 
         // 토큰 없으면 요청 중단
         if (!token) {
-          setError(new Error('토큰 없음'));
-          setLoading(false);
-          return;
+          setError(new Error('토큰 없음'))
+          setLoading(false)
+          return
         }
 
         const response = await api.get('/api/members/me', {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-          setUserInfo(response.data);          
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        setUserInfo(response.data)
       } catch (err) {
-        setError(err);
+        setError(err)
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    fetchUserInfo();
-  }, []);
+    fetchUserInfo()
+  }, [])
 
-  return { userInfo, loading, error };
-};
+  return { userInfo, loading, error }
+}
 
-export default useFetchUserInfo;
+export default useFetchUserInfo

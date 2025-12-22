@@ -6,7 +6,7 @@ import { Button } from '../../components/ui/Button'
 import AuthLayout from '../../components/layouts/AuthLayout'
 import { AuthCard } from '../../components/ui/AuthCard'
 import TextField from '../../components/forms/TextField'
-import RoleSelect, { type Role } from '../../components/forms/RoleSelect'
+import RoleSelect, { type Role } from './RoleSelect'
 import { useUserForm } from '../../hooks/useUserForm'
 
 const JOIN_START_YEAR = 2015

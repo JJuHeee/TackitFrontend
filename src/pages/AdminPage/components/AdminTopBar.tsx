@@ -1,11 +1,10 @@
-import * as React from 'react'
-import { Menu } from 'lucide-react'
+/**
+ * 관리자 상단 바 컴포넌트
+ * - 관리자 레이아웃 상단에 고정되는 헤더 UI
+ * - 알림 및 프로필 아이콘 표시
+ */
 
-type Props = {
-  onMenu?: () => void
-}
-
-export default function AdminTopBar({ onMenu }: Props) {
+export default function AdminTopBar() {
   return (
     <header
       className="
@@ -16,17 +15,6 @@ export default function AdminTopBar({ onMenu }: Props) {
       "
       role="banner"
     >
-      {/* 모바일 메뉴 버튼 */}
-      <div className="pl-3 tablet:hidden">
-        <button
-          aria-label="사이드바 열기"
-          onClick={onMenu}
-          className="inline-flex items-center gap-2 rounded-2xl px-3 py-2 text-sm font-medium hover:bg-[var(--background-neutral)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-300)]"
-        >
-          <Menu className="w-5 h-5" />
-        </button>
-      </div>
-
       {/* 오른쪽 아이콘 영역 */}
       <div className="flex items-center ml-auto">
         {/* 알림 아이콘 */}

@@ -1,5 +1,10 @@
-// components/activities/PostRowCompact.tsx
-import React from 'react'
+/**
+ * PostRowCompact
+ * - 게시글 목록에서 게시글 하나에 해당하는 리스트 아이템을 렌더링하는 재사용 컴포넌트
+ * - Reply 아이콘(내가 쓴 댓글 목록에서 사용), 작성자/날짜/태그, 미리보기, 썸네일, 밀도(density) 등을 옵션으로 제어
+ * - density=compact 인 경우 내부 메타(PostMeta)는 compact variant로 맞춰 렌더링됨
+ */
+
 import { toast } from 'react-toastify'
 import PostMeta from './PostMeta'
 import PostPreview from './PostPreview'
@@ -10,6 +15,7 @@ export type PostRowProps = {
   content: string
   writer?: string
   createdAt?: string
+  variant?: 'default' | 'compact'
   tags?: string[]
   imageUrl?: string | null
   profileImageUrl?: string | null
@@ -25,7 +31,7 @@ export type PostRowProps = {
   previewLines?: number
   thumbnail?: 'auto' | 'none'
   density?: 'comfortable' | 'compact'
-  isLast?: boolean // 마지막 아이템 여부(보더 제거)
+  isLast?: boolean
 }
 
 const ReplyIcon = ({ className = '' }: { className?: string }) => (
@@ -60,6 +66,7 @@ export default function PostRowCompact({
   thumbnail = 'auto',
   density = 'comfortable',
   isLast = false,
+  variant = 'default',
 }: PostRowProps) {
   const handleClick = () => {
     if (id == null) return toast.error('잘못된 게시글 ID입니다.')
@@ -69,6 +76,7 @@ export default function PostRowCompact({
   const containerPadding = density === 'compact' ? 12 : 16
   const gap = density === 'compact' ? 8 : 10
   const showThumb = thumbnail === 'auto' && !!imageUrl
+  const effectiveVariant = density === 'compact' ? 'compact' : 'default'
 
   return (
     <article
@@ -117,6 +125,7 @@ export default function PostRowCompact({
               createdAt={showDate ? createdAt : ''}
               tags={showTags ? tags : []}
               profileImageUrl={profileImageUrl ?? undefined}
+              variant={effectiveVariant}
             />
           )}
         </div>

@@ -1,26 +1,31 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import HomeBar from '../../components/HomeBar'
 import TagChips from '../../components/TagChips'
 import CommentRowCompact from '../../components/posts/CommentRowCompact'
 import PaginationGroup from '../../components/Pagination'
 import api from '../../api/api'
-import './Bookmarked.css'
+import './MyPageContainer.css'
 
 type Tab = 'qna' | 'free'
+type PostType = 'QnA' | 'Free'
 
 type CommentItem = {
   commentId: number
   postId: number
   content: string
   createdAt: string
-  type: 'QnA' | 'Free'
+  type: PostType
 }
 
 type PostSummary = {
   title: string
-  writer: string
 }
+
+const TAB_TAGS: Array<{ id: Tab; name: string }> = [
+  { id: 'qna', name: '신입이 질문해요' },
+  { id: 'free', name: '다같이 얘기해요' },
+]
 
 export default function MyCommentList() {
   const navigate = useNavigate()
@@ -30,76 +35,33 @@ export default function MyCommentList() {
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [loading, setLoading] = useState(false)
-  const [cacheTick, setCacheTick] = useState(0)
 
-  const tabTags = useMemo(
-    () => [
-      { id: 'qna', name: '신입이 질문해요' },
-      { id: 'free', name: '다같이 얘기해요' },
-    ],
-    []
-  )
+  // postId별 제목 캐시
+  const postCache = useRef(new Map<string, PostSummary>())
+  // 캐시가 갱신되면 렌더를 다시 한번 일으키기 위한 tick
+  const [cacheTick, setCacheTick] = useState(0)
 
   const size = 5
   const sortOrder = 'desc'
-  const postCache = useRef(new Map<string, PostSummary>())
-  const keyOf = (t: string, id: number) => `${t}:${id}`
-
-  const fallbackData = useMemo(
-    () => ({
-      qna: {
-        content: [
-          {
-            commentId: 101,
-            postId: 1,
-            content: '이 질문 정말 도움이 되었어요!',
-            createdAt: '2025-05-25T12:10:00',
-            type: 'QnA' as const,
-          },
-          {
-            commentId: 102,
-            postId: 2,
-            content: '저도 같은 고민이에요 😥',
-            createdAt: '2025-05-26T08:40:00',
-            type: 'QnA' as const,
-          },
-        ],
-        totalPages: 1,
-      },
-      free: {
-        content: [
-          {
-            commentId: 201,
-            postId: 3,
-            content: '자유게시판 너무 재밌어요!',
-            createdAt: '2025-05-27T10:30:00',
-            type: 'Free' as const,
-          },
-        ],
-        totalPages: 1,
-      },
-    }),
-    []
-  )
+  const keyOf = (t: PostType, id: number) => `${t}:${id}`
 
   async function fetchPostSummary(
-    type: string,
+    type: PostType,
     id: number
   ): Promise<PostSummary> {
     const url =
       type === 'QnA' ? `/api/qna-posts/${id}` : `/api/free-posts/${id}`
     const { data } = await api.get(url)
-    return {
-      title: data.title ?? '(제목 없음)',
-      writer: data.writer ?? '',
-    }
+    return { title: data.title ?? '(제목 없음)' }
   }
 
   useEffect(() => {
     let mounted = true
+
     ;(async () => {
       try {
         setLoading(true)
+
         const endpoint =
           activeTab === 'free'
             ? `/api/mypage/free-comments?page=${
@@ -116,10 +78,10 @@ export default function MyCommentList() {
         setComments(list)
         setTotalPages(res.data?.totalPages ?? 1)
 
-        // ✅ post 요약 캐싱
         const missing = list.filter(
           (c) => !postCache.current.has(keyOf(c.type, c.postId))
         )
+
         if (missing.length) {
           await Promise.all(
             missing.map(async (c) => {
@@ -129,42 +91,31 @@ export default function MyCommentList() {
               } catch {
                 postCache.current.set(keyOf(c.type, c.postId), {
                   title: `(게시글 #${c.postId})`,
-                  writer: '',
                 })
               }
             })
           )
           if (mounted) setCacheTick((t) => t + 1)
         }
-      } catch (err: any) {
-        // ✅ 서버 응답 실패 (예: 503 등) → fallback 사용
+      } catch (err) {
         if (!mounted) return
-        console.warn('⚠️ 서버 오류 발생, fallback 데이터 사용', err)
-        const fb = fallbackData[activeTab]
-        setComments(fb.content)
-        setTotalPages(fb.totalPages)
+        setComments([])
+        setTotalPages(1)
       } finally {
         if (mounted) setLoading(false)
       }
     })()
+
     return () => {
       mounted = false
     }
-  }, [activeTab, currentPage, fallbackData])
+  }, [activeTab, currentPage])
 
   const onChangeTab = (next: string | number) => {
     const key = String(next) as Tab
     if (key === activeTab) return
     setActiveTab(key)
     setCurrentPage(1)
-  }
-
-  const fmtDate = (iso: string) => {
-    const d = new Date(iso)
-    return `${d.getFullYear()}. ${String(d.getMonth() + 1).padStart(
-      2,
-      '0'
-    )}. ${String(d.getDate()).padStart(2, '0')}`
   }
 
   const empty = !loading && comments.length === 0
@@ -174,7 +125,7 @@ export default function MyCommentList() {
       <HomeBar />
       <main className="pt-[60px] pb-8">
         <div className="post-container">
-          {/* ✅ 브레드크럼 */}
+          {/* 브레드크럼 */}
           <div className="mb-[32px] flex items-center space-x-[6px]">
             <span
               onClick={() => navigate('/mypage')}
@@ -203,19 +154,19 @@ export default function MyCommentList() {
             </span>
           </div>
 
-          {/* ✅ 탭 */}
+          {/* 탭 */}
           <TagChips
             endpoint="/__ignore__"
             mode="single"
             includeAllItem={false}
             value={activeTab}
             onChange={onChangeTab}
-            fallbackTags={tabTags}
+            fallbackTags={TAB_TAGS}
             className="ml-[20px] mb-6"
             gapPx={8}
           />
 
-          {/* ✅ 댓글 목록 */}
+          {/* 댓글 목록 */}
           <section aria-live="polite" className="ml-[20px] mt-6">
             {loading ? (
               <div className="py-10 text-label-assistive">불러오는 중...</div>
@@ -232,7 +183,10 @@ export default function MyCommentList() {
               </div>
             ) : (
               comments.map((c) => {
-                void cacheTick
+                // cacheTick은 "캐시 채워진 뒤 재렌더" 트리거용
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                const _ = cacheTick
+
                 const s = postCache.current.get(keyOf(c.type, c.postId))
                 return (
                   <CommentRowCompact
@@ -254,7 +208,7 @@ export default function MyCommentList() {
             )}
           </section>
 
-          {/* ✅ 페이지네이션 */}
+          {/* 페이지네이션 */}
           <div className="ml-[20px] mt-8 mb-8 flex justify-center">
             <PaginationGroup
               currentPage={currentPage}

@@ -1,4 +1,3 @@
-// src/pages/MyPage/EditInfoPage.tsx
 import React, { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../../api/api'
@@ -134,8 +133,8 @@ function EditInfoForm({ myInfo }: { myInfo: MyInfoData }) {
   const navigate = useNavigate()
   const {
     email,
-    password, // 새 비밀번호
-    confirmPassword, // 새 비밀번호 확인
+    password,
+    confirmPassword,
     nickname,
     organization,
     setEmail,
@@ -278,10 +277,8 @@ function EditInfoForm({ myInfo }: { myInfo: MyInfoData }) {
         setCurrentPassword('')
         setPassword('')
         setConfirmPassword('')
-        // 필요 시 navigate('/login')
       } catch (err) {
-        console.error('비밀번호 변경 실패:', err)
-        toastError('비밀번호 변경 중 문제가 발생했습니다.')
+        toastError('현재 비밀번호를 다시 확인해 주세요.')
       }
     }
   }

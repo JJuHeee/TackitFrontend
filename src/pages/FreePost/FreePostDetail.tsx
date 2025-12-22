@@ -89,7 +89,7 @@ function FreePostDetail() {
     const fetchPost = async () => {
       try {
         setLoading(true)
-        const res = await api.get(`free-posts/${id}`)
+        const res = await api.get(`/api/free-posts/${id}`)
         const raw = res?.data
         const picked = Array.isArray(raw?.content)
           ? raw.content[0]
@@ -157,13 +157,11 @@ function FreePostDetail() {
   useEffect(() => {
     const fetchComments = async () => {
       try {
-        const res = await api.get(`free-comments/${id}`)
+        const res = await api.get(`/api/free-comments/${id}`)
         setComments(normalizeComments(res.data))
       } catch {
         // 에러 시 더미 폴백 없이 빈 배열만 유지
         setComments([])
-        // 필요하면 토스트만 띄우기
-        // toastError('댓글을 불러오지 못했습니다.')
       }
     }
 
@@ -191,7 +189,9 @@ function FreePostDetail() {
       return toastWarn('댓글은 최대 250자까지 작성할 수 있어요.')
 
     try {
-      const res = await api.patch(`free-comments/${id}`, { content: trimmed })
+      const res = await api.patch(`/api/free-comments/${id}`, {
+        content: trimmed,
+      })
       const updated = res.data
 
       setComments((prev) =>
@@ -217,7 +217,7 @@ function FreePostDetail() {
   // 댓글 삭제
   const handleDeleteComment = async (commentId: number) => {
     try {
-      await api.delete(`free-comments/${commentId}`)
+      await api.delete(`/api/free-comments/${commentId}`)
       setComments((prev) => prev.filter((c) => c.id !== commentId))
       toastSuccess('댓글이 삭제되었습니다.')
     } catch {
@@ -231,7 +231,7 @@ function FreePostDetail() {
     setShowCommentReportModal(true)
   }
 
-  // ✅ 댓글 등록(신규)만 담당
+  // 댓글 등록
   const handleCommentSubmit = async () => {
     const trimmed = comment.trim()
     if (!trimmed) return toastWarn('댓글을 입력해주세요.')
@@ -239,7 +239,7 @@ function FreePostDetail() {
       return toastWarn('댓글은 최대 250자까지 작성할 수 있어요.')
 
     try {
-      const res = await api.post('free-comments', {
+      const res = await api.post('/api/free-comments', {
         freePostId: postIdNumber,
         content: trimmed,
       })
@@ -257,7 +257,7 @@ function FreePostDetail() {
     if (!confirmed) return
 
     try {
-      await api.delete(`/free-posts/${id}`)
+      await api.delete(`/api/free-posts/${id}`)
       toastSuccess('게시글이 삭제되었습니다.')
       navigate('/free')
     } catch {
@@ -269,12 +269,12 @@ function FreePostDetail() {
   const handleSubmitPostReport = async (p: ReportPayload) => {
     if (p.targetType !== 'POST') return
     try {
-      await api.post(`/reports/create`, {
+      await api.post(`/api/reports/create`, {
         targetId: p.targetId,
         targetType: 'FREE_POST', // 'POST'
         reason: p.reason,
       })
-      const res = await api.post(`/free-posts/${id}/report`)
+      const res = await api.post(`/api/free-posts/${id}/report`)
       const message =
         typeof res.data === 'string' ? res.data : res.data?.message
       if (message === '게시글을 신고하였습니다.')
@@ -292,12 +292,12 @@ function FreePostDetail() {
   const handleSubmitCommentReport = async (p: ReportPayload) => {
     if (p.targetType !== 'COMMENT') return
     try {
-      await api.post(`/reports/create`, {
+      await api.post(`/api/reports/create`, {
         targetId: p.targetId,
         targetType: 'FREE_COMMENT',
         reason: p.reason,
       })
-      await api.post(`free-comments/${p.targetId}/report`)
+      await api.post(`/api/free-comments/${p.targetId}/report`)
       toastSuccess('신고처리가 완료되었습니다.')
       setShowCommentReportModal(false)
       setReportingCommentId(null)
@@ -305,19 +305,21 @@ function FreePostDetail() {
       toastError('댓글 신고 처리에 실패했습니다.')
     }
   }
-
+  // 찜하기
   const handleScrapToggle = async () => {
-    setIsScrapped((prev) => !prev)
-    setPost((prevPost) =>
-      prevPost ? { ...prevPost, scrap: !prevPost.scrap } : prevPost
-    )
+    const next = !isScrapped
+
+    setIsScrapped(next)
+    setPost((prevPost) => (prevPost ? { ...prevPost, scrap: next } : prevPost))
 
     try {
-      await api.post(`/free-posts/${id}/scrap`)
+      await api.post(`/api/free-posts/${id}/scrap`)
+
+      if (next) toastSuccess('게시물이 스크랩되었습니다.')
     } catch (err: any) {
-      setIsScrapped((prev) => !prev)
+      setIsScrapped(!next)
       setPost((prevPost) =>
-        prevPost ? { ...prevPost, scrap: !prevPost.scrap } : prevPost
+        prevPost ? { ...prevPost, scrap: !next } : prevPost
       )
 
       const status = err?.response?.status

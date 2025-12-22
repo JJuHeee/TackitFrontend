@@ -1,3 +1,8 @@
+/**
+ * 통계 카드 UI 컴포넌트
+ * - 대시보드 지표 표시용 카드
+ */
+
 import * as React from 'react'
 
 type Props = {

@@ -54,7 +54,7 @@
       "last 1 safari version"
     ]
   },
-  "proxy": "https://api.tackit.site",
+  "proxy": "http://3.39.8.131:8080",
   "devDependencies": {
     "@tailwindcss/line-clamp": "^0.4.4",
     "@types/node": "^24.5.2",

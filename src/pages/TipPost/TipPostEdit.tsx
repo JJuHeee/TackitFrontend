@@ -1,4 +1,3 @@
-// src/pages/tip/TipPostEdit.tsx
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import HomeBar from '../../components/HomeBar'

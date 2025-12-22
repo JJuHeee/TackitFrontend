@@ -1,25 +1,24 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import HomeBar from '../../components/HomeBar'
 import TagChips from '../../components/TagChips'
-import PostRowCompact from '../../components/posts/PostRowCompact'
+import { Link } from 'react-router-dom'
+import PostCard from '../../components/posts/PostCard'
 import PaginationGroup from '../../components/Pagination'
 import api from '../../api/api'
-import './Bookmarked.css'
+import './MyPageContainer.css'
 
 type Tab = 'tip' | 'qna' | 'free'
 
 type TipItem = {
   id: number
   title: string
-  content?: string
   contentPreview?: string
   writer: string
   createdAt: string
   imageUrl?: string | null
   tags?: string[]
   profileImageUrl?: string | null
-  type?: string
 }
 
 type FreeItem = {
@@ -32,7 +31,6 @@ type FreeItem = {
   imageUrl?: string | null
   tags?: string[]
   profileImageUrl?: string | null
-  type?: string
 }
 
 type QnaItem = {
@@ -45,7 +43,6 @@ type QnaItem = {
   imageUrl?: string | null
   tags?: string[]
   profileImageUrl?: string | null
-  type?: string
 }
 
 type Row = {
@@ -59,6 +56,12 @@ type Row = {
   profileImageUrl?: string | null
 }
 
+const TAB_TAGS: Array<{ id: Tab; name: string }> = [
+  { id: 'tip', name: '선배가 알려줘요' },
+  { id: 'qna', name: '신입이 질문해요' },
+  { id: 'free', name: '다같이 얘기해요' },
+]
+
 export default function MyPostList() {
   const navigate = useNavigate()
 
@@ -68,63 +71,9 @@ export default function MyPostList() {
   const [totalPages, setTotalPages] = useState(1)
   const [loading, setLoading] = useState(false)
 
-  const tabTags = useMemo(
-    () => [
-      { id: 'tip', name: '선배가 알려줘요' },
-      { id: 'qna', name: '신입이 질문해요' },
-      { id: 'free', name: '다같이 얘기해요' },
-    ],
-    []
-  )
-
-  const fallbackData = useMemo(
-    () => ({
-      tip: {
-        content: [
-          {
-            id: 1,
-            title: '신입사원을 위한 회사생활 꿀팁',
-            contentPreview: '첫 직장에 입사하면…',
-            writer: '선배로부터',
-            createdAt: '2025-05-26T16:55:22.233909',
-            tags: ['인수인계'],
-          },
-        ] as TipItem[],
-        totalPages: 1,
-      },
-      free: {
-        content: [
-          {
-            id: 2,
-            title: '자유 게시글 예시',
-            contentPreview: '자유롭게 소통하는 공간…',
-            writer: '홍길동',
-            createdAt: '2025-05-27T22:27:15.846678',
-            tags: ['잡담'],
-            profileImageUrl: 'https://randomuser.me/api/portraits/women/44.jpg',
-          },
-        ] as FreeItem[],
-        totalPages: 1,
-      },
-      qna: {
-        content: [
-          {
-            postId: 3,
-            title: '실수했을 때 대처법이 궁금해요',
-            contentPreview: '업무 중 실수가 발생했다면…',
-            writer: 'newbie01',
-            createdAt: '2025-05-27T20:24:20.359041',
-            tags: ['질문'],
-          },
-        ] as QnaItem[],
-        totalPages: 1,
-      },
-    }),
-    []
-  )
-
   useEffect(() => {
     let mounted = true
+
     ;(async () => {
       try {
         setLoading(true)
@@ -155,11 +104,9 @@ export default function MyPostList() {
         setPosts(res.data?.content ?? [])
         setTotalPages(res.data?.totalPages ?? 1)
       } catch (err) {
-        console.warn('⚠️ 내가 쓴 글 목록 API 실패, fallback 사용', err)
         if (!mounted) return
-        const fb = fallbackData[activeTab]
-        setPosts(fb.content)
-        setTotalPages(fb.totalPages)
+        setPosts([])
+        setTotalPages(1)
       } finally {
         if (mounted) setLoading(false)
       }
@@ -168,7 +115,7 @@ export default function MyPostList() {
     return () => {
       mounted = false
     }
-  }, [activeTab, currentPage, fallbackData])
+  }, [activeTab, currentPage])
 
   const onChangeTab = (next: string | number) => {
     const key = String(next) as Tab
@@ -183,8 +130,8 @@ export default function MyPostList() {
     return `/qna/${id}`
   }
 
-  const mapToRow = (p: TipItem | FreeItem | QnaItem): Row => {
-    if (activeTab === 'tip') {
+  const mapToRow = (tab: Tab, p: TipItem | FreeItem | QnaItem): Row => {
+    if (tab === 'tip') {
       const t = p as TipItem
       return {
         id: t.id,
@@ -197,12 +144,13 @@ export default function MyPostList() {
         profileImageUrl: t.profileImageUrl ?? null,
       }
     }
-    if (activeTab === 'free') {
+
+    if (tab === 'free') {
       const f = p as FreeItem
       return {
         id: f.id,
         title: f.title,
-        content: (f.content ?? f.contentPreview ?? '') as string,
+        content: f.content ?? f.contentPreview ?? '',
         writer: f.writer,
         createdAt: f.createdAt,
         tags: f.tags ?? [],
@@ -210,11 +158,12 @@ export default function MyPostList() {
         profileImageUrl: f.profileImageUrl ?? null,
       }
     }
+
     const q = p as QnaItem
     return {
       id: q.postId,
       title: q.title,
-      content: (q.content ?? q.contentPreview ?? '') as string,
+      content: q.content ?? q.contentPreview ?? '',
       writer: q.writer,
       createdAt: q.createdAt,
       tags: q.tags ?? [],
@@ -267,7 +216,7 @@ export default function MyPostList() {
             includeAllItem={false}
             value={activeTab}
             onChange={onChangeTab}
-            fallbackTags={tabTags}
+            fallbackTags={TAB_TAGS}
             className="ml-[20px] mb-6"
             gapPx={8}
           />
@@ -289,23 +238,35 @@ export default function MyPostList() {
               </div>
             ) : (
               posts.map((raw, idx) => {
-                const row = mapToRow(raw)
+                const row = mapToRow(activeTab, raw)
+                const isLast = idx === posts.length - 1
+                const detailPath = toDetailPath(activeTab, row.id)
+
                 return (
-                  <PostRowCompact
-                    key={`${row.id}-${idx}`}
-                    id={row.id}
-                    title={row.title}
-                    content={row.content}
-                    writer={row.writer}
-                    createdAt={row.createdAt}
-                    tags={row.tags}
-                    imageUrl={row.imageUrl}
-                    profileImageUrl={row.profileImageUrl}
-                    showReplyIcon={false}
-                    density="comfortable"
-                    onClick={() => navigate(toDetailPath(activeTab, row.id))}
-                    className="mb-4"
-                  />
+                  <Link
+                    key={`${activeTab}-${row.id}-${idx}`}
+                    to={detailPath}
+                    className="block"
+                    style={{ textDecoration: 'none' }}
+                  >
+                    <PostCard
+                      id={row.id}
+                      title={row.title}
+                      content={row.content}
+                      writer={row.writer}
+                      createdAt={row.createdAt}
+                      tags={row.tags}
+                      imageUrl={row.imageUrl}
+                      profileImageUrl={
+                        row.profileImageUrl ?? '/icons/mypage-icon.svg'
+                      }
+                      previewLines={1} // 1줄
+                      borderColor={
+                        isLast ? 'transparent' : 'var(--line-normal)'
+                      } // 마지막 보더 제거
+                      className="bg-white"
+                    />
+                  </Link>
                 )
               })
             )}

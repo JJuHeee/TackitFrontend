@@ -1,4 +1,10 @@
-// src/components/posts/PopularPostCard.tsx
+/**
+ * 인기 게시글 랭킹 카드 컴포넌트
+ *
+ * - 제목 1줄, 본문 2줄 요약 표시
+ * - 랭킹 순위 및 작성자 메타 정보 표시
+ */
+
 import PostAuthorMeta from './PostAuthorMeta'
 import { useNavigate } from 'react-router-dom'
 
@@ -40,6 +46,8 @@ export default function PopularPostCard({
 }) {
   const navigate = useNavigate()
   const badge = TYPE_BADGE[post.type] ?? { label: '자유롭게 얘기해요' }
+  const content = (post.content ?? '').replace(/\r\n/g, '\n')
+  const contentLines = content.split('\n')
 
   const handleClick = () => {
     const boardPath = typeToPath(post.type)
@@ -102,16 +110,23 @@ export default function PopularPostCard({
 
       {/* 본문 요약 */}
       <p
-        className="text-body-1 text-[var(--label-neutral)] mb-[12px]"
-        style={{
-          display: '-webkit-box',
-          WebkitBoxOrient: 'vertical',
-          WebkitLineClamp: 2,
-          overflow: 'hidden',
-        }}
-        title={post.content}
+        className="
+    text-body-1 text-[var(--label-neutral)] mb-[12px]
+    overflow-hidden
+    [display:-webkit-box]
+    [-webkit-box-orient:vertical]
+    [-webkit-line-clamp:2]
+    leading-[1.5]
+    min-h-[3em]
+  "
+        title={content}
       >
-        {post.content}
+        {contentLines.map((line, i) => (
+          <span key={i}>
+            {line}
+            {i < contentLines.length - 1 && <br />}
+          </span>
+        ))}
       </p>
 
       {/* 작성자/날짜 */}
@@ -119,6 +134,7 @@ export default function PopularPostCard({
         writer={post.writer}
         createdAt={post.createdAt}
         profileImageUrl={post.profileImageUrl ?? undefined}
+        variant="compact"
       />
     </div>
   )

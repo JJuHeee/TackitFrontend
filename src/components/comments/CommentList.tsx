@@ -1,5 +1,9 @@
-// src/components/comments/CommentList.tsx
-import React from 'react'
+/**
+ * 댓글 목록 컴포넌트
+ * - 댓글을 시간순으로 정렬해 리스트로 렌더링
+ * - CommentItem에 수정/삭제/신고 액션 콜백 전달
+ */
+
 import CommentItem, { CommentModel } from './CommentItem'
 
 type CommentListProps = {

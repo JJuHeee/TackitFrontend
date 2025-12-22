@@ -1,12 +1,12 @@
-// src/pages/MyPage/Bookmarked.tsx
-import React, { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import HomeBar from '../../components/HomeBar'
 import TagChips from '../../components/TagChips'
-import PostRowCompact from '../../components/posts/PostRowCompact'
+import { Link } from 'react-router-dom'
+import PostCard from '../../components/posts/PostCard'
 import PaginationGroup from '../../components/Pagination'
 import api from '../../api/api'
-import './Bookmarked.css'
+import './MyPageContainer.css'
 
 type Tab = 'tip' | 'qna' | 'free'
 
@@ -20,6 +20,7 @@ type TipItem = {
   tags?: string[]
   profileImageUrl?: string | null
 }
+
 type FreeItem = {
   freeId: number
   title: string
@@ -31,6 +32,7 @@ type FreeItem = {
   tags?: string[]
   profileImageUrl?: string | null
 }
+
 type QnaItem = {
   postId: number
   title: string
@@ -43,6 +45,8 @@ type QnaItem = {
   profileImageUrl?: string | null
 }
 
+type AnyItem = TipItem | FreeItem | QnaItem
+
 type Row = {
   id: number
   title: string
@@ -54,79 +58,70 @@ type Row = {
   profileImageUrl?: string | null
 }
 
+const TAB_TAGS = [
+  { id: 'tip', name: '선배가 알려줘요' },
+  { id: 'qna', name: '신입이 질문해요' },
+  { id: 'free', name: '다같이 얘기해요' },
+] as const
+
+const toRow = (p: AnyItem): Row => {
+  if ('tipId' in p) {
+    return {
+      id: p.tipId,
+      title: p.title,
+      content: p.contentPreview ?? '',
+      writer: p.writer,
+      createdAt: p.createdAt,
+      tags: p.tags ?? [],
+      imageUrl: p.imageUrl ?? null,
+      profileImageUrl: p.profileImageUrl ?? null,
+    }
+  }
+
+  if ('freeId' in p) {
+    return {
+      id: p.freeId,
+      title: p.title,
+      content: p.content ?? p.contentPreview ?? '',
+      writer: p.writer,
+      createdAt: p.createdAt,
+      tags: p.tags ?? [],
+      imageUrl: p.imageUrl ?? null,
+      profileImageUrl: p.profileImageUrl ?? null,
+    }
+  }
+
+  return {
+    id: p.postId,
+    title: p.title,
+    content: p.content ?? p.contentPreview ?? '',
+    writer: p.writer,
+    createdAt: p.createdAt,
+    tags: p.tags ?? [],
+    imageUrl: p.imageUrl ?? null,
+    profileImageUrl: p.profileImageUrl ?? null,
+  }
+}
+
 export default function Bookmarked() {
   const navigate = useNavigate()
 
   const [activeTab, setActiveTab] = useState<Tab>('tip')
-  const [posts, setPosts] = useState<Array<TipItem | FreeItem | QnaItem>>([])
+  const [posts, setPosts] = useState<AnyItem[]>([])
   const [currentPage, setCurrentPage] = useState(1) // 1-base
   const [totalPages, setTotalPages] = useState(1)
 
-  const tabTags = useMemo(
-    () => [
-      { id: 'tip', name: '선배가 알려줘요' },
-      { id: 'qna', name: '신입이 질문해요' },
-      { id: 'free', name: '다같이 얘기해요' },
-    ],
-    []
-  )
-
-  type Fallback = {
-    tip: { content: TipItem[]; totalPages: number }
-    free: { content: FreeItem[]; totalPages: number }
-    qna: { content: QnaItem[]; totalPages: number }
-  }
-
-  const fallbackData: Fallback = useMemo(
-    () => ({
-      tip: {
-        content: [
-          {
-            tipId: 1,
-            title: '신입사원을 위한 회사생활 꿀팁',
-            contentPreview: '첫 직장에 입사하면…',
-            writer: '선배로부터',
-            createdAt: '2025-05-26T16:55:22.233909',
-            tags: ['인수인계'],
-          },
-        ],
-        totalPages: 1,
-      },
-      free: {
-        content: [
-          {
-            freeId: 2,
-            title: '자유 게시글 예시',
-            contentPreview: '자유롭게 소통하는 공간…',
-            writer: '홍길동',
-            createdAt: '2025-05-27T22:27:15.846678',
-            tags: ['잡담'],
-          },
-        ],
-        totalPages: 1,
-      },
-      qna: {
-        content: [
-          {
-            postId: 3,
-            title: '실수했을 때 대처법이 궁금해요',
-            contentPreview: '업무 중 실수가 발생했다면…',
-            writer: 'newbie01',
-            createdAt: '2025-05-27T20:24:20.359041',
-            tags: ['질문'],
-            profileImageUrl: 'https://randomuser.me/api/portraits/women/44.jpg',
-          },
-        ],
-        totalPages: 1,
-      },
-    }),
-    []
-  )
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     let mounted = true
+
     ;(async () => {
       try {
+        setLoading(true)
+        setError(null)
+
         const pageParam = currentPage - 1 // 서버 0-base
         const url =
           activeTab === 'tip'
@@ -137,19 +132,24 @@ export default function Bookmarked() {
 
         const res = await api.get(url)
         if (!mounted) return
+
         setPosts(res.data.content ?? [])
         setTotalPages(res.data.totalPages ?? 1)
       } catch {
         if (!mounted) return
-        const fb = fallbackData[activeTab]
-        setPosts(fb.content as Array<TipItem | FreeItem | QnaItem>)
-        setTotalPages(fb.totalPages)
+        setPosts([])
+        setTotalPages(1)
+        setError('스크랩 목록을 불러오지 못했어요. 잠시 후 다시 시도해주세요.')
+      } finally {
+        if (!mounted) return
+        setLoading(false)
       }
     })()
+
     return () => {
       mounted = false
     }
-  }, [activeTab, currentPage, fallbackData])
+  }, [activeTab, currentPage])
 
   const onChangeTab = (next: string | number) => {
     const key = String(next) as Tab
@@ -158,57 +158,12 @@ export default function Bookmarked() {
     setCurrentPage(1)
   }
 
-  const openDetail = (id: number) => {
-    const path =
-      activeTab === 'tip' ? 'tip' : activeTab === 'free' ? 'free' : 'qna'
-    navigate(`/${path}/${id}`)
-  }
-
-  const mapToRow = (p: TipItem | FreeItem | QnaItem): Row => {
-    if (activeTab === 'tip') {
-      const t = p as TipItem
-      return {
-        id: t.tipId,
-        title: t.title,
-        content: t.contentPreview ?? '',
-        writer: t.writer,
-        createdAt: t.createdAt,
-        tags: t.tags ?? [],
-        imageUrl: t.imageUrl ?? null,
-        profileImageUrl: t.profileImageUrl ?? null,
-      }
-    }
-    if (activeTab === 'free') {
-      const f = p as FreeItem
-      return {
-        id: f.freeId,
-        title: f.title,
-        content: (f.content ?? f.contentPreview ?? '') as string,
-        writer: f.writer,
-        createdAt: f.createdAt,
-        tags: f.tags ?? [],
-        imageUrl: f.imageUrl ?? null,
-        profileImageUrl: f.profileImageUrl ?? null,
-      }
-    }
-    const q = p as QnaItem
-    return {
-      id: q.postId,
-      title: q.title,
-      content: (q.content ?? q.contentPreview ?? '') as string,
-      writer: q.writer,
-      createdAt: q.createdAt,
-      tags: q.tags ?? [],
-      imageUrl: q.imageUrl ?? null,
-      profileImageUrl: q.profileImageUrl ?? null,
-    }
-  }
-
   return (
     <>
       <HomeBar />
       <main className="pt-[60px] pb-8">
         <div className="post-container">
+          {/* 브레드크럼  : 마이페이지 > 내 활동 > 스크랩 */}
           <div className="mb-[32px] flex items-center space-x-[6px]">
             <span
               onClick={() => navigate('/mypage')}
@@ -243,14 +198,26 @@ export default function Bookmarked() {
             includeAllItem={false}
             value={activeTab}
             onChange={onChangeTab}
-            fallbackTags={tabTags}
-            className="ml-[20px] mb-6" /* 32px */
+            fallbackTags={TAB_TAGS as any}
+            className="ml-[20px] mb-6"
             gapPx={8}
           />
 
-          {/* 리스트: 태그와 같은 시작선(ml-20), 태그 아래 여백 24px */}
           <section aria-live="polite" className="ml-[20px] mt-6">
-            {!posts || posts.length === 0 ? (
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                <p className="text-body-1sb text-label-normal">불러오는 중…</p>
+              </div>
+            ) : error ? (
+              <div className="flex flex-col items-center justify-center py-20 text-center no-result">
+                <img
+                  src="/icons/empty.svg"
+                  alt="오류"
+                  className="w-20 h-20 mb-4"
+                />
+                <p className="text-body-1sb text-label-normal">{error}</p>
+              </div>
+            ) : posts.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-center no-result">
                 <img
                   src="/icons/empty.svg"
@@ -262,30 +229,42 @@ export default function Bookmarked() {
                 </p>
               </div>
             ) : (
-              posts.map((raw, idx) => {
-                const row = mapToRow(raw)
+              posts.map((raw, index) => {
+                const row = toRow(raw)
+                const isLast = index === posts.length - 1
+
+                const detailPath = `/${activeTab}/${row.id}`
+
                 return (
-                  <PostRowCompact
-                    key={`${row.id}-${idx}`}
-                    id={row.id}
-                    title={row.title}
-                    content={row.content}
-                    writer={row.writer}
-                    createdAt={row.createdAt}
-                    tags={row.tags}
-                    imageUrl={row.imageUrl ?? null}
-                    profileImageUrl={row.profileImageUrl}
-                    showReplyIcon={false}
-                    density="comfortable"
-                    onClick={() => openDetail(row.id)}
-                    className="mb-4"
-                  />
+                  <Link
+                    key={row.id}
+                    to={detailPath}
+                    className="block"
+                    style={{ textDecoration: 'none' }}
+                  >
+                    <PostCard
+                      id={row.id}
+                      title={row.title}
+                      content={row.content}
+                      writer={row.writer}
+                      createdAt={row.createdAt}
+                      tags={row.tags}
+                      imageUrl={row.imageUrl}
+                      profileImageUrl={
+                        row.profileImageUrl ?? '/icons/mypage-icon.svg'
+                      }
+                      previewLines={1}
+                      borderColor={
+                        isLast ? 'transparent' : 'var(--line-normal)'
+                      }
+                      className="bg-white"
+                    />
+                  </Link>
                 )
               })
             )}
           </section>
 
-          {/* 페이지네이션도 같은 정렬 유지 */}
           <div className="ml-[20px] mt-8 mb-8 flex justify-center">
             <PaginationGroup
               currentPage={currentPage}

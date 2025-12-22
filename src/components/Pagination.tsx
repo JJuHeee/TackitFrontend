@@ -1,5 +1,3 @@
-import React from 'react'
-
 type Props = {
   currentPage: number // 1-base
   totalPages: number

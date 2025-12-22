@@ -1,4 +1,3 @@
-// src/pages/auth/LoginPage.tsx
 import React, { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Eye, EyeOff } from 'lucide-react'
@@ -6,7 +5,6 @@ import api from '../../api/api'
 import AuthLayout from '../../components/layouts/AuthLayout'
 import { AuthCard } from '../../components/ui/AuthCard'
 import { Button } from '../../components/ui/Button'
-import { toastInfo } from '../../utils/toast'
 
 type AuthResponse = {
   accessToken: string
@@ -118,7 +116,7 @@ export default function LoginPage(): JSX.Element {
       icons={['/assets/auth/auth-icon.svg']}
       iconOffset={80}
     >
-      <AuthCard className="w-[440px] translate-y-12 md:translate-y-20 lg:translate-y-28">
+      <AuthCard className="w-full max-w-[440px] translate-y-12 md:translate-y-20 lg:translate-y-28">
         <div className="mt-[12px] mb-8 flex items-center justify-center">
           <img src="/logo.svg" alt="Tackit" className="h-[48px]" />
         </div>

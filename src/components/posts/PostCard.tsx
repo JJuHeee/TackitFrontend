@@ -1,4 +1,10 @@
-import React from 'react'
+/**
+ * 게시글 카드 컴포넌트(게시판 리스트에서 사용됨)
+ * - 제목 + 본문 미리보기 + (옵션) 썸네일
+ * - 하단에 작성자/날짜/태그 메타 정보 표시
+ * - 클릭 시 상세 페이지로 이동
+ */
+
 import { toast } from 'react-toastify'
 import PostMeta from './PostMeta'
 import PostPreview from './PostPreview'
@@ -10,11 +16,13 @@ type PostCardProps = {
   writer: string
   createdAt: string
   tags: string[]
-  onClick?: () => void
-  className?: string
-  borderColor?: string
   imageUrl?: string | null
   profileImageUrl?: string | null
+  className?: string
+  borderColor?: string
+  onClick?: () => void
+
+  previewLines?: 1 | 2 // 본문 줄 수
 }
 
 export default function PostCard({
@@ -29,6 +37,7 @@ export default function PostCard({
   borderColor = 'var(--line-normal)',
   imageUrl = null,
   profileImageUrl = null,
+  previewLines = 2, // 기본은 본문 2줄
 }: PostCardProps) {
   const handleClick = () => {
     if (id == null) return toast.error('잘못된 게시글 ID입니다.')
@@ -67,12 +76,21 @@ export default function PostCard({
             gap: 6,
           }}
         >
-          <h3 className="text-title-1 text-label-normal" style={{ margin: 0 }}>
+          <h3
+            className="text-title-1 text-label-normal"
+            style={{
+              margin: 0,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
             {title ?? '(제목 없음)'}
           </h3>
           <PostPreview
             content={content}
             className="text-body-1 text-label-neutral"
+            lines={previewLines}
           />
         </div>
 

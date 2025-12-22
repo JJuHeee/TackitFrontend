@@ -1,3 +1,9 @@
+/**
+ * 알림 벨 컴포넌트
+ * - 알림 종 아이콘 클릭 시 알림 패널 토글
+ * - 외부 클릭 시 패널 닫힘 처리
+ */
+
 import React, { useRef, useState, useEffect } from 'react'
 import { useNotifications } from '../../hooks/useNotifications'
 import NotificationPanel from './NotificationPanel'

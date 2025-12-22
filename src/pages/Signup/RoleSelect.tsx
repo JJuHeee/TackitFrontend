@@ -1,5 +1,11 @@
+/**
+ * 회원가입 역할 선택 컴포넌트
+ *
+ * - 신입 / 선배 역할을 선택하는 UI
+ */
+
 import * as React from 'react'
-import { Button } from '../ui/Button'
+import { Button } from '../../components/ui/Button'
 
 export type Role = 'NEWBIE' | 'SENIOR'
 type Props = {
@@ -57,20 +63,23 @@ export default function RoleSelect({
           variant="outlined"
           size="outlinedM"
           onClick={() => onChange('NEWBIE')}
-          className={
-            value === 'NEWBIE' ? '!border-line-active !text-label-primary' : ''
-          }
+          className={`
+    w-[190px] h-[48px]
+    ${value === 'NEWBIE' ? '!border-line-active !text-label-primary' : ''}
+  `}
         >
           신입
         </Button>
+
         <Button
           type="button"
           variant="outlined"
           size="outlinedM"
           onClick={() => onChange('SENIOR')}
-          className={
-            value === 'SENIOR' ? '!border-line-active !text-label-primary' : ''
-          }
+          className={`
+    w-[190px] h-[48px]
+    ${value === 'SENIOR' ? '!border-line-active !text-label-primary' : ''}
+  `}
         >
           선배
         </Button>
