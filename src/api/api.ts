@@ -2,7 +2,7 @@ import axios from 'axios'
 import { notificationSSE } from '../services/notificationSSE'
 
 // 1) BASE_URL 안전 기본값
-const BASE_URL = process.env.REACT_APP_API_URL || ''
+const BASE_URL = process.env.REACT_APP_API_URL || '/api'
 
 // 2) 공용 axios 인스턴스
 const api = axios.create({
